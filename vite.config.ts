@@ -8,9 +8,16 @@ import react from '@vitejs/plugin-react'
 // build (Capacitor, docs/APP.md) sets VITE_BASE=./ so assets load from the
 // bundled files.
 
+// The build id open tabs compare against version.json (src/lib/version.ts).
+// In CI it is "<commit>.<run number>": the run number makes a re-deploy of
+// the SAME commit (e.g. after changing a repo Variable, which changes the
+// bundle) a new build too. 'dev' disables auto-update — the deploy workflow
+// fails if a production build ever ends up with it.
 function getBuildHash(): string {
   try {
-    return execSync('git rev-parse --short HEAD').toString().trim()
+    const commit = execSync('git rev-parse --short HEAD').toString().trim()
+    const run = process.env.GITHUB_RUN_NUMBER
+    return run ? `${commit}.${run}` : commit
   } catch {
     return 'dev'
   }

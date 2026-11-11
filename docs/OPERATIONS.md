@@ -34,6 +34,11 @@ baked into the bundle at build time:
 After changing a Variable, re-run the deploy workflow (Actions → deploy → Run
 workflow).
 
+Open tabs pick up a new deploy by themselves within about five minutes, or
+the next time the tab is focused (docs/PLAN.md §Auto-update). To confirm what
+is live: `curl https://wardcrazy01894.github.io/WhereHePlay/version.json`
+should print the short hash of `main`.
+
 ## API worker
 
 Deployed **by hand** with wrangler; it never deploys from CI.
