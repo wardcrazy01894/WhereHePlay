@@ -2,21 +2,22 @@
 
 ## What runs where, and what it costs
 
-| Piece          | Where                              | Cost |
-| -------------- | ---------------------------------- | ---- |
-| Site           | GitHub Pages (public repo)         | $0   |
-| CI / deploy    | GitHub Actions (public repo)       | $0   |
-| API + database | Cloudflare Workers Free + D1 Free  | $0   |
-| Photos         | hotlinked (league CDNs, Wikimedia) | $0   |
-| Domain         | optional, ~$10–15/yr for a .com    | —    |
+| Piece          | Where                                  | Cost    |
+| -------------- | -------------------------------------- | ------- |
+| Site           | GitHub Pages (public repo)             | $0      |
+| CI / deploy    | GitHub Actions (public repo)           | $0      |
+| API + database | Cloudflare Workers Free + D1 Free      | $0      |
+| Photos         | hotlinked (league CDNs, Wikimedia)     | $0      |
+| Domain         | whereheplay.com (Cloudflare Registrar) | ~$10/yr |
 
 Free-tier headroom: Workers Free allows 100,000 requests/day and D1 Free 5 GB
 and 5 million row reads/day; a finished daily is two or three requests.
 
 ## Live site
 
-https://wardcrazy01894.github.io/WhereHePlay/ — `.github/workflows/deploy.yml`
-builds and publishes on every push to `main`.
+**https://whereheplay.com/** — `.github/workflows/deploy.yml` builds and
+publishes on every push to `main`. The old address,
+https://wardcrazy01894.github.io/WhereHePlay/, redirects there.
 
 If the first deploy fails at "Configure Pages" with _Resource not accessible
 by integration_, enable Pages once and re-run the job:
@@ -36,7 +37,7 @@ workflow).
 
 Open tabs pick up a new deploy by themselves within about five minutes, or
 the next time the tab is focused (docs/PLAN.md §Auto-update). To confirm what
-is live: `curl https://wardcrazy01894.github.io/WhereHePlay/version.json`
+is live: `curl https://whereheplay.com/version.json`
 should print the short hash of `main`.
 
 ## API worker
@@ -97,12 +98,26 @@ npx wrangler d1 execute whp-api --remote -c worker/wrangler.toml \
 
 ## Custom domain
 
-1. Buy the domain, point DNS at GitHub Pages, set it in the repo's Pages
-   settings, add `public/CNAME`.
-2. `vite.config.ts`: default `base` → `'/'`.
-3. Add the new origins to the worker's `ALLOWED_ORIGIN` and redeploy it
-   **first**, or the leaderboard breaks at cutover.
-4. Update the README, this file and the profile README link.
+**whereheplay.com**, cut over on 2026-11-11.
+
+- **Registrar + DNS:** Cloudflare (the same account as the worker). Records,
+  all **DNS only** (grey cloud — GitHub must terminate TLS to issue its
+  certificate): four apex `A` records to GitHub Pages
+  (`185.199.108.153`, `.109.153`, `.110.153`, `.111.153`) and
+  `CNAME www → wardcrazy01894.github.io`.
+- **GitHub Pages:** custom domain set on the repo (Settings → Pages, or
+  `gh api -X PUT repos/wardcrazy01894/WhereHePlay/pages -f cname=whereheplay.com`),
+  HTTPS enforced once the certificate is issued. `public/CNAME` carries the
+  domain in every build. `www` redirects to the apex.
+- **Site:** `vite.config.ts` `base` is `'/'`.
+- **Worker:** `ALLOWED_ORIGIN` lists `https://whereheplay.com` and
+  `https://www.whereheplay.com` (plus the old github.io origin). It has to be
+  deployed with the new origins **before** the site moves, or the
+  leaderboard, accounts and bug reports are refused there.
+
+Side effect of any domain move: browser storage is per address, so streaks,
+the saved name and the sign-in on the old address do not carry over. People
+with an account just sign in again; anonymous streaks restart.
 
 ## Repo settings
 

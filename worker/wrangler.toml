@@ -10,10 +10,12 @@ compatibility_date = "2025-11-01"
 # Repo that in-app bug reports are filed in.
 GH_REPO = "wardcrazy01894/WhereHePlay"
 # Comma-separated allowed browser origins (the worker rejects others).
-# localhost entries are for `npm run dev` against `npm run worker:dev`;
+# whereheplay.com is the live site; the github.io origin is the old address
+# (it redirects; kept for tabs still open there). localhost entries are for
+# `npm run dev` against `npm run worker:dev`;
 # capacitor://localhost + https://localhost are the native app shells
 # (docs/APP.md).
-ALLOWED_ORIGIN = "https://wardcrazy01894.github.io,http://localhost:5173,http://localhost:4173,capacitor://localhost,https://localhost"
+ALLOWED_ORIGIN = "https://whereheplay.com,https://www.whereheplay.com,https://wardcrazy01894.github.io,http://localhost:5173,http://localhost:4173,capacitor://localhost,https://localhost"
 
 # --- D1 database -------------------------------------------------------------
 # Created 2026-11-11 with `npx wrangler d1 create whp-api` (the id is not a secret).
