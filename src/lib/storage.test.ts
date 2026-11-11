@@ -125,6 +125,11 @@ describe('images', () => {
       'https://a.espncdn.com/i/headshots/nfl/players/full/5209.png',
     )
   })
+  it('an "espn:" key on an NBA player points at ESPN\'s NBA headshots', () => {
+    expect(headshotUrl({ ...p, l: 'nba', h: 'espn:3202' })).toBe(
+      'https://a.espncdn.com/i/headshots/nba/players/full/3202.png',
+    )
+  })
   it('a "clubs:" key points at the NFL clubs image server', () => {
     expect(
       headshotUrl({ ...p, h: 'clubs:private/w_480/buccaneers/abc.jpg' }),

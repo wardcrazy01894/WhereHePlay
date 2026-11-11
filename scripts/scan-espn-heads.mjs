@@ -1,9 +1,14 @@
 /**
- * For NFL players whose league "headshot" is the generic placeholder
- * (data/nfl-placeholder-heads.json), look for a real one on ESPN's image
- * server, keyed by the ESPN id that nflverse carries. ESPN answers 404 when
- * it has none. Writes data/nfl-espn-heads.json: { "<nfl image key>": "<espn id>" }
- * (committed). build-players then uses the ESPN headshot for those players.
+ * For players whose league "headshot" is not one, look for a real headshot on
+ * ESPN's image server (it answers 404 when it has none):
+ *  - NFL: the generic placeholders (data/nfl-placeholder-heads.json) and the
+ *    hand-kept list of league images that are action cut-outs or the wrong
+ *    person (data/nfl-not-headshots.json), by the ESPN id nflverse carries
+ *    → data/nfl-espn-heads.json: { "<nfl image key>": "<espn id>" }
+ *  - NBA: the grey silhouettes (data/nba-placeholder-heads.json), by the ESPN
+ *    id from Wikidata (data/raw/wd_nba_espn.csv, P3685)
+ *    → data/nba-espn-heads.json: { "<NBA.com id>": "<espn id>" }
+ * Both outputs are committed and cumulative; build-players uses them.
  * `npm run scan-espn-heads`.
  */
 import { readFile, writeFile } from 'node:fs/promises'
@@ -12,45 +17,87 @@ import { nflHeadKey } from './lib/players.mjs'
 
 const root = new URL('../', import.meta.url)
 const read = (p) => readFile(new URL(p, root), 'utf8')
-const placeholders = new Set(
-  JSON.parse(await read('data/nfl-placeholder-heads.json')),
-)
-const outUrl = new URL('data/nfl-espn-heads.json', root)
-const found = JSON.parse(
-  await read('data/nfl-espn-heads.json').catch(() => '{}'),
-)
-
-const todo = parseCsv(await read('data/raw/nfl_players.csv'))
-  .map((p) => ({ key: nflHeadKey(p.headshot), espn: p.espn_id }))
-  .filter(
-    (p) => placeholders.has(p.key) && /^\d+$/.test(p.espn) && !(p.key in found),
-  )
-
-let failed = 0
-let missing = 0
-async function worker() {
-  for (let p = todo.pop(); p; p = todo.pop()) {
-    try {
-      const res = await fetch(
-        `https://a.espncdn.com/i/headshots/nfl/players/full/${p.espn}.png`,
-        { method: 'HEAD' },
-      )
-      if (
-        res.ok &&
-        (res.headers.get('content-type') ?? '').startsWith('image/')
-      )
-        found[p.key] = p.espn
-      else if (res.status === 404) missing++
-      else failed++
-    } catch {
-      failed++
-    }
+const json = async (p, fallback) => {
+  try {
+    return JSON.parse(await read(p))
+  } catch {
+    return fallback
   }
 }
-await Promise.all(Array.from({ length: 6 }, worker))
-const sorted = Object.fromEntries(Object.entries(found).sort())
-await writeFile(outUrl, JSON.stringify(sorted, null, 2) + '\n')
-console.log(
-  `${placeholders.size} placeholder players: ${Object.keys(found).length} have an ESPN headshot, ${missing} do not, ${failed} failed`,
+const withoutNotes = (o) => Object.keys(o).filter((k) => !k.startsWith('_'))
+
+const nflWanted = new Set([
+  ...(await json('data/nfl-placeholder-heads.json', [])),
+  ...withoutNotes(await json('data/nfl-not-headshots.json', {})),
+])
+const nbaWanted = new Set(await json('data/nba-placeholder-heads.json', []))
+// bbref id → ESPN id, then NBA.com id → ESPN id through the base table.
+const espnByBbref = new Map(
+  parseCsv(await read('data/raw/wd_nba_espn.csv').catch(() => 'bbref,espn\n'))
+    .filter((r) => /^\d+$/.test(r.espn))
+    .map((r) => [r.bbref, r.espn]),
 )
-if (failed) process.exitCode = 1
+
+const LEAGUES = [
+  {
+    name: 'NFL',
+    sport: 'nfl',
+    out: 'data/nfl-espn-heads.json',
+    wanted: nflWanted,
+    rows: parseCsv(await read('data/raw/nfl_players.csv')).map((p) => ({
+      key: nflHeadKey(p.headshot),
+      espn: p.espn_id,
+    })),
+  },
+  {
+    name: 'NBA',
+    sport: 'nba',
+    out: 'data/nba-espn-heads.json',
+    wanted: nbaWanted,
+    rows: parseCsv(await read('data/raw/wd_nba.csv')).map((b) => ({
+      key: b.nbaid,
+      espn: espnByBbref.get(b.bbref) ?? '',
+    })),
+  },
+]
+
+let anyFailed = false
+for (const league of LEAGUES) {
+  const found = await json(league.out, {})
+  const todo = league.rows.filter(
+    (p) =>
+      league.wanted.has(p.key) && /^\d+$/.test(p.espn) && !(p.key in found),
+  )
+  let failed = 0
+  let missing = 0
+  async function worker() {
+    for (let p = todo.pop(); p; p = todo.pop()) {
+      try {
+        const res = await fetch(
+          `https://a.espncdn.com/i/headshots/${league.sport}/players/full/${p.espn}.png`,
+          { method: 'HEAD' },
+        )
+        if (
+          res.ok &&
+          (res.headers.get('content-type') ?? '').startsWith('image/')
+        )
+          found[p.key] = p.espn
+        else if (res.status === 404) missing++
+        else failed++
+      } catch {
+        failed++
+      }
+    }
+  }
+  await Promise.all(Array.from({ length: 6 }, worker))
+  const sorted = Object.fromEntries(Object.entries(found).sort())
+  await writeFile(
+    new URL(league.out, root),
+    JSON.stringify(sorted, null, 2) + '\n',
+  )
+  console.log(
+    `${league.name}: ${league.wanted.size} players without a real league headshot: ${Object.keys(found).length} have an ESPN one, ${missing} do not, ${failed} failed`,
+  )
+  if (failed) anyFailed = true
+}
+if (anyFailed) process.exitCode = 1

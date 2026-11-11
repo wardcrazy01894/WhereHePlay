@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { photoFlag, photoYear } from './photos.mjs'
+import { applyBlocklist, photoFlag, photoYear } from './photos.mjs'
 
 const iowaState = {
   name: 'Iowa State',
@@ -161,5 +161,39 @@ describe('photoFlag refinements', () => {
         { year: 2012, schools: [kansas] },
       ),
     ).toBe('')
+  })
+})
+
+describe('applyBlocklist', () => {
+  const lists = {
+    manual: ['College.jpg'],
+    auto: ['AutoCollege.jpg', 'Cleared.jpg'],
+    allow: ['Cleared.jpg'],
+    notPlaying: ['Suit.jpg'],
+  }
+  const rec = (head, file) => ({ head, action: file ? `ab/${file}` : '' })
+  it('a college photo is never used, even when it is his only photo', () => {
+    const only = rec('', 'College.jpg')
+    const auto = rec('h', 'AutoCollege.jpg')
+    expect(applyBlocklist([only, auto], lists)).toBe(2)
+    expect(only.action).toBe('')
+    expect(auto.action).toBe('')
+  })
+  it('an allowed photo survives the automatic list', () => {
+    const r = rec('h', 'Cleared.jpg')
+    expect(applyBlocklist([r], lists)).toBe(0)
+    expect(r.action).toBe('ab/Cleared.jpg')
+  })
+  it('a photo that does not show him playing goes — unless it is all there is of him', () => {
+    const withHead = rec('h', 'Suit.jpg')
+    const lastPhoto = rec('', 'Suit.jpg')
+    expect(applyBlocklist([withHead, lastPhoto], lists)).toBe(1)
+    expect(withHead.action).toBe('')
+    // A portrait is a poor "in action" photo, but better than dropping him.
+    expect(lastPhoto.action).toBe('ab/Suit.jpg')
+  })
+  it('tolerates a list file without the newer keys', () => {
+    const r = rec('h', 'Suit.jpg')
+    expect(applyBlocklist([r], { manual: [], auto: [] })).toBe(0)
   })
 })

@@ -216,6 +216,25 @@ describe('players', () => {
     expect(run({})).toEqual([])
   })
 
+  it("NFL: a league image that is not a headshot gives way to ESPN's, but stays when ESPN has none", () => {
+    // Hall of Famers get an action cut-out (or, once, his father's photo)
+    // under the headshot URL: data/nfl-not-headshots.json lists those.
+    const key = 'private/f_auto,q_auto/league/abc'
+    const run = (espn) =>
+      nflCandidates(
+        [nflRow({})],
+        [],
+        [wdRow('GuyTe00', 20)],
+        match,
+        new Set(),
+        espn,
+        new Set([key]),
+      ).records
+    expect(run({ [key]: '964' })[0].head).toBe('espn:964')
+    // Unlike a placeholder, the league image is still a photo of him.
+    expect(run({})[0].head).toBe(key)
+  })
+
   it('commonsPath turns a file name into its storage path', () => {
     expect(commonsPath('Tom Brady 2021.png')).toBe('cb/Tom_Brady_2021.png')
     expect(commonsPath('Logo.svg')).toBe('')
@@ -308,6 +327,28 @@ describe('players', () => {
       head: '201142',
       lastPro: 2026,
     })
+
+    // NBA.com serves a grey silhouette for many retired players
+    // (data/nba-placeholder-heads.json): ESPN's headshot stands in…
+    const heads = (espn, img = '') =>
+      nbaCandidates(
+        base.map((b) => ({ ...b, img })),
+        teams,
+        match,
+        2026,
+        [],
+        { placeholders: new Set(['201142']), espn },
+      ).records
+    expect(heads({ 201142: '3202' })[0].head).toBe('espn:3202')
+    // …or the Wikimedia photo alone…
+    const photo =
+      'http://commons.wikimedia.org/wiki/Special:FilePath/Kevin%20Durant.jpg'
+    expect(heads({}, photo)[0]).toMatchObject({
+      head: '',
+      action: expect.stringContaining('Kevin_Durant.jpg'),
+    })
+    // …and with neither there is nothing to show: he cannot be asked.
+    expect(heads({})).toEqual([])
   })
 
   it('NBA: a listed preps-to-pros player is admitted with the High School answer', () => {

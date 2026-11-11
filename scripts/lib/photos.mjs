@@ -66,6 +66,37 @@ export function photoFlag(photo, who) {
   return ''
 }
 
+/**
+ * Clear the in-uniform photo of every record whose photo is on the blocklist
+ * (data/photo-blocklist.json) and return how many were cleared.
+ *  - `manual` + `auto`, minus `allow`: photos in COLLEGE gear. They give the
+ *    answer away, so they go even when they are the player's only photo.
+ *  - `notPlaying`: photos that do not show him playing for an NBA/NFL team
+ *    (a suit, a press conference, a national-team or overseas-club shirt).
+ *    Those are only a poor "in action" photo, so one is kept when the player
+ *    has no headshot — better a portrait than dropping him from the game.
+ * @param records  [{ head, action: "<xy>/<File_name>" | '' }], mutated
+ */
+export function applyBlocklist(records, lists) {
+  const allowed = new Set(lists.allow ?? [])
+  const college = new Set(
+    [...(lists.manual ?? []), ...(lists.auto ?? [])].filter(
+      (f) => !allowed.has(f),
+    ),
+  )
+  const notPlaying = new Set(lists.notPlaying ?? [])
+  let cleared = 0
+  for (const r of records) {
+    if (!r.action) continue
+    const file = r.action.slice(r.action.indexOf('/') + 1)
+    if (college.has(file) || (notPlaying.has(file) && r.head)) {
+      r.action = ''
+      cleared++
+    }
+  }
+  return cleared
+}
+
 /** School names that are also NFL/NBA cities or states used in team names. */
 export const PRO_PLACES = new Set([
   'Miami',

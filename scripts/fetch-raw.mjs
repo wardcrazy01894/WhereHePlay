@@ -3,7 +3,8 @@
  * `npm run fetch-raw` — then `npm run build-players`. Sources (docs/DATA.md):
  *   - nflverse-data releases (players, draft_picks): CC-BY 4.0
  *   - Wikidata Query Service (CC0): NBA players by Basketball-Reference id
- *     (P2685) with team history (P54), NFL fame/photo by PFR id (P3561)
+ *     (P2685) with team history (P54) and ESPN id (P3685), NFL fame/photo
+ *     by PFR id (P3561)
  * Labels fall back to Wikidata's language-neutral "mul" label: some of the
  * biggest names (Stephen Curry, Kevin Durant) have no separate English one.
  * Wikidata asks for a descriptive User-Agent; we send one and space requests.
@@ -38,6 +39,11 @@ const SPARQL = {
     OPTIONAL { ?team rdfs:label ?en FILTER(LANG(?en)="en") }
     OPTIONAL { ?team rdfs:label ?mul FILTER(LANG(?mul)="mul") }
     BIND(COALESCE(?en, ?mul) AS ?teamLabel) FILTER(BOUND(?teamLabel)) }`,
+  // ESPN's NBA player id (P3685), for scan-espn-heads: a real headshot for
+  // players whose NBA.com one is the grey silhouette. A separate table so
+  // that adding it could not disturb the rows the dataset is built from.
+  'wd_nba_espn.csv': `SELECT ?bbref ?espn WHERE {
+    ?item wdt:P2685 ?bbref . ?item wdt:P3685 ?espn }`,
 }
 
 async function get(url, headers = {}) {

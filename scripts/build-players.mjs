@@ -6,6 +6,7 @@
 import { readFile, writeFile } from 'node:fs/promises'
 import { parseCsv } from './lib/csv.mjs'
 import { parseSchools, buildMatchers, conferenceAt } from './lib/schools.mjs'
+import { applyBlocklist } from './lib/photos.mjs'
 import {
   nflCandidates,
   nbaCandidates,
@@ -24,8 +25,16 @@ const schools = parseSchools(await read('data/schools.psv'))
 const match = buildMatchers(schools)
 const byId = new Map(schools.map((s) => [s.id, s]))
 
+const json = async (p, fallback) =>
+  JSON.parse(await read(p).catch(() => fallback))
 const placeholders = new Set(
-  JSON.parse(await read('data/nfl-placeholder-heads.json').catch(() => '[]')),
+  await json('data/nfl-placeholder-heads.json', '[]'),
+)
+// League images that show him but are not headshots (hand-kept, by eye).
+const notHeadshots = new Set(
+  Object.keys(await json('data/nfl-not-headshots.json', '{}')).filter(
+    (k) => !k.startsWith('_'),
+  ),
 )
 const nfl = nflCandidates(
   await csv('data/raw/nfl_players.csv'),
@@ -33,7 +42,8 @@ const nfl = nflCandidates(
   await csv('data/raw/wd_nfl.csv'),
   match,
   placeholders,
-  JSON.parse(await read('data/nfl-espn-heads.json').catch(() => '{}')),
+  await json('data/nfl-espn-heads.json', '{}'),
+  notHeadshots,
 )
 const nba = nbaCandidates(
   await csv('data/raw/wd_nba.csv'),
@@ -41,20 +51,17 @@ const nba = nbaCandidates(
   match,
   new Date().getUTCFullYear(),
   JSON.parse(await read('data/preps-to-pros.json')).players,
+  {
+    placeholders: new Set(await json('data/nba-placeholder-heads.json', '[]')),
+    espn: await json('data/nba-espn-heads.json', '{}'),
+  },
 )
 
-// Wikimedia photos that show the player in college (data/photo-blocklist.json,
-// from `npm run audit-photos` plus hand-added bug reports) are never used. A
-// player left with no photo at all cannot be asked.
+// Wikimedia photos never to use (data/photo-blocklist.json): the ones that
+// show the player in college, from `npm run audit-photos` plus hand-added bug
+// reports, and the ones that do not show him playing for a pro team. See
+// applyBlocklist. A player left with no photo at all cannot be asked.
 const blockedPhotos = JSON.parse(await read('data/photo-blocklist.json'))
-// "allow" lists photos a person has looked at and cleared: the audit flagged
-// them only for biography text ("formerly with the University of Miami").
-const allowed = new Set(blockedPhotos.allow ?? [])
-const blocked = new Set(
-  [...blockedPhotos.manual, ...blockedPhotos.auto].filter(
-    (f) => !allowed.has(f),
-  ),
-)
 // Hand-picked replacement photos (data/photo-overrides.json): player id →
 // Commons file name (or a "clubs:" headshot, below), for players whose only
 // listed photo is a college one.
@@ -89,14 +96,9 @@ await writeFile(
       .map((r) => ({ n: r.name, y: r.year, s: r.schools, a: r.action })),
   ),
 )
-let photosDropped = 0
-const withPhotos = [...nfl.records, ...nba.records].filter((r) => {
-  if (r.action && blocked.has(r.action.slice(r.action.indexOf('/') + 1))) {
-    r.action = ''
-    photosDropped++
-  }
-  return r.head || r.action
-})
+const candidates = [...nfl.records, ...nba.records]
+const photosDropped = applyBlocklist(candidates, blockedPhotos)
+const withPhotos = candidates.filter((r) => r.head || r.action)
 const records = applyOverrides(
   assignTiers(withPhotos),
   JSON.parse(await read('data/overrides.json')),
@@ -163,7 +165,7 @@ for (const l of ['nfl', 'nba'])
   )
 console.log(`schools: ${schools.length}`)
 console.log(
-  `photos: ${photosDropped} college-era Wikimedia photos withheld; ${nfl.records.length + nba.records.length - withPhotos.length} players dropped for having no other photo`,
+  `photos: ${photosDropped} Wikimedia photos withheld (college gear, or not playing for a pro team); ${nfl.records.length + nba.records.length - withPhotos.length} players dropped for having no other photo`,
 )
 const prepsIn = records.filter((r) => r.hs).length
 console.log(`preps to pros: ${prepsIn} in the pool`)

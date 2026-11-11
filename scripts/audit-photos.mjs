@@ -52,9 +52,10 @@ await writeFile(
   JSON.stringify(
     {
       _comment:
-        'Wikimedia photos never to use (they show the player in college gear). "auto" is rewritten by `npm run audit-photos`; "manual" (caught by eye or reported) and "allow" (auto-flagged but checked by eye and fine) are hand-kept and preserved. See docs/DATA.md §Photos.',
+        'Wikimedia photos never to use. COLLEGE GEAR (they give the answer away): "auto" is rewritten by `npm run audit-photos`; "manual" (caught by eye or reported) and "allow" (auto-flagged but checked by eye and fine) are hand-kept and preserved. NOT PLAYING: "notPlaying" is hand-kept — photos that do not show him playing for an NBA/NFL team (a suit, a press conference, a national-team or overseas-club shirt), from the by-eye review of every photo on 2026-11-11 and from bug reports. See docs/DATA.md §Photos.',
       manual,
       allow: existing.allow ?? [],
+      notPlaying: existing.notPlaying ?? [],
       auto: [...flagged.keys()].sort(),
     },
     null,

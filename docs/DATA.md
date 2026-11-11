@@ -2,7 +2,7 @@
 
 Two committed artifacts drive the game:
 
-- `public/players.json` — 2,009 players (1,096 NFL, 913 NBA)
+- `public/players.json` — 1,995 players (1,096 NFL, 899 NBA)
 - `public/schools.json` — 375 colleges plus the "High School (no college)"
   answer (id, name, search aliases)
 
@@ -14,8 +14,8 @@ They are generated; never edit them by hand. The hand-maintained inputs are
 ```bash
 npm run fetch-raw        # → data/raw/ (gitignored): nflverse + Wikidata tables
 npm run build-players    # → public/players.json, public/schools.json
-npm run scan-headshots   # → data/nfl-placeholder-heads.json (see Photos)
-npm run scan-espn-heads  # → data/nfl-espn-heads.json (real headshots for those)
+npm run scan-headshots   # → data/{nfl,nba}-placeholder-heads.json (see Photos)
+npm run scan-espn-heads  # → data/{nfl,nba}-espn-heads.json (real headshots for those)
 npm run fetch-photo-meta # → data/raw/commons-meta.json (Commons API)
 npm run audit-photos     # → data/photo-blocklist.json "auto" (college-era photos)
 npm run build-players    # again, now that placeholders and bad photos are known
@@ -179,8 +179,25 @@ Nothing is stored in the repo; `src/lib/images.ts` builds URLs.
   380 retired players that URL serves the league's generic helmet
   placeholder; `scan-headshots` detects it by ETag and records the keys in
   `data/nfl-placeholder-heads.json` (committed, cumulative). Those players use
-  their Wikimedia photo instead, or are dropped if they have none.
-- **NBA headshots:** `cdn.nba.com/headshots/…/<NBA.com id>.png`.
+  ESPN's headshot, else their Wikimedia photo, or are dropped if they have
+  neither.
+- **NBA headshots:** `cdn.nba.com/headshots/…/<NBA.com id>.png` — which for
+  227 retired players is a generic grey silhouette. `scan-headshots` detects
+  it the same way (`data/nba-placeholder-heads.json`, NBA.com ids) and
+  `scan-espn-heads` finds ESPN's headshot for 169 of them
+  (`data/nba-espn-heads.json`; the ESPN id comes from Wikidata P3685,
+  `data/raw/wd_nba_espn.csv`). The headshot key is then `espn:<id>`, as for
+  the NFL. The rest show their Wikimedia photo; 14 had no photo of any kind
+  and are not in the game.
+- **A headshot shows the team he last played for.** Each league (and ESPN)
+  publishes one headshot per player, and it is the latest: Tom Brady is a
+  Buccaneer, Carmelo Anthony a Laker. There is no source of "the headshot
+  from his best years", so this is not something the build can choose.
+- **League images that are not headshots** (`data/nfl-not-headshots.json`,
+  hand-kept): for Hall of Famers the NFL serves an action cut-out under the
+  headshot URL, and for Kellen Winslow II a photo of his father. Found in a
+  by-eye review of every headshot (2026-11-11): 25 players. ESPN's headshot
+  is used where it has one (15); the other ten legends keep the cut-out.
 - **In-uniform photos:** the Wikidata image (P18). The build stores the
   file's storage path on Commons (`<md5 prefix>/<File_name>`, raster files
   only) so the client can request it directly from `upload.wikimedia.org` —
@@ -189,6 +206,23 @@ Nothing is stored in the repo; `src/lib/images.ts` builds URLs.
   name hint (the file name is usually the player's name — docs/PLAN.md §Game
   rules). Once the name is out, the photo links to its Commons page for
   author and licence.
+
+### Actually playing (`notPlaying` in `data/photo-blocklist.json`)
+
+The "in action" photo is whatever image Wikidata lists for the player, and
+for about a quarter of them that is not a photo of him playing in the NBA or
+NFL: a suit, a press conference, a national-team shirt, a EuroLeague club. In
+a by-eye review of all 1,648 photos on 2026-11-11, 390 failed that test and
+are listed (by Commons file name) in `notPlaying`. `build-players` does not
+use them — the player shows his headshot instead — with one exception: a
+`notPlaying` photo is kept when it is the only photo of him there is
+(`applyBlocklist` in `scripts/lib/photos.mjs`).
+
+`data/photo-overrides.json` gives a player a hand-picked Commons photo
+instead (player id → file name): in a pro uniform, playing, for the team he
+is best known for. To act on a "that's not him playing" report: add the file
+name to `notPlaying`, or better, find a good photo in his Commons category
+and add it to the overrides; rebuild; close the issue.
 
 ### No college gear (`data/photo-blocklist.json`)
 
@@ -209,7 +243,8 @@ photos are screened and the bad ones are never used:
    ("formerly with the University of Miami") after a look by eye.
 5. `build-players` drops every blocked photo. The player keeps his headshot.
 6. `data/photo-overrides.json` gives a player a hand-picked Commons photo
-   (player id → file name) when his only listed one is a college photo.
+   (player id → file name), for instance when his only listed one is a
+   college photo.
 
 The audit reads `data/raw/photo-candidates.json`, which `build-players`
 writes before applying the blocklist — so the order is build-players →
@@ -228,8 +263,13 @@ server by the ESPN id nflverse carries and records hits in
 use their Wikimedia photo, or a hand-picked one from
 `data/photo-overrides.json` — which can also name an image on the NFL clubs'
 image server (`clubs:<path>`) as a last resort: Gaines Adams, whose only free
-photos are in a Clemson uniform, uses a Buccaneers team-site photo. Nobody is
-left out for lack of a photo.
+photos are in a Clemson uniform, uses a Buccaneers team-site photo. No NFL
+player is left out for lack of a photo.
+
+The NBA side is not quite there: 14 retired players have a silhouette on
+NBA.com, nothing on ESPN and no usable Wikimedia photo (Jonathan Bender, Jay
+Williams, Speedy Claxton…), so they are out of the game until someone finds
+a photo for `data/photo-overrides.json`.
 
 League headshots are the leagues' copyrighted images, hotlinked. That is a
 deliberate, accepted risk for a free hobby website and a blocker for an app

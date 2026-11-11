@@ -1,5 +1,7 @@
 {
-  "_comment": "Hand-picked replacement photos, checked by eye (not in college gear): player id → a Wikimedia Commons file name, or \"clubs:<path>\" for an image on the NFL clubs' image server (static.clubs.nfl.com/image/<path>) used as his headshot. Applied by scripts/build-players.mjs before the blocklist. See docs/DATA.md §Photos.",
+  "_comment": "Hand-picked photos, checked by eye: player id → a Wikimedia Commons file name (his in-uniform photo: not in college gear, and showing him playing for the team he is best known for), or \"clubs:<path>\" for an image on the NFL clubs' image server (static.clubs.nfl.com/image/<path>) used as his headshot. Applied by scripts/build-players.mjs before the blocklist. See docs/DATA.md §Photos.",
   "nfl-GrieBr00": "Brian_Griese_2013.jpg",
-  "nfl-AdamGa99": "clubs:private/w_480/buccaneers/re2h1exevkuzssgo28ug.jpg"
+  "nfl-AdamGa99": "clubs:private/w_480/buccaneers/re2h1exevkuzssgo28ug.jpg",
+  "nfl-NewtCa00": "Cam_Newton_(50121508306).jpg",
+  "nfl-LewiRa00": "Ray-Lewis-2008-Steelers-regseason-game.jpg"
 }
