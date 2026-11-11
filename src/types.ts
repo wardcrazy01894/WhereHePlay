@@ -16,7 +16,7 @@ export interface Player {
   /** Fall year of his final college season. */
   y: number
   t: Tier
-  /** Headshot key: NBA.com person id, or the NFL image path. Absent when the
+  /** Headshot key: NBA.com person id, the NFL image path, or "espn:<id>". Absent when the
    *  league only has a placeholder — then `a` is always present. */
   h?: string
   /** Three wrong school ids for the multiple-choice stage. */

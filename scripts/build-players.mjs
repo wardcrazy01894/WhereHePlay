@@ -12,6 +12,7 @@ import {
   assignTiers,
   pickDecoys,
   applyOverrides,
+  commonsPath,
   HIGH_SCHOOL_ID,
 } from './lib/players.mjs'
 
@@ -32,6 +33,7 @@ const nfl = nflCandidates(
   await csv('data/raw/wd_nfl.csv'),
   match,
   placeholders,
+  JSON.parse(await read('data/nfl-espn-heads.json').catch(() => '{}')),
 )
 const nba = nbaCandidates(
   await csv('data/raw/wd_nba.csv'),
@@ -45,7 +47,39 @@ const nba = nbaCandidates(
 // from `npm run audit-photos` plus hand-added bug reports) are never used. A
 // player left with no photo at all cannot be asked.
 const blockedPhotos = JSON.parse(await read('data/photo-blocklist.json'))
-const blocked = new Set([...blockedPhotos.manual, ...blockedPhotos.auto])
+// "allow" lists photos a person has looked at and cleared: the audit flagged
+// them only for biography text ("formerly with the University of Miami").
+const allowed = new Set(blockedPhotos.allow ?? [])
+const blocked = new Set(
+  [...blockedPhotos.manual, ...blockedPhotos.auto].filter(
+    (f) => !allowed.has(f),
+  ),
+)
+// Hand-picked replacement photos (data/photo-overrides.json): player id →
+// Commons file name, for players whose only listed photo is a college one.
+const photoOverrides = JSON.parse(await read('data/photo-overrides.json'))
+for (const r of [...nfl.records, ...nba.records]) {
+  const file = photoOverrides[r.id]
+  if (!file) continue
+  const path = commonsPath(file)
+  if (!path)
+    throw new Error(`photo-overrides.json: bad file "${file}" for ${r.id}`)
+  r.action = path
+}
+const knownIds = new Set([...nfl.records, ...nba.records].map((r) => r.id))
+for (const id of Object.keys(photoOverrides))
+  if (!id.startsWith('_') && !knownIds.has(id))
+    throw new Error(`photo-overrides.json: no candidate player "${id}"`)
+// Every candidate photo BEFORE the blocklist is applied, for the audit: it
+// must see blocked photos too, or re-running it would forget them.
+await writeFile(
+  new URL('data/raw/photo-candidates.json', root),
+  JSON.stringify(
+    [...nfl.records, ...nba.records]
+      .filter((r) => r.action)
+      .map((r) => ({ n: r.name, y: r.year, s: r.schools, a: r.action })),
+  ),
+)
 let photosDropped = 0
 const withPhotos = [...nfl.records, ...nba.records].filter((r) => {
   if (r.action && blocked.has(r.action.slice(r.action.indexOf('/') + 1))) {

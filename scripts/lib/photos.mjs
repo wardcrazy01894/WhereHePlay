@@ -12,8 +12,10 @@ const escape = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
 
 /** The first plausible 4-digit year in a free-text Commons date, or null. */
 export function photoYear(date) {
-  const m = /\b(19[5-9]\d|20[0-4]\d)\b/.exec(String(date ?? ''))
-  return m ? Number(m[1]) : null
+  // The EARLIEST year: "23 April 2008 (original upload date) (Original text:
+  // July 27, 2007)" was taken in 2007.
+  const years = String(date ?? '').match(/\b(19[5-9]\d|20[0-4]\d)\b/g)
+  return years ? Math.min(...years.map(Number)) : null
 }
 
 /**
@@ -27,6 +29,15 @@ export function photoFlag(photo, who) {
   )
   const clean = text.replace(PRO_NOISE, ' ')
   const y = photoYear(photo.date)
+  // Commons often files a PRO-era photo under the player's college category
+  // too ("Alabama Crimson Tide football players"), as biography. So for a
+  // photo dated two or more years after college, the categories are not
+  // searched for his school — only the file name and description are.
+  const proEra = y !== null && y >= who.year + 2
+  const own = [photo.file.replace(/_/g, ' '), photo.desc]
+    .join(' | ')
+    .replace(PRO_NOISE, ' ')
+  const scope = proEra ? own : clean
   if (y !== null && y <= who.year)
     return `taken in ${y}, final college season ${who.year}`
   for (const s of who.schools) {
@@ -39,9 +50,12 @@ export function photoFlag(photo, who) {
     ]
     const ambiguous = PRO_PLACES.has(s.name.replace(/ \(.+\)$/, ''))
     const names = ambiguous ? s.wd : [...strong, s.name.replace(/ \(.+\)$/, '')]
+    // A city-like name still counts when written as a university.
+    const base = s.name.replace(/ \(.+\)$/, '')
+    if (ambiguous) names.push(`University of ${base}`, `${base} University`)
     for (const n of names) {
       if (n.length < 4) continue
-      if (new RegExp(`\\b${escape(n)}\\b`, 'i').test(clean))
+      if (new RegExp(`\\b${escape(n)}\\b`, 'i').test(scope))
         return `mentions ${n}`
     }
   }

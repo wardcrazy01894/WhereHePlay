@@ -4,6 +4,9 @@ import {
   COOLDOWN_DAYS,
   EPOCH_DATE_KEY,
   TIER_PLAN,
+  LEGACY_TIER_PLAN,
+  TIER_PLAN_FROM,
+  tierPlanFor,
   addDays,
   dailyLineup,
   dateSeed,
@@ -62,7 +65,7 @@ describe('dates', () => {
 
 describe('selectDaily', () => {
   const all = fixture()
-  it('follows the tier plan: 2 easy, 2 medium, 1 hard', () => {
+  it('follows the tier plan: 3 easy, 1 medium, 1 hard', () => {
     for (const mode of ['nfl', 'nba', 'mixed'] as const) {
       const picks = selectDaily(all, mode, dateSeed(mode, '2026-11-11'))
       expect(picks.map((p) => p.t)).toEqual(TIER_PLAN)
@@ -152,7 +155,34 @@ describe('dailyLineup (cooldown)', () => {
   it('day one has no history and equals a plain draw', () => {
     const all = fixture()
     expect(dailyLineup(all, 'nfl', EPOCH_DATE_KEY)).toEqual(
-      selectDaily(all, 'nfl', dateSeed('nfl', EPOCH_DATE_KEY)),
+      selectDaily(
+        all,
+        'nfl',
+        dateSeed('nfl', EPOCH_DATE_KEY),
+        undefined,
+        LEGACY_TIER_PLAN,
+      ),
     )
+  })
+  it('puzzle #1 keeps 2-2-1; every later day is 3 easy, 1 medium, 1 hard', () => {
+    const all = fixture(240)
+    const tiers = (d: string) => dailyLineup(all, 'mixed', d).map((p) => p.t)
+    expect(tiers(EPOCH_DATE_KEY)).toEqual([
+      'easy',
+      'easy',
+      'medium',
+      'medium',
+      'hard',
+    ])
+    expect(tiers(TIER_PLAN_FROM)).toEqual([
+      'easy',
+      'easy',
+      'easy',
+      'medium',
+      'hard',
+    ])
+    expect(tiers(addDays(TIER_PLAN_FROM, 40))).toEqual(TIER_PLAN)
+    expect(tierPlanFor('2026-11-11')).toBe(LEGACY_TIER_PLAN)
+    expect(tierPlanFor('2026-11-12')).toBe(TIER_PLAN)
   })
 })

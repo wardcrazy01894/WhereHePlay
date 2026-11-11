@@ -107,6 +107,11 @@ describe('images', () => {
       'https://cdn.nba.com/headshots/nba/latest/260x190/201939.png',
     )
   })
+  it('an "espn:" key points at ESPN\'s headshot server', () => {
+    expect(headshotUrl({ ...p, h: 'espn:5209' })).toBe(
+      'https://a.espncdn.com/i/headshots/nfl/players/full/5209.png',
+    )
+  })
   it('no headshot key → null', () => {
     expect(headshotUrl({ ...p, h: undefined })).toBeNull()
   })

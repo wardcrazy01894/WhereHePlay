@@ -72,7 +72,7 @@ describe('photoFlag', () => {
     ).toBe('')
     expect(
       photoFlag(
-        photo({ cats: 'Miami Hurricanes football players', date: '2015' }),
+        photo({ cats: 'Miami Hurricanes football players', date: '2011' }),
         who(miami, 2010),
       ),
     ).toMatch(/Miami Hurricanes/)
@@ -94,5 +94,72 @@ describe('photoFlag', () => {
       'at University of Phoenix Stadium',
     ])
       expect(photoFlag(photo({ desc }), who(iowaState, 2000)), desc).toBe('')
+  })
+})
+
+describe('photoFlag refinements', () => {
+  const bama = {
+    name: 'Alabama',
+    aliases: [],
+    nfl: ['Alabama'],
+    wd: ['Alabama Crimson Tide'],
+  }
+  const kansas = {
+    name: 'Kansas',
+    aliases: [],
+    nfl: ['Kansas'],
+    wd: ['Kansas Jayhawks'],
+  }
+  it('uses the EARLIEST year in a messy date', () => {
+    expect(
+      photoYear(
+        '23 April 2008 (original upload date) ( Original text: July 27, 2007 )',
+      ),
+    ).toBe(2007)
+  })
+  it('a pro-era photo filed under his college category (biography) is not flagged…', () => {
+    const p = {
+      file: 'Shaun_Alexander_camp.jpg',
+      date: '2008-08-01',
+      desc: 'Seahawks training camp',
+      cats: 'Alabama Crimson Tide football players|Seattle Seahawks players',
+    }
+    expect(photoFlag(p, { year: 1999, schools: [bama] })).toBe('')
+  })
+  it('…but is when the file name or description itself names the school, or the date is unknown/early', () => {
+    const base = {
+      file: 'X.jpg',
+      desc: 'Seahawks camp',
+      cats: 'Alabama Crimson Tide football players',
+    }
+    expect(
+      photoFlag(
+        { ...base, date: '2008', desc: 'with the Alabama Crimson Tide' },
+        { year: 1999, schools: [bama] },
+      ),
+    ).toMatch(/mentions/)
+    expect(
+      photoFlag({ ...base, date: '' }, { year: 1999, schools: [bama] }),
+    ).toMatch(/mentions/)
+    expect(
+      photoFlag({ ...base, date: '2000' }, { year: 1999, schools: [bama] }),
+    ).toMatch(/mentions/)
+  })
+  it('a city-like school written as a university counts ("University of Kansas")', () => {
+    const p = {
+      file: 'Jeff_Withey_2013.jpg',
+      date: '2013-06-05',
+      desc: 'Jeff Withey, University of Kansas basketball player',
+      cats: '',
+    }
+    expect(photoFlag(p, { year: 2012, schools: [kansas] })).toMatch(
+      /University of Kansas/,
+    )
+    expect(
+      photoFlag(
+        { ...p, desc: 'Kansas City Chiefs' },
+        { year: 2012, schools: [kansas] },
+      ),
+    ).toBe('')
   })
 })

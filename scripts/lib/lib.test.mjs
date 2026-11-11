@@ -16,6 +16,7 @@ import {
   assignTiers,
   pickDecoys,
   applyOverrides,
+  commonsPath,
   NBA_LEAGUE,
 } from './players.mjs'
 
@@ -197,6 +198,27 @@ describe('players', () => {
     expect(t.schools).toEqual(['baylor', 'texas'])
     expect(t.year).toBe(2009)
     expect(unmapped.get('Blinn College')).toBe(2)
+  })
+
+  it('NFL: a placeholder headshot is replaced by the ESPN one when there is one', () => {
+    const key = 'private/f_auto,q_auto/league/abc'
+    const run = (espn) =>
+      nflCandidates(
+        [nflRow({})],
+        [],
+        [wdRow('GuyTe00', 20)],
+        match,
+        new Set([key]),
+        espn,
+      ).records
+    expect(run({ [key]: '5209' })[0].head).toBe('espn:5209')
+    // No ESPN image and no Wikimedia photo → nothing to show → not askable.
+    expect(run({})).toEqual([])
+  })
+
+  it('commonsPath turns a file name into its storage path', () => {
+    expect(commonsPath('Tom Brady 2021.png')).toBe('cb/Tom_Brady_2021.png')
+    expect(commonsPath('Logo.svg')).toBe('')
   })
 
   it('NBA: reads college stints from the team history', () => {

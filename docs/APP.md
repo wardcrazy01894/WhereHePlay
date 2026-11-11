@@ -87,7 +87,7 @@ publicity rights. A store build must use one of:
 
 1. **Wikimedia Commons photos only** (freely licensed, attribution shown —
    the game already supports this as the "in uniform" photo and credits each
-   one). Coverage: about 1,630 of 1,959 players have one today (photos in college gear are screened out); quality
+   one). Coverage: about 1,650 of 2,008 players have one today (photos in college gear are screened out); quality
    varies and a few show the college uniform.
 2. **No photos** — start at the name, with a three-stage ladder.
 3. A licensed image source (not free).

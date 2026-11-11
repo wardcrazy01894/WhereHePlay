@@ -19,6 +19,7 @@
     "fetch-raw": "node scripts/fetch-raw.mjs",
     "build-players": "node scripts/build-players.mjs",
     "scan-headshots": "node scripts/scan-headshots.mjs",
+    "scan-espn-heads": "node scripts/scan-espn-heads.mjs",
     "fetch-photo-meta": "node scripts/fetch-photo-meta.mjs",
     "audit-photos": "node scripts/audit-photos.mjs",
     "worker:dev": "wrangler dev -c worker/wrangler.toml",

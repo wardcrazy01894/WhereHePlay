@@ -210,7 +210,7 @@ export function App() {
         {ready && view.screen === 'home' && (
           <>
             <p className="tagline">
-              Where did he play in college? Five players a day — two easy, two
+              Where did he play in college? Five players a day — three easy, one
               medium, one hard. Fewer hints, more points.
             </p>
             {!official && (

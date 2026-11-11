@@ -9,7 +9,7 @@
 [![CI](https://github.com/wardcrazy01894/WhereHePlay/actions/workflows/ci.yml/badge.svg)](https://github.com/wardcrazy01894/WhereHePlay/actions/workflows/ci.yml)
 [![deploy](https://github.com/wardcrazy01894/WhereHePlay/actions/workflows/deploy.yml/badge.svg)](https://github.com/wardcrazy01894/WhereHePlay/actions/workflows/deploy.yml)
 
-React · TypeScript · Vite · Cloudflare Workers + D1 &nbsp;·&nbsp; 1,959 players &nbsp;·&nbsp; $0 hosting
+React · TypeScript · Vite · Cloudflare Workers + D1 &nbsp;·&nbsp; 2,008 players &nbsp;·&nbsp; $0 hosting
 
 </div>
 
@@ -45,7 +45,7 @@ WhereHePlay #1 · NFL (headshot)
 
 |     |                               |                                                                                                                                                                     |
 | --- | ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 📅  | **Daily five**                | Two easy, two medium, one hard. Same five for everyone, new at your local midnight, one shot. Nobody repeats within 45 days.                                        |
+| 📅  | **Daily five**                | Three easy, one medium, one hard. Same five for everyone, new at your local midnight, one shot. Nobody repeats within 45 days.                                      |
 | ♾️  | **Free play**                 | Keep going as long as you like, with a running streak of correct answers.                                                                                           |
 | 🏈  | **Three modes**               | **NFL**, **NBA**, or the **Grab Bag** of both — each with its own daily, streak and leaderboard.                                                                    |
 | 🕰️  | **Conference at the time**    | The conference hint is the one he actually played in: Carmelo Anthony's Syracuse is Big East, a 2023 Oregon Duck is Pac-12, a 2025 one is Big Ten.                  |
@@ -60,7 +60,7 @@ WhereHePlay #1 · NFL (headshot)
 
 ## 🧑‍🤝‍🧑 The players
 
-1,046 NFL and 913 NBA players who were in college from 1994 on (plus the 34
+1,095 NFL and 913 NBA players who were in college from 1994 on (plus the 34
 who skipped it — LeBron, Kobe, KG: for them just answer **High School**), weighted
 toward careers that ran into 2008 or later and filtered for fame — see
 [docs/DATA.md](docs/DATA.md) for the sources and the exact rules.

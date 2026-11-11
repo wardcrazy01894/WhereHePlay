@@ -4,6 +4,7 @@
  * fetched by scripts/fetch-photo-meta.mjs. Writes the flagged file names to
  * data/photo-blocklist.json under "auto" (the "manual" list in that file is
  * hand-kept and preserved). build-players never uses a blocklisted photo.
+ * Run order: build-players → fetch-photo-meta → audit-photos → build-players.
  * `npm run audit-photos` (add `-- --report` to print each reason).
  *
  * A photo is flagged when:
@@ -19,7 +20,9 @@ import { photoFlag } from './lib/photos.mjs'
 
 const root = new URL('../', import.meta.url)
 const read = async (p) => readFile(new URL(p, root), 'utf8')
-const players = JSON.parse(await read('public/players.json'))
+// The pre-blocklist candidate list written by build-players (NOT
+// public/players.json, which no longer contains the photos already blocked).
+const players = JSON.parse(await read('data/raw/photo-candidates.json'))
 const schools = new Map(
   parseSchools(await read('data/schools.psv')).map((s) => [s.id, s]),
 )
@@ -49,8 +52,9 @@ await writeFile(
   JSON.stringify(
     {
       _comment:
-        'Wikimedia photos never to use (they show the player in college gear). "auto" is rewritten by `npm run audit-photos`; "manual" is hand-kept (bug reports) and preserved. See docs/DATA.md §Photos.',
+        'Wikimedia photos never to use (they show the player in college gear). "auto" is rewritten by `npm run audit-photos`; "manual" (caught by eye or reported) and "allow" (auto-flagged but checked by eye and fine) are hand-kept and preserved. See docs/DATA.md §Photos.',
       manual,
+      allow: existing.allow ?? [],
       auto: [...flagged.keys()].sort(),
     },
     null,

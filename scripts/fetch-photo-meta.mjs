@@ -1,6 +1,7 @@
 /**
  * Fetch Wikimedia Commons metadata (capture date, description, categories)
- * for every in-uniform photo in public/players.json into
+ * for every candidate in-uniform photo (data/raw/photo-candidates.json,
+ * written by build-players before the blocklist is applied) into
  * data/raw/commons-meta.json (gitignored cache). Input for
  * scripts/audit-photos.mjs. `npm run fetch-photo-meta`.
  * Uses the public Commons API, 50 files per request, one request at a time.
@@ -26,7 +27,7 @@ const strip = (html) =>
     .trim()
 
 const players = JSON.parse(
-  await readFile(new URL('public/players.json', root), 'utf8'),
+  await readFile(new URL('data/raw/photo-candidates.json', root), 'utf8'),
 )
 const files = [
   ...new Set(

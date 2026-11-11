@@ -1,0 +1,4 @@
+{
+  "_comment": "Hand-picked replacement photos: player id → Wikimedia Commons file name (checked by eye: not in college gear). Applied by scripts/build-players.mjs before the blocklist. See docs/DATA.md §Photos.",
+  "nfl-GrieBr00": "Brian_Griese_2013.jpg"
+}

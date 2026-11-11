@@ -13,6 +13,9 @@ import type { Player } from '../types'
 
 export function headshotUrl(p: Player): string | null {
   if (!p.h) return null
+  // "espn:<id>": the NFL's own image is a placeholder, ESPN has a real one.
+  if (p.h.startsWith('espn:'))
+    return `https://a.espncdn.com/i/headshots/nfl/players/full/${p.h.slice(5)}.png`
   return p.l === 'nba'
     ? `https://cdn.nba.com/headshots/nba/latest/260x190/${p.h}.png`
     : `https://static.www.nfl.com/image/${p.h}`
