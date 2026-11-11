@@ -70,19 +70,20 @@ describe('App', () => {
     expect(tagline).not.toMatch(/easy|medium|hard/i)
   })
 
-  it('the photo choice and "How it works" are one block (CSS lifts it above the games on wide screens)', async () => {
+  it('the photo choice and "How it works" sit above the games, on every screen', async () => {
     const { container } = render(<App />)
     await screen.findByRole('heading', { name: 'NFL' })
     const setup = container.querySelector('.home > .home-setup')!
     expect(setup.querySelector('fieldset.photo-choice')).toBeTruthy()
     expect(setup.querySelector('details.how')).toBeTruthy()
-    // Phones keep the document order: games first, setup after.
+    // Document order (no CSS reordering): intro, setup, then the games —
+    // the same on a phone and on a desktop, and the same for keyboard users.
     const home = container.querySelector('.home')!
     const at = (cls: string) =>
       [...home.children].findIndex((c) => c.classList.contains(cls))
     expect(at('home-intro')).toBe(0)
-    expect(at('modes')).toBeGreaterThan(0)
-    expect(at('modes')).toBeLessThan(at('home-setup'))
+    expect(at('home-setup')).toBe(1)
+    expect(at('modes')).toBe(2)
   })
 
   it('"Report a bug" is reachable from the header on every screen, and from the footer', async () => {
