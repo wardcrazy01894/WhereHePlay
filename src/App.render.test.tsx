@@ -127,6 +127,11 @@ describe('App', () => {
     fireEvent.click(screen.getAllByRole('button', { name: 'Play daily' })[1])
     for (let i = 0; i < 5; i++) {
       expect(screen.getByText(new RegExp(`${i + 1} of 5`))).toBeTruthy()
+      // The player's tier is internal: the progress bar never names it.
+      expect(document.querySelector('.tier')).toBeNull()
+      expect(document.querySelector('.progress')!.textContent).not.toMatch(
+        /easy|medium|hard/i,
+      )
       fireEvent.click(screen.getByRole('button', { name: 'I don’t know' }))
       fireEvent.click(
         screen.getByRole('button', {
