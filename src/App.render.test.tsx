@@ -1,6 +1,12 @@
 // @vitest-environment jsdom
 import { describe, it, expect, afterEach, beforeEach, vi } from 'vitest'
-import { cleanup, render, screen, fireEvent } from '@testing-library/react'
+import {
+  cleanup,
+  render,
+  screen,
+  fireEvent,
+  waitFor,
+} from '@testing-library/react'
 import type { League, Player, Tier } from './types'
 import { App } from './App'
 import { resolveDay } from './lib/day'
@@ -126,5 +132,78 @@ describe('resolveDay (?date= practice days)', () => {
         dateKey: '2026-11-20',
         official: true,
       })
+  })
+})
+
+describe('auto-update', () => {
+  const reload = vi.fn()
+  const realLocation = window.location
+  /** Serve the dataset as usual, and `hash` as the deployed version. */
+  const deploy = (hash: string) =>
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async (url: string) => ({
+        ok: true,
+        json: async () =>
+          String(url).includes('version.json')
+            ? { hash }
+            : String(url).includes('players')
+              ? players
+              : schools,
+      })),
+    )
+  beforeEach(() => {
+    reload.mockClear()
+    sessionStorage.clear()
+    Object.defineProperty(window, 'location', {
+      configurable: true,
+      value: {
+        ...realLocation,
+        search: '',
+        origin: realLocation.origin,
+        reload,
+      },
+    })
+  })
+  afterEach(() => {
+    Object.defineProperty(window, 'location', {
+      configurable: true,
+      value: realLocation,
+    })
+  })
+
+  it('reloads from the home screen when a different build is live — once', async () => {
+    deploy('some-newer-build')
+    const first = render(<App />)
+    await waitFor(() => expect(reload).toHaveBeenCalledTimes(1))
+    // The "reloaded" page still runs this (old) build, e.g. a lagging CDN: no loop.
+    first.unmount()
+    render(<App />)
+    await screen.findByRole('heading', { name: 'NFL' })
+    await new Promise((r) => setTimeout(r, 20))
+    expect(reload).toHaveBeenCalledTimes(1)
+  })
+
+  it('does not reload when the live build is the one running', async () => {
+    deploy(import.meta.env.VITE_BUILD_HASH ?? 'dev')
+    render(<App />)
+    await screen.findByRole('heading', { name: 'NFL' })
+    await new Promise((r) => setTimeout(r, 20))
+    expect(reload).not.toHaveBeenCalled()
+  })
+
+  it('waits for the home screen instead of interrupting a game', async () => {
+    // Up to date at load…
+    deploy(import.meta.env.VITE_BUILD_HASH ?? 'dev')
+    render(<App />)
+    await screen.findByRole('heading', { name: 'NFL' })
+    fireEvent.click(screen.getAllByRole('button', { name: 'Free play' })[1])
+    // …then a deploy lands while a question is on screen.
+    deploy('some-newer-build')
+    document.dispatchEvent(new Event('visibilitychange'))
+    expect(await screen.findByText(/A new version is ready/)).toBeTruthy()
+    expect(reload).not.toHaveBeenCalled()
+    fireEvent.click(screen.getByRole('button', { name: '← All games' }))
+    await waitFor(() => expect(reload).toHaveBeenCalledTimes(1))
   })
 })

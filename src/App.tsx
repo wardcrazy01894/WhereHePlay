@@ -17,6 +17,13 @@ import {
   savePhotoStyle,
 } from './lib/storage'
 import { log } from './lib/log'
+import {
+  VERSION_CHECK_MS,
+  fetchDeployedHash,
+  readAttempt,
+  recordAttempt,
+  shouldReload,
+} from './lib/version'
 import { DailyGame } from './components/DailyGame'
 import { FreePlay } from './components/FreePlay'
 import { Leaderboard } from './components/Leaderboard'
@@ -54,7 +61,10 @@ export function App() {
   useEffect(() => {
     const base = import.meta.env.BASE_URL
     const get = (file: string) =>
-      fetch(base + file).then((r) => {
+      // Tied to the build: a new deploy never reuses an older cached dataset.
+      fetch(
+        `${base}${file}?v=${import.meta.env.VITE_BUILD_HASH ?? 'dev'}`,
+      ).then((r) => {
         if (!r.ok) throw new Error(`${file}: HTTP ${r.status}`)
         return r.json()
       })
@@ -98,6 +108,51 @@ export function App() {
     document.addEventListener('visibilitychange', onVisible)
     return () => document.removeEventListener('visibilitychange', onVisible)
   }, [onHome])
+
+  // Auto-update: learn when a newer build is live (on load, on returning to
+  // the tab, every few minutes) and reload onto it — but only from the home
+  // screen, never under a question. See src/lib/version.ts.
+  const [deployed, setDeployed] = useState<string | null>(null)
+  useEffect(() => {
+    let live = true
+    const check = () => {
+      if (document.visibilityState !== 'visible') return
+      fetchDeployedHash(import.meta.env.BASE_URL).then((hash) => {
+        if (live && hash) setDeployed(hash)
+      })
+    }
+    check()
+    const timer = setInterval(check, VERSION_CHECK_MS)
+    document.addEventListener('visibilitychange', check)
+    return () => {
+      live = false
+      clearInterval(timer)
+      document.removeEventListener('visibilitychange', check)
+    }
+  }, [])
+  const current = import.meta.env.VITE_BUILD_HASH ?? 'dev'
+  const stale = !!deployed && current !== 'dev' && deployed !== current
+  useEffect(() => {
+    if (!deployed) return
+    if (
+      !shouldReload({
+        current,
+        deployed,
+        attempted: readAttempt(),
+        safe: onHome,
+      })
+    )
+      return
+    recordAttempt(deployed)
+    // Only reload if the guard was really stored (no storage → no loop guard).
+    if (readAttempt() === deployed) {
+      log.info('App', 'new build deployed, reloading', {
+        from: current,
+        to: deployed,
+      })
+      window.location.reload()
+    }
+  }, [deployed, onHome, current])
 
   const togglePhoto = () => {
     const next = photoStyle === 'headshot' ? 'action' : 'headshot'
@@ -253,6 +308,11 @@ export function App() {
           <button type="button" className="quiet back" onClick={goHome}>
             ← All games
           </button>
+        )}
+        {stale && view.screen !== 'home' && (
+          <p className="update-note" role="status">
+            A new version is ready — it loads when you go back to All games.
+          </p>
         )}
       </main>
 

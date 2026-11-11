@@ -81,6 +81,31 @@ noticeable years out, checkpoint it — without changing its output. A
 dataset guard test simulates a year of all three modes and checks the tier
 plan and the no-repeat window on the real data.
 
+## Auto-update (no stale tabs)
+
+Every build bakes its git hash into the bundle and publishes the same hash as
+`version.json` (`vite.config.ts`). The running app re-reads `version.json` —
+with a cache-busting query and `cache: 'no-store'` — on load, whenever the
+tab becomes visible, and every five minutes while it is visible
+(`src/lib/version.ts`, wired in `App.tsx`). A different hash means the tab is
+stale, and it reloads onto the new build:
+
+- **Only from the home screen.** A question on screen is never interrupted;
+  a small note says a new version is ready, and the reload happens when the
+  player returns to "All games". Daily progress is saved after every action,
+  so nothing is lost either way.
+- **Once per build.** The hash a tab reloaded for is kept in
+  `sessionStorage`; if the reloaded page is still the old build (a CDN edge
+  lagging behind) it does not reload again for that hash.
+- **The dataset follows the build**: `players.json` and `schools.json` are
+  requested with `?v=<build hash>`, so a new build never pairs with an older
+  cached dataset.
+- Off in local development (no `version.json`), and a failed check (offline,
+  mid-deploy) does nothing.
+
+GitHub Pages serves `index.html` with a ten-minute cache; this check is what
+closes that window, and what updates a tab left open for days.
+
 ## Architecture
 
 ```
