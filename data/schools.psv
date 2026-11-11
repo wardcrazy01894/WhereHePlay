@@ -1,0 +1,406 @@
+# WhereHePlay schools table. One school per line, pipe-separated:
+#   id | display name | nflverse college names (;) | Wikidata team-label prefixes (;) | search aliases (;) | conference timeline | basketball timeline override
+# Timeline: "SEC" (unchanged 1994-today) or "1994:Big Eight,1996:Big 12" where
+# each year is the FALL of the first season in that conference. The basketball
+# column is only filled when it differs from the first (football/default) one.
+# See docs/DATA.md. Parsed + validated by scripts/lib/schools.mjs.
+
+# --- SEC ---
+alabama|Alabama|Alabama|Alabama Crimson Tide|Bama;Crimson Tide|SEC|
+arkansas|Arkansas|Arkansas|Arkansas Razorbacks|Razorbacks|SEC|
+auburn|Auburn|Auburn|Auburn Tigers||SEC|
+florida|Florida|Florida|Florida Gators|Gators;UF|SEC|
+georgia|Georgia|Georgia|Georgia Bulldogs|UGA|SEC|
+kentucky|Kentucky|Kentucky|Kentucky Wildcats|UK|SEC|
+lsu|LSU|LSU|LSU Tigers|Louisiana State|SEC|
+ole-miss|Ole Miss|Mississippi|Ole Miss Rebels|Mississippi;Rebels|SEC|
+mississippi-state|Mississippi State|Mississippi State|Mississippi State Bulldogs|Miss State|SEC|
+south-carolina|South Carolina|South Carolina|South Carolina Gamecocks|Gamecocks|SEC|
+tennessee|Tennessee|Tennessee|Tennessee Volunteers|Vols;Volunteers|SEC|
+vanderbilt|Vanderbilt|Vanderbilt|Vanderbilt Commodores|Vandy|SEC|
+missouri|Missouri|Missouri|Missouri Tigers|Mizzou|1994:Big Eight,1996:Big 12,2012:SEC|
+texas-am|Texas A&M|Texas A&M|Texas A&M Aggies|TAMU;Aggies|1994:SWC,1996:Big 12,2012:SEC|
+texas|Texas|Texas|Texas Longhorns|Longhorns;UT Austin|1994:SWC,1996:Big 12,2024:SEC|
+oklahoma|Oklahoma|Oklahoma|Oklahoma Sooners|Sooners;OU|1994:Big Eight,1996:Big 12,2024:SEC|
+
+# --- Big Ten ---
+illinois|Illinois|Illinois|Illinois Fighting Illini|Illini|Big Ten|
+indiana|Indiana|Indiana|Indiana Hoosiers|Hoosiers;IU|Big Ten|
+iowa|Iowa|Iowa|Iowa Hawkeyes|Hawkeyes|Big Ten|
+michigan|Michigan|Michigan|Michigan Wolverines|Wolverines;U of M|Big Ten|
+michigan-state|Michigan State|Michigan State|Michigan State Spartans|MSU;Spartans|Big Ten|
+minnesota|Minnesota|Minnesota|Minnesota Golden Gophers|Gophers|Big Ten|
+northwestern|Northwestern|Northwestern|Northwestern Wildcats||Big Ten|
+ohio-state|Ohio State|Ohio State|Ohio State Buckeyes|OSU;Buckeyes|Big Ten|
+penn-state|Penn State|Penn State|Penn State Nittany Lions|PSU;Nittany Lions|Big Ten|
+purdue|Purdue|Purdue|Purdue Boilermakers|Boilermakers|Big Ten|
+wisconsin|Wisconsin|Wisconsin|Wisconsin Badgers|Badgers|Big Ten|
+nebraska|Nebraska|Nebraska|Nebraska Cornhuskers|Cornhuskers;Huskers|1994:Big Eight,1996:Big 12,2011:Big Ten|
+maryland|Maryland|Maryland|Maryland Terrapins|Terps;Terrapins|1994:ACC,2014:Big Ten|
+rutgers|Rutgers|Rutgers|Rutgers Scarlet Knights|Scarlet Knights|1994:Big East,2013:AAC,2014:Big Ten|1994:A-10,1995:Big East,2013:AAC,2014:Big Ten
+usc|USC|USC|USC Trojans|Southern California;Southern Cal;Trojans|1994:Pac-10,2011:Pac-12,2024:Big Ten|
+ucla|UCLA|UCLA|UCLA Bruins|Bruins|1994:Pac-10,2011:Pac-12,2024:Big Ten|
+oregon|Oregon|Oregon|Oregon Ducks|Ducks|1994:Pac-10,2011:Pac-12,2024:Big Ten|
+washington|Washington|Washington|Washington Huskies|UW;Huskies|1994:Pac-10,2011:Pac-12,2024:Big Ten|
+
+# --- Big 12 ---
+baylor|Baylor|Baylor|Baylor Bears||1994:SWC,1996:Big 12|
+texas-tech|Texas Tech|Texas Tech|Texas Tech Red Raiders|Red Raiders|1994:SWC,1996:Big 12|
+iowa-state|Iowa State|Iowa State|Iowa State Cyclones|Cyclones|1994:Big Eight,1996:Big 12|
+kansas|Kansas|Kansas|Kansas Jayhawks|Jayhawks;KU|1994:Big Eight,1996:Big 12|
+kansas-state|Kansas State|Kansas State|Kansas State Wildcats|K-State|1994:Big Eight,1996:Big 12|
+oklahoma-state|Oklahoma State|Oklahoma State|Oklahoma State Cowboys|OK State|1994:Big Eight,1996:Big 12|
+colorado|Colorado|Colorado|Colorado Buffaloes|Buffs;Buffaloes|1994:Big Eight,1996:Big 12,2011:Pac-12,2024:Big 12|
+west-virginia|West Virginia|West Virginia|West Virginia Mountaineers|WVU;Mountaineers|1994:Big East,2012:Big 12|1994:A-10,1995:Big East,2012:Big 12
+tcu|TCU|TCU|TCU Horned Frogs|Texas Christian;Horned Frogs|1994:SWC,1996:WAC,2001:C-USA,2005:Mountain West,2012:Big 12|
+utah|Utah|Utah|Utah Utes|Utes|1994:WAC,1999:Mountain West,2011:Pac-12,2024:Big 12|
+arizona|Arizona|Arizona|Arizona Wildcats||1994:Pac-10,2011:Pac-12,2024:Big 12|
+arizona-state|Arizona State|Arizona State|Arizona State Sun Devils|ASU;Sun Devils|1994:Pac-10,2011:Pac-12,2024:Big 12|
+byu|BYU|BYU|BYU Cougars|Brigham Young|1994:WAC,1999:Mountain West,2011:Independent,2023:Big 12|1994:WAC,1999:Mountain West,2011:WCC,2023:Big 12
+cincinnati|Cincinnati|Cincinnati|Cincinnati Bearcats|Bearcats|1994:Independent,1996:C-USA,2005:Big East,2013:AAC,2023:Big 12|1994:Great Midwest,1995:C-USA,2005:Big East,2013:AAC,2023:Big 12
+houston|Houston|Houston|Houston Cougars||1994:SWC,1996:C-USA,2013:AAC,2023:Big 12|
+ucf|UCF|UCF|UCF Knights|Central Florida|1994:Independent,2002:MAC,2005:C-USA,2013:AAC,2023:Big 12|1994:ASUN,2005:C-USA,2013:AAC,2023:Big 12
+
+# --- ACC ---
+clemson|Clemson|Clemson|Clemson Tigers||ACC|
+duke|Duke|Duke|Duke Blue Devils|Blue Devils|ACC|
+florida-state|Florida State|Florida State|Florida State Seminoles|FSU;Seminoles|ACC|
+georgia-tech|Georgia Tech|Georgia Tech|Georgia Tech Yellow Jackets|Yellow Jackets|ACC|
+north-carolina|North Carolina|North Carolina|North Carolina Tar Heels|UNC;Tar Heels;Carolina|ACC|
+nc-state|NC State|N.C. State|NC State Wolfpack|North Carolina State;Wolfpack|ACC|
+virginia|Virginia|Virginia|Virginia Cavaliers|UVA;Cavaliers|ACC|
+wake-forest|Wake Forest|Wake Forest|Wake Forest Demon Deacons|Demon Deacons|ACC|
+miami-fl|Miami (FL)|Miami|Miami Hurricanes|Miami Hurricanes;The U|1994:Big East,2004:ACC|
+virginia-tech|Virginia Tech|Virginia Tech|Virginia Tech Hokies|Hokies;VT|1994:Big East,2004:ACC|1994:Metro,1995:A-10,2000:Big East,2004:ACC
+boston-college|Boston College|Boston College|Boston College Eagles|BC|1994:Big East,2005:ACC|
+syracuse|Syracuse|Syracuse|Syracuse Orange|Cuse;Orange|1994:Big East,2013:ACC|
+pittsburgh|Pittsburgh|Pittsburgh|Pittsburgh Panthers|Pitt|1994:Big East,2013:ACC|
+louisville|Louisville|Louisville|Louisville Cardinals||1994:Independent,1996:C-USA,2005:Big East,2013:AAC,2014:ACC|1994:Metro,1995:C-USA,2005:Big East,2013:AAC,2014:ACC
+notre-dame|Notre Dame|Notre Dame|Notre Dame Fighting Irish|Fighting Irish;ND|Independent|1994:Independent,1995:Big East,2013:ACC
+california|California|California|California Golden Bears|Cal;Berkeley;Golden Bears|1994:Pac-10,2011:Pac-12,2024:ACC|
+stanford|Stanford|Stanford|Stanford Cardinal||1994:Pac-10,2011:Pac-12,2024:ACC|
+smu|SMU|SMU|SMU Mustangs|Southern Methodist|1994:SWC,1996:WAC,2005:C-USA,2013:AAC,2024:ACC|
+
+# --- Pac-12 holdovers ---
+oregon-state|Oregon State|Oregon State|Oregon State Beavers|Beavers|1994:Pac-10,2011:Pac-12|
+washington-state|Washington State|Washington State|Washington State Cougars|Wazzu;WSU|1994:Pac-10,2011:Pac-12|
+
+# --- Big East (basketball) ---
+uconn|UConn|Connecticut|UConn Huskies|Connecticut|1994:Yankee,1997:A-10,2000:Independent,2004:Big East,2013:AAC,2020:Independent|1994:Big East,2013:AAC,2020:Big East
+georgetown|Georgetown|Georgetown|Georgetown Hoyas|Hoyas|1994:MAAC,2001:Patriot|Big East
+villanova|Villanova|Villanova|Villanova Wildcats|Nova|1994:Yankee,1997:A-10,2007:CAA|Big East
+st-johns|St. John's|St. John's|St. John's Red Storm|Saint John's;Red Storm||Big East
+seton-hall|Seton Hall||Seton Hall Pirates|||Big East
+providence|Providence||Providence Friars|Friars||Big East
+marquette|Marquette||Marquette Golden Eagles|||1994:Great Midwest,1995:C-USA,2005:Big East
+depaul|DePaul||DePaul Blue Demons|Blue Demons||1994:Great Midwest,1995:C-USA,2005:Big East
+creighton|Creighton||Creighton Bluejays|Bluejays||1994:MVC,2013:Big East
+xavier|Xavier||Xavier Musketeers|Musketeers||1994:MCC,1995:A-10,2013:Big East
+butler|Butler|Butler|Butler Bulldogs||Pioneer|1994:Horizon,2012:A-10,2013:Big East
+
+# --- AAC / C-USA ---
+memphis|Memphis|Memphis|Memphis Tigers||1994:Independent,1996:C-USA,2013:AAC|1994:Great Midwest,1995:C-USA,2013:AAC
+temple|Temple|Temple|Temple Owls||1994:Big East,2005:Independent,2007:MAC,2012:Big East,2013:AAC|1994:A-10,2013:AAC
+south-florida|South Florida|University of South Florida;South Florida|South Florida Bulls|USF|1997:Independent,2003:C-USA,2005:Big East,2013:AAC|1994:Metro,1995:C-USA,2005:Big East,2013:AAC
+east-carolina|East Carolina|East Carolina|East Carolina Pirates|ECU|1994:Independent,1997:C-USA,2014:AAC|1994:CAA,2001:C-USA,2014:AAC
+tulane|Tulane|Tulane|Tulane Green Wave|Green Wave|1994:Independent,1996:C-USA,2014:AAC|1994:Metro,1995:C-USA,2014:AAC
+tulsa|Tulsa|Tulsa|Tulsa Golden Hurricane||1994:Independent,1996:WAC,2005:C-USA,2014:AAC|1994:MVC,1996:WAC,2005:C-USA,2014:AAC
+uab|UAB|UAB|UAB Blazers|Alabama-Birmingham|1996:Independent,1999:C-USA,2023:AAC|1994:Great Midwest,1995:C-USA,2023:AAC
+rice|Rice|Rice|Rice Owls||1994:SWC,1996:WAC,2005:C-USA,2023:AAC|
+charlotte|Charlotte|Charlotte|Charlotte 49ers|UNC Charlotte;49ers|2013:Independent,2015:C-USA,2023:AAC|1994:Metro,1995:C-USA,2005:A-10,2013:C-USA,2023:AAC
+florida-atlantic|Florida Atlantic|Florida Atlantic|Florida Atlantic Owls|FAU|2001:Independent,2005:Sun Belt,2013:C-USA,2023:AAC|1994:ASUN,2006:Sun Belt,2013:C-USA,2023:AAC
+utsa|UTSA|Texas-San Antonio|UTSA Roadrunners|Texas-San Antonio|2011:Independent,2012:WAC,2013:C-USA,2023:AAC|1994:Southland,2012:WAC,2013:C-USA,2023:AAC
+north-texas|North Texas|North Texas|North Texas Mean Green|UNT|1994:Southland,1996:Big West,2001:Sun Belt,2013:C-USA,2023:AAC|1994:Southland,1996:Big West,2000:Sun Belt,2013:C-USA,2023:AAC
+wichita-state|Wichita State||Wichita State Shockers|Shockers||1994:MVC,2017:AAC
+army|Army|Army|Army Black Knights|West Point|1994:Independent,1998:C-USA,2005:Independent,2024:AAC|Patriot
+navy|Navy|Navy|Navy Midshipmen|Naval Academy|1994:Independent,2015:AAC|Patriot
+southern-miss|Southern Miss|Southern Mississippi|Southern Miss Golden Eagles|Southern Mississippi;USM|1994:Independent,1996:C-USA,2022:Sun Belt|1994:Metro,1995:C-USA,2022:Sun Belt
+marshall|Marshall|Marshall|Marshall Thundering Herd|Thundering Herd|1994:SoCon,1997:MAC,2005:C-USA,2022:Sun Belt|
+louisiana-tech|Louisiana Tech|Louisiana Tech|Louisiana Tech Bulldogs|La Tech|1994:Big West,1996:Independent,2001:WAC,2013:C-USA|1994:Sun Belt,2001:WAC,2013:C-USA
+utep|UTEP|Texas-El Paso|UTEP Miners|Texas-El Paso;Miners|1994:WAC,2005:C-USA|
+middle-tennessee|Middle Tennessee|Middle Tennessee State|Middle Tennessee Blue Raiders|MTSU|1994:OVC,1999:Independent,2001:Sun Belt,2013:C-USA|1994:OVC,2000:Sun Belt,2013:C-USA
+western-kentucky|Western Kentucky|Western Kentucky|Western Kentucky Hilltoppers|WKU;Hilltoppers|1994:Independent,1999:OVC,2001:Gateway,2007:Independent,2009:Sun Belt,2014:C-USA|1994:Sun Belt,2014:C-USA
+fiu|FIU|Florida International|FIU Panthers|Florida International|2002:Independent,2005:Sun Belt,2013:C-USA|1994:ASUN,1998:Sun Belt,2013:C-USA
+liberty|Liberty|Liberty|Liberty Flames||1994:Independent,2002:Big South,2018:Independent,2023:C-USA|1994:Big South,2018:ASUN,2023:C-USA
+new-mexico-state|New Mexico State|New Mexico State|New Mexico State Aggies|NMSU|1994:Big West,2001:Sun Belt,2005:WAC,2013:Independent,2014:Sun Belt,2018:Independent,2023:C-USA|1994:Big West,2000:Sun Belt,2005:WAC,2023:C-USA
+sam-houston|Sam Houston|Sam Houston State|Sam Houston Bearkats|Sam Houston State|1994:Southland,2021:WAC,2023:C-USA|
+old-dominion|Old Dominion|Old Dominion|Old Dominion Monarchs|ODU|2009:Independent,2011:CAA,2014:C-USA,2022:Sun Belt|1994:CAA,2013:C-USA,2022:Sun Belt
+
+# --- Mountain West / WAC ---
+boise-state|Boise State|Boise State|Boise State Broncos||1994:Big Sky,1996:Big West,2001:WAC,2011:Mountain West|
+fresno-state|Fresno State|Fresno State|Fresno State Bulldogs||1994:WAC,2012:Mountain West|
+san-diego-state|San Diego State|San Diego State|San Diego State Aztecs|SDSU;Aztecs|1994:WAC,1999:Mountain West|
+colorado-state|Colorado State|Colorado State|Colorado State Rams|CSU|1994:WAC,1999:Mountain West|
+wyoming|Wyoming|Wyoming|Wyoming Cowboys||1994:WAC,1999:Mountain West|
+air-force|Air Force|Air Force|Air Force Falcons||1994:WAC,1999:Mountain West|
+new-mexico|New Mexico|New Mexico|New Mexico Lobos|Lobos|1994:WAC,1999:Mountain West|
+unlv|UNLV|UNLV|UNLV Runnin' Rebels;UNLV Rebels|Nevada-Las Vegas|1994:Big West,1996:WAC,1999:Mountain West|
+nevada|Nevada|Nevada|Nevada Wolf Pack|Nevada-Reno;Wolf Pack|1994:Big West,2000:WAC,2012:Mountain West|
+hawaii|Hawaii|Hawaii|Hawaii Rainbow Warriors|Rainbow Warriors|1994:WAC,2012:Mountain West|1994:WAC,2012:Big West
+utah-state|Utah State|Utah State|Utah State Aggies||1994:Big West,2001:Independent,2003:Sun Belt,2005:WAC,2013:Mountain West|1994:Big West,2005:WAC,2013:Mountain West
+san-jose-state|San Jose State|San Jose State|San Jose State Spartans|SJSU|1994:Big West,1996:WAC,2013:Mountain West|
+idaho|Idaho|Idaho|Idaho Vandals|Vandals|1994:Big Sky,1996:Big West,2001:Sun Belt,2005:WAC,2013:Independent,2014:Sun Belt,2018:Big Sky|1994:Big Sky,1996:Big West,2005:WAC,2014:Big Sky
+
+# --- MAC ---
+toledo|Toledo|Toledo|Toledo Rockets|Rockets|MAC|
+western-michigan|Western Michigan|Western Michigan|Western Michigan Broncos|WMU|MAC|
+central-michigan|Central Michigan|Central Michigan|Central Michigan Chippewas|CMU;Chippewas|MAC|
+eastern-michigan|Eastern Michigan|Eastern Michigan|Eastern Michigan Eagles|EMU|MAC|
+northern-illinois|Northern Illinois|Northern Illinois|Northern Illinois Huskies|NIU|1994:Big West,1996:Independent,1997:MAC|1994:MCC,1997:MAC
+miami-oh|Miami (OH)|Miami (Ohio)|Miami RedHawks|Miami of Ohio;Miami RedHawks|MAC|
+ohio|Ohio|Ohio|Ohio Bobcats|Ohio University;Bobcats|MAC|
+kent-state|Kent State|Kent State|Kent State Golden Flashes|Golden Flashes|MAC|
+bowling-green|Bowling Green|Bowling Green|Bowling Green Falcons|BGSU|MAC|
+akron|Akron|Akron|Akron Zips|Zips|MAC|
+ball-state|Ball State|Ball State|Ball State Cardinals||MAC|
+buffalo|Buffalo|Buffalo|Buffalo Bulls||1994:Independent,1999:MAC|1994:Mid-Continent,1998:MAC
+umass|UMass|Massachusetts|UMass Minutemen|Massachusetts;Minutemen|1994:Yankee,1997:A-10,2007:CAA,2012:MAC,2016:Independent|1994:A-10,2025:MAC
+
+# --- Sun Belt ---
+troy|Troy|Troy;Troy State|Troy Trojans|Troy State|1994:Southland,2001:Independent,2004:Sun Belt|1994:Mid-Continent,1997:ASUN,2005:Sun Belt
+arkansas-state|Arkansas State|Arkansas State|Arkansas State Red Wolves||1994:Big West,1996:Independent,1999:Big West,2001:Sun Belt|Sun Belt
+louisiana|Louisiana|Louisiana-Lafayette;Louisiana|Louisiana Ragin' Cajuns|Louisiana-Lafayette;ULL;Ragin' Cajuns;Southwestern Louisiana|1994:Big West,1996:Independent,2001:Sun Belt|Sun Belt
+ul-monroe|Louisiana-Monroe|Louisiana-Monroe|Louisiana–Monroe Warhawks;ULM Warhawks|ULM;Northeast Louisiana|1994:Independent,2001:Sun Belt|1994:Southland,2006:Sun Belt
+appalachian-state|Appalachian State|Appalachian State|Appalachian State Mountaineers|App State|1994:SoCon,2014:Sun Belt|
+georgia-southern|Georgia Southern|Georgia Southern|Georgia Southern Eagles||1994:SoCon,2014:Sun Belt|
+georgia-state|Georgia State|Georgia State|Georgia State Panthers||2010:Independent,2012:CAA,2013:Sun Belt|1994:ASUN,2005:CAA,2013:Sun Belt
+coastal-carolina|Coastal Carolina|Coastal Carolina|Coastal Carolina Chanticleers|Chanticleers|2003:Big South,2017:Sun Belt|1994:Big South,2016:Sun Belt
+south-alabama|South Alabama|South Alabama|South Alabama Jaguars||2009:Independent,2012:Sun Belt|Sun Belt
+texas-state|Texas State|Texas State|Texas State Bobcats|Southwest Texas State|1994:Southland,2012:WAC,2013:Sun Belt|
+james-madison|James Madison|James Madison|James Madison Dukes|JMU|1994:Yankee,1997:A-10,2007:CAA,2022:Sun Belt|1994:CAA,2022:Sun Belt
+
+# --- Basketball-first D-I ---
+gonzaga|Gonzaga||Gonzaga Bulldogs|Zags|WCC|
+saint-marys|Saint Mary's||Saint Mary's Gaels|St. Mary's;Gaels|WCC|
+pepperdine|Pepperdine||Pepperdine Waves||WCC|
+santa-clara|Santa Clara||Santa Clara Broncos||WCC|
+san-francisco|San Francisco||San Francisco Dons|USF Dons|WCC|
+loyola-marymount|Loyola Marymount||Loyola Marymount Lions|LMU|WCC|
+portland|Portland||Portland Pilots||WCC|
+san-diego|San Diego|San Diego|San Diego Toreros|USD|Pioneer|WCC
+pacific|Pacific||Pacific Tigers|||1994:Big West,2013:WCC
+dayton|Dayton|Dayton|Dayton Flyers||Pioneer|1994:Great Midwest,1995:A-10
+vcu|VCU||VCU Rams|Virginia Commonwealth||1994:Metro,1995:CAA,2012:A-10
+saint-josephs|Saint Joseph's||Saint Joseph's Hawks|St. Joe's;St. Joseph's|A-10|
+saint-louis|Saint Louis||Saint Louis Billikens|SLU;Billikens||1994:Great Midwest,1995:C-USA,2005:A-10
+st-bonaventure|St. Bonaventure||St. Bonaventure Bonnies|Bonnies|A-10|
+rhode-island|Rhode Island|Rhode Island|Rhode Island Rams|URI|1994:Yankee,1997:A-10,2007:CAA|A-10
+george-washington|George Washington||George Washington Revolutionaries;George Washington Colonials|GW|A-10|
+la-salle|La Salle||La Salle Explorers|||1994:MCC,1995:A-10
+duquesne|Duquesne|Duquesne|Duquesne Dukes||1994:MAAC,2008:NEC|A-10
+fordham|Fordham|Fordham|Fordham Rams||Patriot|1994:Patriot,1995:A-10
+richmond|Richmond|Richmond|Richmond Spiders||1994:Yankee,1997:A-10,2007:CAA|1994:CAA,2001:A-10
+davidson|Davidson|Davidson|Davidson Wildcats||1994:Independent,2001:Pioneer|1994:SoCon,2014:A-10
+george-mason|George Mason||George Mason Patriots|||1994:CAA,2013:A-10
+loyola-chicago|Loyola Chicago||Loyola Ramblers|Loyola (IL);Ramblers||1994:Horizon,2013:MVC,2022:A-10
+bradley|Bradley||Bradley Braves||MVC|
+drake|Drake|Drake|Drake Bulldogs||Pioneer|MVC
+illinois-state|Illinois State|Illinois State|Illinois State Redbirds||Gateway|MVC
+indiana-state|Indiana State|Indiana State|Indiana State Sycamores||Gateway|MVC
+missouri-state|Missouri State|Missouri State;Southwest Missouri State|Missouri State Bears|Southwest Missouri State|Gateway|MVC
+northern-iowa|Northern Iowa|Northern Iowa|Northern Iowa Panthers|UNI|Gateway|MVC
+southern-illinois|Southern Illinois|Southern Illinois|Southern Illinois Salukis|SIU;Salukis|Gateway|MVC
+evansville|Evansville||Evansville Purple Aces|||MVC
+valparaiso|Valparaiso|Valparaiso|Valparaiso Beacons;Valparaiso Crusaders|Valpo|Pioneer|1994:Mid-Continent,2007:Horizon,2017:MVC
+belmont|Belmont||Belmont Bruins|||1994:Independent,2001:ASUN,2012:OVC,2022:MVC
+murray-state|Murray State|Murray State|Murray State Racers||1994:OVC,2023:Gateway|1994:OVC,2022:MVC
+detroit-mercy|Detroit Mercy||Detroit Mercy Titans;Detroit Titans|Detroit|Horizon|
+cleveland-state|Cleveland State||Cleveland State Vikings||Horizon|
+wright-state|Wright State||Wright State Raiders||Horizon|
+green-bay|Green Bay||Green Bay Phoenix|Wisconsin-Green Bay|Horizon|
+milwaukee|Milwaukee||Milwaukee Panthers|Wisconsin-Milwaukee|Horizon|
+uic|UIC||UIC Flames|Illinois-Chicago||1994:Horizon,2022:MVC
+oakland|Oakland||Oakland Golden Grizzlies|||1997:Mid-Continent,2007:Summit,2013:Horizon
+iu-indy|IUPUI||IU Indy Jaguars;IUPUI Jaguars|IU Indy;IU Indianapolis||1998:Mid-Continent,2007:Summit,2017:Horizon
+long-beach-state|Long Beach State|California State - Long Beach|Long Beach State Beach;Long Beach State 49ers|LBSU|Big West|
+uc-santa-barbara|UC Santa Barbara||UC Santa Barbara Gauchos|UCSB|Big West|
+cal-state-fullerton|Cal State Fullerton||Cal State Fullerton Titans|Fullerton|Big West|
+cal-poly|Cal Poly|Cal Poly|Cal Poly Mustangs||1994:Independent,2004:Great West,2012:Big Sky|1994:American West,1996:Big West
+uc-irvine|UC Irvine||UC Irvine Anteaters|UCI|Big West|
+uc-davis|UC Davis|UC Davis;California-Davis|UC Davis Aggies||1994:Division II,2004:Great West,2012:Big Sky|1994:Division II,2007:Big West
+weber-state|Weber State|Weber State|Weber State Wildcats||Big Sky|
+montana|Montana|Montana|Montana Grizzlies|Griz|Big Sky|
+montana-state|Montana State|Montana State|Montana State Bobcats||Big Sky|
+eastern-washington|Eastern Washington|Eastern Washington|Eastern Washington Eagles|EWU|Big Sky|
+portland-state|Portland State|Portland State|Portland State Vikings||1994:Division II,1996:Big Sky|1996:Big Sky
+idaho-state|Idaho State|Idaho State|Idaho State Bengals||Big Sky|
+northern-arizona|Northern Arizona|Northern Arizona|Northern Arizona Lumberjacks|NAU|Big Sky|
+northern-colorado|Northern Colorado|Northern Colorado|Northern Colorado Bears||1994:Division II,2004:Great West,2006:Big Sky|1994:Division II,2006:Big Sky
+sacramento-state|Sacramento State|Sacramento State|Sacramento State Hornets|Sac State|1994:American West,1996:Big Sky|1994:Independent,1996:Big Sky
+southern-utah|Southern Utah|Southern Utah;Southern Utah State|Southern Utah Thunderbirds||1994:American West,1996:Independent,2004:Great West,2012:Big Sky,2022:WAC|1994:American West,1997:Mid-Continent,2007:Summit,2012:Big Sky,2022:WAC
+utah-valley|Utah Valley|Utah Valley|Utah Valley Wolverines|||2009:Great West,2013:WAC
+south-dakota-state|South Dakota State|South Dakota State|South Dakota State Jackrabbits|SDSU Jackrabbits|1994:Division II,2004:Great West,2008:Gateway|1994:Division II,2007:Summit
+north-dakota-state|North Dakota State|North Dakota State|North Dakota State Bison|NDSU|1994:Division II,2004:Great West,2008:Gateway|1994:Division II,2007:Summit
+north-dakota|North Dakota|North Dakota|North Dakota Fighting Hawks||1994:Division II,2008:Great West,2012:Big Sky,2020:Gateway|1994:Division II,2012:Big Sky,2018:Summit
+south-dakota|South Dakota|South Dakota|South Dakota Coyotes||1994:Division II,2008:Great West,2012:Gateway|1994:Division II,2011:Summit
+oral-roberts|Oral Roberts||Oral Roberts Golden Eagles|ORU||1994:Independent,1997:Mid-Continent,2007:Summit,2012:Southland,2014:Summit
+denver|Denver||Denver Pioneers|||1998:Sun Belt,2012:WAC,2013:Summit
+kansas-city|Kansas City||Kansas City Roos;UMKC Kangaroos|UMKC||1994:Mid-Continent,2007:Summit,2013:WAC,2020:Summit
+omaha|Omaha|Nebraska-Omaha|Omaha Mavericks|Nebraska-Omaha|Division II|1994:Division II,2012:Summit
+western-illinois|Western Illinois|Western Illinois|Western Illinois Leathernecks||Gateway|1994:Mid-Continent,2007:Summit,2023:OVC
+eastern-illinois|Eastern Illinois|Eastern Illinois|Eastern Illinois Panthers|EIU|1994:Gateway,1996:OVC|1994:Mid-Continent,1996:OVC
+austin-peay|Austin Peay|Austin Peay|Austin Peay Governors||1994:OVC,2022:ASUN|1994:OVC,2022:ASUN
+tennessee-state|Tennessee State|Tennessee State|Tennessee State Tigers||OVC|
+tennessee-tech|Tennessee Tech|Tennessee Tech|Tennessee Tech Golden Eagles||OVC|
+ut-martin|UT Martin|Tennessee-Martin|Tennessee–Martin Skyhawks;UT Martin Skyhawks|Tennessee-Martin|OVC|
+southeast-missouri|Southeast Missouri State|Southeast Missouri State|Southeast Missouri State Redhawks|SEMO|OVC|
+eastern-kentucky|Eastern Kentucky|Eastern Kentucky|Eastern Kentucky Colonels|EKU|1994:OVC,2021:ASUN|1994:OVC,2021:ASUN
+morehead-state|Morehead State|Morehead State|Morehead State Eagles||1994:OVC,1996:Independent,2001:Pioneer|OVC
+jacksonville-state|Jacksonville State|Jacksonville State|Jacksonville State Gamecocks|Jax State|1994:Independent,1997:Southland,2003:OVC,2021:ASUN,2023:C-USA|1995:ASUN,2003:OVC,2021:ASUN,2023:C-USA
+little-rock|Little Rock||Little Rock Trojans;Arkansas–Little Rock Trojans|Arkansas-Little Rock;UALR||1994:Sun Belt,2022:OVC
+chattanooga|Chattanooga|Tennessee-Chattanooga|Chattanooga Mocs|Tennessee-Chattanooga;UTC|SoCon|
+furman|Furman|Furman|Furman Paladins||SoCon|
+the-citadel|The Citadel|The Citadel|The Citadel Bulldogs|Citadel|SoCon|
+wofford|Wofford|Wofford|Wofford Terriers||1994:Independent,1997:SoCon|1995:Independent,1997:SoCon
+samford|Samford|Samford|Samford Bulldogs||1994:Independent,2003:OVC,2008:SoCon|1994:ASUN,2003:OVC,2008:SoCon
+western-carolina|Western Carolina|Western Carolina|Western Carolina Catamounts||SoCon|
+east-tennessee-state|East Tennessee State|East Tennessee State|East Tennessee State Buccaneers|ETSU|1994:SoCon,2016:SoCon|1994:SoCon,2005:ASUN,2014:SoCon
+vmi|VMI|VMI|VMI Keydets|Virginia Military Institute|1994:SoCon,2003:Big South,2014:SoCon|1994:SoCon,2003:Big South,2014:SoCon
+charleston|College of Charleston||Charleston Cougars;College of Charleston Cougars|Charleston||1994:ASUN,1998:SoCon,2013:CAA
+winthrop|Winthrop||Winthrop Eagles||Big South|
+radford|Radford||Radford Highlanders||Big South|
+presbyterian|Presbyterian|Presbyterian College;Presbyterian|Presbyterian Blue Hose||1994:Division II,2007:Big South,2021:Pioneer|1994:Division II,2007:Big South
+usc-upstate|USC Upstate||South Carolina Upstate Spartans;USC Upstate Spartans|South Carolina Upstate||1994:Division II,2007:ASUN,2018:Big South
+hofstra|Hofstra|Hofstra|Hofstra Pride||1994:Independent,2001:A-10,2007:CAA|1994:America East,2001:CAA
+delaware|Delaware|Delaware|Delaware Fightin' Blue Hens|Blue Hens|1994:Yankee,1997:A-10,2007:CAA,2025:C-USA|1994:America East,2001:CAA,2025:C-USA
+towson|Towson|Towson;Towson State|Towson Tigers|Towson State|1994:Independent,1997:Patriot,2004:A-10,2007:CAA|1994:Big South,1995:America East,2001:CAA
+drexel|Drexel||Drexel Dragons|||1994:America East,2001:CAA
+northeastern|Northeastern|Northeastern|Northeastern Huskies||1994:Yankee,1997:A-10,2007:CAA|1994:America East,2005:CAA
+william-mary|William & Mary|William & Mary|William & Mary Tribe||1994:Yankee,1997:A-10,2007:CAA|CAA
+stony-brook|Stony Brook|Stony Brook|Stony Brook Seawolves||1999:NEC,2008:Big South,2013:CAA|1999:America East,2022:CAA
+new-hampshire|New Hampshire|New Hampshire|New Hampshire Wildcats|UNH|1994:Yankee,1997:A-10,2007:CAA|America East
+maine|Maine|Maine|Maine Black Bears||1994:Yankee,1997:A-10,2007:CAA|America East
+vermont|Vermont||Vermont Catamounts||America East|
+albany|Albany|Albany|Albany Great Danes|UAlbany|1994:Division III,1999:NEC,2013:CAA|1999:Independent,2001:America East
+boston-university|Boston University|Boston University|Boston University Terriers|BU|Yankee|1994:America East,2013:Patriot
+bucknell|Bucknell|Bucknell|Bucknell Bison||Patriot|
+lehigh|Lehigh|Lehigh|Lehigh Mountain Hawks||Patriot|
+colgate|Colgate|Colgate|Colgate Raiders||Patriot|
+holy-cross|Holy Cross|Holy Cross|Holy Cross Crusaders||Patriot|
+lafayette|Lafayette|Lafayette|Lafayette Leopards||Patriot|
+american|American||American Eagles|American University||1994:CAA,2001:Patriot
+loyola-md|Loyola (MD)||Loyola Greyhounds|Loyola Maryland||1994:MAAC,2013:Patriot
+harvard|Harvard|Harvard|Harvard Crimson||Ivy|
+yale|Yale|Yale|Yale Bulldogs||Ivy|
+princeton|Princeton|Princeton|Princeton Tigers||Ivy|
+penn|Penn|Pennsylvania;Penn|Penn Quakers|Pennsylvania;UPenn|Ivy|
+cornell|Cornell|Cornell|Cornell Big Red||Ivy|
+columbia|Columbia|Columbia|Columbia Lions||Ivy|
+brown|Brown|Brown|Brown Bears||Ivy|
+dartmouth|Dartmouth|Dartmouth|Dartmouth Big Green||Ivy|
+iona|Iona||Iona Gaels||MAAC|
+siena|Siena||Siena Saints||MAAC|
+fairfield|Fairfield||Fairfield Stags||MAAC|
+rider|Rider||Rider Broncs|||1994:NEC,1997:MAAC
+marist|Marist|Marist|Marist Red Foxes||1994:MAAC,2009:Pioneer|1994:NEC,1997:MAAC
+manhattan|Manhattan||Manhattan Jaspers||MAAC|
+niagara|Niagara||Niagara Purple Eagles||MAAC|
+robert-morris|Robert Morris|Robert Morris|Robert Morris Colonials;Robert Morris Eagles||1994:Independent,1996:NEC,2020:Big South,2024:NEC|1994:NEC,2020:Horizon
+central-connecticut|Central Connecticut|Central Connecticut State;Central Connecticut|Central Connecticut Blue Devils|CCSU|1994:Independent,1996:NEC|1994:Mid-Continent,1997:NEC
+monmouth|Monmouth|Monmouth;Monmouth (NJ)|Monmouth Hawks||1994:Independent,1996:NEC,2014:Big South,2022:CAA|1994:NEC,2013:MAAC,2022:CAA
+norfolk-state|Norfolk State|Norfolk State|Norfolk State Spartans||1994:Division II,1997:MEAC|1994:Division II,1997:MEAC
+hampton|Hampton|Hampton|Hampton Pirates||1994:Division II,1996:MEAC,2018:Big South,2022:CAA|1994:Division II,1995:MEAC,2018:Big South,2022:CAA
+howard|Howard|Howard|Howard Bison||MEAC|
+florida-am|Florida A&M|Florida A&M|Florida A&M Rattlers|FAMU|1994:MEAC,2021:SWAC|
+bethune-cookman|Bethune-Cookman|Bethune-Cookman College;Bethune-Cookman|Bethune–Cookman Wildcats||1994:MEAC,2021:SWAC|
+south-carolina-state|South Carolina State|South Carolina State|South Carolina State Bulldogs||MEAC|
+north-carolina-at|North Carolina A&T|North Carolina A&T|North Carolina A&T Aggies|NC A&T|1994:MEAC,2021:Big South,2023:CAA|1994:MEAC,2021:Big South,2022:CAA
+nc-central|North Carolina Central|North Carolina Central|North Carolina Central Eagles|NCCU|1994:Division II,2011:MEAC|
+morgan-state|Morgan State|Morgan State|Morgan State Bears||MEAC|
+delaware-state|Delaware State|Delaware State|Delaware State Hornets||MEAC|
+jackson-state|Jackson State|Jackson State University;Jackson State|Jackson State Tigers||SWAC|
+grambling|Grambling State|Grambling State;Grambling|Grambling State Tigers|Grambling|SWAC|
+alcorn-state|Alcorn State|Alcorn State|Alcorn State Braves||SWAC|
+southern|Southern|Southern;Southern University|Southern Jaguars|Southern University|SWAC|
+alabama-state|Alabama State|Alabama State|Alabama State Hornets||SWAC|
+alabama-am|Alabama A&M|Alabama A&M|Alabama A&M Bulldogs||1994:Division II,1999:SWAC|
+mississippi-valley|Mississippi Valley State|Mississippi Valley State University;Mississippi Valley State|Mississippi Valley State Delta Devils||SWAC|
+arkansas-pine-bluff|Arkansas-Pine Bluff|University of Arkansas at Pine Bluff;Arkansas-Pine Bluff|Arkansas–Pine Bluff Golden Lions|UAPB|1994:NAIA,1998:SWAC|
+prairie-view|Prairie View A&M|Prairie View A&M;Prairie View|Prairie View A&M Panthers||SWAC|
+texas-southern|Texas Southern|Texas Southern|Texas Southern Tigers||SWAC|
+mcneese|McNeese|McNeese State|McNeese Cowboys|McNeese State|Southland|
+nicholls|Nicholls|Nicholls State|Nicholls Colonels|Nicholls State|Southland|
+northwestern-state|Northwestern State|Northwestern State (LA);Northwestern State|Northwestern State Demons||Southland|
+southeastern-louisiana|Southeastern Louisiana|Southeastern Louisiana|Southeastern Louisiana Lions||2003:Independent,2005:Southland|1994:ASUN,1997:Southland
+stephen-f-austin|Stephen F. Austin|Stephen F. Austin State;Stephen F. Austin|Stephen F. Austin Lumberjacks|SFA|1994:Southland,2021:WAC,2024:Southland|
+lamar|Lamar|Lamar|Lamar Cardinals||2010:Independent,2011:Southland|1994:Sun Belt,1998:Southland
+central-arkansas|Central Arkansas|Central Arkansas|Central Arkansas Bears|UCA|1994:Division II,2006:Southland,2021:ASUN|1994:Division II,2006:Southland,2021:ASUN
+abilene-christian|Abilene Christian|Abilene Christian|Abilene Christian Wildcats|ACU|1994:Division II,2013:Southland,2021:WAC|
+incarnate-word|Incarnate Word|Incarnate Word|Incarnate Word Cardinals|UIW|2009:Division II,2013:Southland|
+centenary|Centenary||Centenary Gentlemen|||1994:ASUN,1999:Independent,2003:Mid-Continent,2007:Summit
+north-alabama|North Alabama|North Alabama|North Alabama Lions|UNA|1994:Division II,2018:Big South,2022:ASUN|1994:Division II,2018:ASUN
+kennesaw-state|Kennesaw State|Kennesaw State|Kennesaw State Owls||2015:Big South,2022:ASUN,2024:C-USA|2005:ASUN,2024:C-USA
+florida-gulf-coast|Florida Gulf Coast||Florida Gulf Coast Eagles|FGCU||2007:ASUN
+lipscomb|Lipscomb||Lipscomb Bisons|||2003:ASUN
+mercer|Mercer|Mercer|Mercer Bears||2013:Pioneer,2014:SoCon|1994:ASUN,2014:SoCon
+
+seattle|Seattle||Seattle Redhawks|Seattle U||2009:Independent,2012:WAC,2025:WCC
+canisius|Canisius||Canisius Golden Griffins||MAAC|
+jacksonville|Jacksonville||Jacksonville Dolphins|||1994:Sun Belt,1998:ASUN
+wagner|Wagner|Wagner|Wagner Seahawks||NEC|
+saint-francis-pa|Saint Francis (PA)||Saint Francis Red Flash;Saint Francis Red Wolves|St. Francis (PA)|NEC|
+gardner-webb|Gardner-Webb|Gardner-Webb|Gardner–Webb Runnin' Bulldogs||1994:Division II,2002:Big South|1994:Division II,2002:ASUN,2008:Big South
+chicago-state|Chicago State||Chicago State Cougars|||1994:Mid-Continent,2006:Independent,2009:Great West,2013:WAC,2022:Independent,2024:NEC
+new-orleans|New Orleans||LSU New Orleans Privateers;New Orleans Privateers|UNO||1994:Sun Belt,2013:Southland
+ut-rio-grande|UT Rio Grande Valley||Texas–Pan American Broncs;UT Rio Grande Valley Vaqueros|Texas-Pan American;UTRGV||1994:Sun Belt,1998:Independent,2009:Great West,2013:WAC,2024:Southland
+houston-christian|Houston Christian||Houston Christian Huskies;Houston Baptist Huskies|Houston Baptist||1994:NAIA,2008:Independent,2009:Great West,2013:Southland
+hartford|Hartford||Hartford Hawks|||1994:America East,2023:Division III
+
+# --- Division II / III / NAIA and others (conference hint = level) ---
+grand-valley|Grand Valley State|Grand Valley;Grand Valley State|Grand Valley State Lakers|GVSU|Division II|
+saginaw-valley|Saginaw Valley State|Saginaw Valley State|Saginaw Valley State Cardinals|SVSU|Division II|
+ferris-state|Ferris State|Ferris State|Ferris State Bulldogs||Division II|
+hillsdale|Hillsdale|Hillsdale|Hillsdale Chargers||Division II|
+michigan-tech|Michigan Tech|Michigan Tech University;Michigan Tech|Michigan Tech Huskies||Division II|
+pittsburg-state|Pittsburg State|Pittsburg State (KS);Pittsburg State|Pittsburg State Gorillas||Division II|
+central-missouri|Central Missouri|Central Missouri;Central Missouri State|Central Missouri Mules||Division II|
+missouri-southern|Missouri Southern|Missouri Southern;Missouri Southern State|Missouri Southern Lions||Division II|
+missouri-western|Missouri Western|Missouri Western;Missouri Western State|Missouri Western Griffons||Division II|
+washburn|Washburn|Washburn|Washburn Ichabods||Division II|
+northwest-missouri|Northwest Missouri State|Northwest Missouri State;NW Missouri State University|Northwest Missouri State Bearcats||Division II|
+texas-am-kingsville|Texas A&M-Kingsville|Texas A&M University-Kingsville;Texas A&M-Kingsville|Texas A&M–Kingsville Javelinas|Kingsville|Division II|
+west-alabama|West Alabama|West Alabama|West Alabama Tigers||Division II|
+valdosta-state|Valdosta State|Valdosta State|Valdosta State Blazers||Division II|
+delta-state|Delta State|Delta State|Delta State Statesmen||Division II|
+tuskegee|Tuskegee|Tuskegee University;Tuskegee|Tuskegee Golden Tigers||Division II|
+albany-state|Albany State|Albany State (GA);Albany State|Albany State Golden Rams||Division II|
+fort-valley-state|Fort Valley State|Fort Valley State College;Fort Valley State|Fort Valley State Wildcats||Division II|
+winston-salem-state|Winston-Salem State|Winston Salem State University;Winston-Salem State|Winston-Salem State Rams||Division II|
+central-state|Central State (OH)|Central State University, Oh;Central State (OH)|Central State Marauders||1994:NAIA,2002:Division II|
+bloomsburg|Bloomsburg|Bloomsburg|Bloomsburg Huskies||Division II|
+kutztown|Kutztown|Kutztown|Kutztown Golden Bears||Division II|
+slippery-rock|Slippery Rock|Slippery Rock|Slippery Rock||Division II|
+iup|IUP|Indiana PA,  University of;Indiana (PA)|IUP Crimson Hawks|Indiana University of Pennsylvania|Division II|
+clarion|Clarion|University of Clarion;Clarion|Clarion Golden Eagles||Division II|
+west-chester|West Chester|West Chester|West Chester Golden Rams||Division II|
+california-pa|California (PA)|California (PA)|California Vulcans|Cal U|Division II|
+shepherd|Shepherd|Shepherd|Shepherd Rams||Division II|
+mars-hill|Mars Hill|Mars Hill|Mars Hill Lions||Division II|
+wayne-state-ne|Wayne State (NE)|Wayne State College|Wayne State Wildcats||Division II|
+sioux-falls|Sioux Falls|Sioux Falls|Sioux Falls Cougars||1994:NAIA,2011:Division II|
+colorado-state-pueblo|CSU Pueblo|Colorado State (Pueblo);Colorado State-Pueblo|CSU Pueblo ThunderWolves|Colorado State-Pueblo|Division II|
+chadron-state|Chadron State|Chadron State|Chadron State Eagles||Division II|
+humboldt-state|Humboldt State|Humboldt State|Humboldt State Lumberjacks|Cal Poly Humboldt|Division II|
+western-oregon|Western Oregon|Western Oregon|Western Oregon Wolves||Division II|
+central-washington|Central Washington|Central Washington|Central Washington Wildcats||Division II|
+northwestern-oklahoma|Northwestern Oklahoma State|Northwestern Oklahoma State University|Northwestern Oklahoma State Rangers||1994:NAIA,2012:Division II|
+langston|Langston|Langston University|Langston Lions||NAIA|
+lane|Lane|Lane College|Lane Dragons||Division II|
+knoxville|Knoxville College|Knoxville College|Knoxville Bulldogs||Division II|
+ashland|Ashland|Ashland|Ashland Eagles||Division II|
+lewis|Lewis||Lewis Flyers||Division II|
+indianapolis|Indianapolis|Indianapolis|Indianapolis Greyhounds|UIndy|Division II|
+lincoln-memorial|Lincoln Memorial||Lincoln Memorial Railsplitters||Division II|
+cal-state-san-bernardino|Cal State San Bernardino||Cal State San Bernardino Coyotes||Division II|
+auburn-montgomery|Auburn Montgomery||Auburn Montgomery Warhawks||1994:NAIA,2016:Division II|
+saint-vincent|Saint Vincent||Saint Vincent Bearcats||Division III|
+augsburg|Augsburg||Augsburg Auggies||Division III|
+williams|Williams||Williams Ephs||Division III|
+mount-union|Mount Union|Mount Union College;Mount Union|Mount Union Purple Raiders||Division III|
+wisconsin-whitewater|Wisconsin-Whitewater|Wisconsin-Whitewater|Wisconsin–Whitewater Warhawks|UW-Whitewater|Division III|
+wisconsin-stevens-point|Wisconsin-Stevens Point|Wisconsin-Stevens Point|Wisconsin–Stevens Point Pointers||Division III|
+hobart|Hobart|Hobart|Hobart Statesmen||Division III|
+norwich|Norwich|Norwich University|Norwich Cadets||Division III|
+uc-san-diego|UC San Diego|Univ of California-San Diego|UC San Diego Tritons|UCSD|Division II|
+regina|Regina (Canada)|Regina|Regina Rams||U Sports (Canada)|
+manitoba|Manitoba (Canada)|Manitoba (Canada)|Manitoba Bisons||U Sports (Canada)|

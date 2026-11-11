@@ -1,0 +1,298 @@
+import { useEffect, useState } from 'react'
+import type { Mode, Player, School } from './types'
+import { MODES, MODE_LABEL } from './types'
+import { getDateKey, isValidDateKey, puzzleNumber } from './lib/daily'
+import { totalPoints } from './lib/game'
+import { apiEnabled, fetchMe } from './lib/api'
+import {
+  type Identity,
+  type PhotoStyle,
+  liveStreak,
+  loadDaily,
+  loadIdentity,
+  loadPhotoStyle,
+  loadStats,
+  saveIdentity,
+  savePhotoStyle,
+} from './lib/storage'
+import { log } from './lib/log'
+import { DailyGame } from './components/DailyGame'
+import { FreePlay } from './components/FreePlay'
+import { Leaderboard } from './components/Leaderboard'
+import { AccountDialog } from './components/AccountDialog'
+
+type View =
+  | { screen: 'home' }
+  | { screen: 'daily'; mode: Mode }
+  | { screen: 'free'; mode: Mode }
+  | { screen: 'board'; mode: Mode }
+
+const MODE_BLURB: Record<Mode, string> = {
+  mixed: 'NFL and NBA players, shuffled together',
+  nfl: 'Football only',
+  nba: 'Basketball only',
+}
+
+/** `?date=YYYY-MM-DD` plays another day as practice (nothing is recorded). */
+function resolveDay(
+  search: string,
+  now: Date,
+): { dateKey: string; official: boolean } {
+  const today = getDateKey(now)
+  const asked = new URLSearchParams(search).get('date')
+  if (asked && isValidDateKey(asked) && asked !== today)
+    return { dateKey: asked, official: false }
+  return { dateKey: today, official: true }
+}
+
+export function App() {
+  const [players, setPlayers] = useState<Player[] | null>(null)
+  const [schools, setSchools] = useState<School[] | null>(null)
+  const [loadError, setLoadError] = useState(false)
+  const [view, setView] = useState<View>({ screen: 'home' })
+  const [identity, setIdentity] = useState<Identity>(loadIdentity)
+  const [photoStyle, setPhotoStyle] = useState<PhotoStyle>(loadPhotoStyle)
+  const [accountOpen, setAccountOpen] = useState(false)
+  const [{ dateKey, official }, setDay] = useState(() =>
+    resolveDay(window.location.search, new Date()),
+  )
+
+  const changeIdentity = (next: Identity) => {
+    setIdentity(next)
+    saveIdentity(next)
+  }
+
+  useEffect(() => {
+    const base = import.meta.env.BASE_URL
+    const get = (file: string) =>
+      fetch(base + file).then((r) => {
+        if (!r.ok) throw new Error(`${file}: HTTP ${r.status}`)
+        return r.json()
+      })
+    Promise.all([get('players.json'), get('schools.json')])
+      .then(([p, s]) => {
+        setPlayers(p)
+        setSchools(s)
+      })
+      .catch((e) => {
+        log.error('data', 'dataset load failed', { error: String(e) })
+        setLoadError(true)
+      })
+  }, [])
+
+  // Pick up a name changed on another device (accounts only matter here).
+  useEffect(() => {
+    if (!apiEnabled) return
+    fetchMe(identity.token).then((r) => {
+      if (!r.ok) return
+      const next = {
+        ...identity,
+        name: r.name || identity.name,
+        username: r.username ?? undefined,
+      }
+      if (next.name !== identity.name || next.username !== identity.username)
+        changeIdentity(next)
+    })
+    // Once per token.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [identity.token])
+
+  // Roll over to the new day when the tab comes back after midnight — but
+  // only on the home screen, never under a game in progress.
+  const onHome = view.screen === 'home'
+  useEffect(() => {
+    if (!onHome) return
+    const onVisible = () => {
+      if (document.visibilityState === 'visible')
+        setDay(resolveDay(window.location.search, new Date()))
+    }
+    document.addEventListener('visibilitychange', onVisible)
+    return () => document.removeEventListener('visibilitychange', onVisible)
+  }, [onHome])
+
+  const togglePhoto = () => {
+    const next = photoStyle === 'headshot' ? 'action' : 'headshot'
+    setPhotoStyle(next)
+    savePhotoStyle(next)
+  }
+  const goHome = () => {
+    setDay(resolveDay(window.location.search, new Date()))
+    setView({ screen: 'home' })
+  }
+
+  const ready = players && schools
+
+  return (
+    <div className="app">
+      <header className="top">
+        <button type="button" className="brand" onClick={goHome}>
+          Where<span>He</span>Play
+        </button>
+        <button
+          type="button"
+          className="me"
+          onClick={() => setAccountOpen(true)}
+        >
+          👤 {identity.name || 'Set name'}
+        </button>
+      </header>
+
+      <main>
+        {loadError && (
+          <p className="error">
+            Couldn’t load the players. Check your connection and reload.
+          </p>
+        )}
+        {!ready && !loadError && <p className="muted">Loading players…</p>}
+
+        {ready && view.screen === 'home' && (
+          <>
+            <p className="tagline">
+              Where did he play in college? Five players a day — two easy, two
+              medium, one hard. Fewer hints, more points.
+            </p>
+            {!official && (
+              <p className="muted">
+                Practice day {dateKey} (puzzle #{puzzleNumber(dateKey)}) — not
+                recorded.
+              </p>
+            )}
+            <div className="modes">
+              {MODES.map((mode) => {
+                const saved = official ? loadDaily(mode, dateKey) : undefined
+                const done = saved?.questions.every((q) => q.done)
+                const started = saved?.questions.some((q) => q.done)
+                const streak = liveStreak(loadStats(mode), dateKey)
+                return (
+                  <section key={mode} className={`mode mode-${mode}`}>
+                    <h2>{MODE_LABEL[mode]}</h2>
+                    <p className="muted">{MODE_BLURB[mode]}</p>
+                    <p className="mode-streak">
+                      {streak > 0 ? `🔥 ${streak}-day streak` : ' '}
+                    </p>
+                    <button
+                      type="button"
+                      className="primary"
+                      onClick={() => setView({ screen: 'daily', mode })}
+                    >
+                      {done
+                        ? `Daily done · ${totalPoints(saved!.questions)}`
+                        : started
+                          ? 'Continue daily'
+                          : 'Play daily'}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setView({ screen: 'free', mode })}
+                    >
+                      Free play
+                    </button>
+                  </section>
+                )
+              })}
+            </div>
+            <div className="row center home-links">
+              {apiEnabled && (
+                <button
+                  type="button"
+                  onClick={() => setView({ screen: 'board', mode: 'mixed' })}
+                >
+                  🏆 Leaderboards
+                </button>
+              )}
+              <button
+                type="button"
+                onClick={togglePhoto}
+                aria-pressed={photoStyle === 'action'}
+              >
+                First photo:{' '}
+                {photoStyle === 'headshot' ? 'headshot' : 'in uniform'}
+              </button>
+            </div>
+            <details className="how">
+              <summary>How it works</summary>
+              <ul>
+                <li>
+                  You start with just a photo: 100 points if you name the
+                  college.
+                </li>
+                <li>Hint 1 shows his name (75). Hint 2 his conference (50).</li>
+                <li>Hint 3 is four colleges to pick from (25).</li>
+                <li>
+                  A wrong typed guess uses up a hint. “I don’t know” ends it for
+                  0.
+                </li>
+                <li>Transfers count: any college he played for is right.</li>
+              </ul>
+            </details>
+          </>
+        )}
+
+        {ready && view.screen === 'daily' && (
+          <DailyGame
+            key={`${view.mode}:${dateKey}`}
+            players={players}
+            schools={schools}
+            mode={view.mode}
+            dateKey={dateKey}
+            official={official}
+            identity={identity}
+            photoStyle={photoStyle}
+            onNeedName={() => setAccountOpen(true)}
+          />
+        )}
+        {ready && view.screen === 'free' && (
+          <FreePlay
+            key={view.mode}
+            players={players}
+            schools={schools}
+            mode={view.mode}
+            photoStyle={photoStyle}
+          />
+        )}
+        {view.screen === 'board' && (
+          <Leaderboard
+            mode={view.mode}
+            dateKey={dateKey}
+            token={identity.token}
+            refreshKey={identity.name.length}
+            onModeChange={(mode) => setView({ screen: 'board', mode })}
+          />
+        )}
+
+        {view.screen !== 'home' && (
+          <button type="button" className="quiet back" onClick={goHome}>
+            ← All games
+          </button>
+        )}
+      </main>
+
+      {accountOpen && (
+        <AccountDialog
+          identity={identity}
+          onChange={changeIdentity}
+          onClose={() => setAccountOpen(false)}
+        />
+      )}
+
+      <footer className="site-footer">
+        <div>
+          Not affiliated with the NFL, the NBA or any school. Player data from{' '}
+          <a
+            href="https://github.com/nflverse/nflverse-data"
+            target="_blank"
+            rel="noreferrer"
+          >
+            nflverse
+          </a>{' '}
+          and{' '}
+          <a href="https://www.wikidata.org/" target="_blank" rel="noreferrer">
+            Wikidata
+          </a>
+          .
+        </div>
+        <div>A Spicy Al Software Solution</div>
+      </footer>
+    </div>
+  )
+}

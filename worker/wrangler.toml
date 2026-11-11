@@ -1,0 +1,44 @@
+# WhereHePlay API worker (leaderboard + accounts). Deploy by hand from the
+# repo root — it does NOT deploy with the site (docs/OPERATIONS.md):
+#   npm run worker:migrate && npm run worker:deploy
+
+name = "whp-api"
+main = "api.mjs"
+compatibility_date = "2025-11-01"
+
+[vars]
+# Comma-separated allowed browser origins (the worker rejects others).
+# localhost entries are for `npm run dev` against `npm run worker:dev`;
+# capacitor://localhost + https://localhost are the native app shells
+# (docs/APP.md).
+ALLOWED_ORIGIN = "https://wardcrazy01894.github.io,http://localhost:5173,http://localhost:4173,capacitor://localhost,https://localhost"
+
+# --- D1 database -------------------------------------------------------------
+# Created once with `npx wrangler d1 create whp-api`; paste the printed id.
+[[d1_databases]]
+binding = "DB"
+database_name = "whp-api"
+database_id = "REPLACE_WITH_D1_ID"
+migrations_dir = "migrations"
+
+# Per-IP rate limit on every request (GA binding; needs no account resource).
+# 60 / 60s: a daily in three modes plus board views is a handful of calls.
+[[ratelimits]]
+name = "RATE_LIMITER"
+namespace_id = "4001"
+
+  [ratelimits.simple]
+  limit = 60
+  period = 60
+
+# Per IP + username on /login: 5 tries a minute.
+[[ratelimits]]
+name = "LOGIN_LIMITER"
+namespace_id = "4002"
+
+  [ratelimits.simple]
+  limit = 5
+  period = 60
+
+# No [triggers]: the account's Workers Free cron slots are all in use, so the
+# retention prune runs lazily from /score (pruneIfDue).

@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <!-- Defense-in-depth: no inline/injected scripts (self + the optional
+         analytics beacon only). Images are hotlinked from the league CDNs and
+         Wikimedia Commons, so img-src stays open. -->
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; base-uri 'self'; object-src 'none'; script-src 'self' https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline'; img-src * data: blob:; connect-src *; font-src 'self' data:"
+    />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, viewport-fit=cover"
+    />
+    <title>WhereHePlay — the daily “where did he play in college?” game</title>
+    <meta
+      name="description"
+      content="A free daily trivia game: see an NFL or NBA player, name the college he played for. Five players a day, hints if you need them, streaks and a daily leaderboard."
+    />
+    <link rel="icon" href="%BASE_URL%favicon.svg" type="image/svg+xml" />
+    <link rel="manifest" href="%BASE_URL%manifest.webmanifest" />
+    <meta name="theme-color" content="#101418" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-title" content="WhereHePlay" />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="WhereHePlay" />
+    <meta
+      property="og:title"
+      content="WhereHePlay — where did he play in college?"
+    />
+    <meta
+      property="og:description"
+      content="Five NFL and NBA players a day. Name the college. Fewer hints, more points."
+    />
+    <meta name="twitter:card" content="summary" />
+  </head>
+  <body>
+    <div id="root"></div>
+    <noscript>
+      <h1>WhereHePlay</h1>
+      <p>
+        A free daily trivia game: see an NFL or NBA player and name the college
+        he played for. JavaScript is required to play.
+      </p>
+    </noscript>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
