@@ -15,6 +15,8 @@ import {
   submitAndRank,
   readBoard,
   pruneIfDue,
+  pruneOrphanPlayers,
+  registerAccount,
   MAX_TOKENS_PER_ACCOUNT,
 } from './api-lib.mjs'
 
@@ -122,6 +124,17 @@ describe('validation', () => {
     expect(validateName('<script>').ok).toBe(false)
     expect(validateName('F.u.c.k You').ok).toBe(false)
     expect(validateName("D'Angelo O-Neal Jr.").ok).toBe(true)
+    expect(validateName('José Peña').ok).toBe(true)
+  })
+  it('names: lookalikes, fullwidth forms and leetspeak do not beat the filter', () => {
+    expect(validateName('ｆｕｃｋ you').ok).toBe(false) // fullwidth → NFKC
+    expect(validateName('sh1t head').ok).toBe(false) // leet
+    expect(validateName('f\u00fack').ok).toBe(false) // accent folded
+    expect(validateName('\u0455hit').ok).toBe(false) // Cyrillic ѕ: not Latin
+    expect(validateName('\u0410dmin').ok).toBe(false) // Cyrillic А lookalike
+    expect(validateName('a\u200bb').ok).toBe(false) // zero-width space
+    expect(validateName('Ａｌ').value).toBe('Al') // fullwidth is normalised
+    expect(validateName('Player 1').ok).toBe(true)
   })
   it('usernames are lowercased and restricted', () => {
     expect(validateUsername(' SpicyAl_1 ').value).toBe('spicyal_1')
@@ -204,6 +217,30 @@ describe('scores + board (real SQL)', () => {
     await sub('a', 300, '44400')
     expect((await readBoard(db, 'nba', day)).total).toBe(0)
     expect((await readBoard(db, 'nfl', '2026-11-12')).total).toBe(0)
+  })
+  it('a second concurrent register on the same player is refused, not faked', async () => {
+    const p = await ensurePlayer(db, tok('a'), NOW)
+    // Both requests read the player before either wrote (username still null).
+    expect((await registerAccount(db, p, 'first_one', PASS)).ok).toBe(true)
+    const second = await registerAccount(db, p, 'second_one', PASS)
+    expect(second).toMatchObject({ ok: false, status: 409 })
+    expect(
+      db
+        .prepare('SELECT username FROM players WHERE id = ?1')
+        .bind(p.id)
+        .first().username,
+    ).toBe('first_one')
+  })
+  it('prunes stale anonymous players with nothing to their name, and only those', async () => {
+    const OLD = NOW - 90 * 86_400_000
+    await ensurePlayer(db, tok('a'), OLD) // stale, empty → pruned
+    await sub('b', 100, '40000', OLD) // stale but has a score → kept
+    const acct = await ensurePlayer(db, tok('c'), OLD) // stale but an account → kept
+    await registerAccount(db, acct, 'keeper', PASS)
+    await ensurePlayer(db, tok('d'), NOW) // empty but recent → kept
+    expect(await pruneOrphanPlayers(db, NOW - 30 * 86_400_000)).toBe(1)
+    expect(db.prepare('SELECT COUNT(*) AS n FROM players').first().n).toBe(3)
+    expect(db.prepare('SELECT COUNT(*) AS n FROM tokens').first().n).toBe(3)
   })
   it('pruneIfDue runs once per UTC day', async () => {
     const now = new Date('2026-11-11T00:00:00Z')

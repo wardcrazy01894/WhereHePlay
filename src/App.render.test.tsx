@@ -3,6 +3,7 @@ import { describe, it, expect, afterEach, beforeEach, vi } from 'vitest'
 import { cleanup, render, screen, fireEvent } from '@testing-library/react'
 import type { League, Player, Tier } from './types'
 import { App } from './App'
+import { resolveDay } from './lib/day'
 
 const players: Player[] = []
 for (const l of ['nfl', 'nba'] as League[])
@@ -94,5 +95,36 @@ describe('App', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Next player' }))
     expect(screen.getByText(/1 played/)).toBeTruthy()
     expect(screen.getByRole('combobox')).toBeTruthy()
+  })
+})
+
+describe('resolveDay (?date= practice days)', () => {
+  const now = new Date(2026, 10, 20, 12) // local 2026-11-20
+  it('defaults to today, official', () => {
+    expect(resolveDay('', now)).toEqual({
+      dateKey: '2026-11-20',
+      official: true,
+    })
+    expect(resolveDay('?date=2026-11-20', now).official).toBe(true)
+  })
+  it('accepts days from puzzle #1 to a week ahead as practice', () => {
+    expect(resolveDay('?date=2026-11-11', now)).toEqual({
+      dateKey: '2026-11-11',
+      official: false,
+    })
+    expect(resolveDay('?date=2026-11-27', now).dateKey).toBe('2026-11-27')
+  })
+  it('ignores far-future, pre-launch and impossible dates (a far date would hang the walk)', () => {
+    for (const d of [
+      '9999-12-31',
+      '2026-11-28',
+      '2026-11-10',
+      '2026-02-30',
+      'nope',
+    ])
+      expect(resolveDay(`?date=${d}`, now)).toEqual({
+        dateKey: '2026-11-20',
+        official: true,
+      })
   })
 })

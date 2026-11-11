@@ -38,11 +38,11 @@ workflow).
 
 Deployed **by hand** with wrangler; it never deploys from CI.
 
-First time:
+The D1 database `whp-api` already exists (created 2026-11-11; its id is in
+`worker/wrangler.toml`). To bring the worker up the first time:
 
 ```bash
-npx wrangler login
-npx wrangler d1 create whp-api          # paste the printed id into worker/wrangler.toml
+npx wrangler login                      # if not already logged in
 npm run worker:migrate                  # create the tables (remote)
 npm run worker:deploy                   # prints the workers.dev URL
 gh variable set VITE_API_ENDPOINT -b "https://whp-api.<account>.workers.dev"

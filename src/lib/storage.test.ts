@@ -3,7 +3,7 @@ import { type Stats, bumpStats, liveStreak } from './storage'
 import { shareText, squares } from './share'
 import { giveUp, guess, newQuestion, takeHint } from './game'
 import { nextFreePlayer } from './freeplay'
-import { actionCreditUrl, actionUrl, headshotUrl } from './images'
+import { actionCreditUrl, actionUrls, headshotUrl } from './images'
 import type { Player } from '../types'
 
 const empty: Stats = {
@@ -101,13 +101,17 @@ describe('images', () => {
       'https://cdn.nba.com/headshots/nba/latest/260x190/201939.png',
     )
   })
-  it('action photo + credit are null without a file, encoded with one', () => {
-    expect(actionUrl(p)).toBeNull()
+  it('no headshot key → null', () => {
+    expect(headshotUrl({ ...p, h: undefined })).toBeNull()
+  })
+  it('in-uniform photo: thumbnail then original, straight from the CORS-enabled host', () => {
+    expect(actionUrls(p)).toEqual([])
     expect(actionCreditUrl(p)).toBeNull()
-    const a = { ...p, a: 'Tom Brady 2021 (cropped).png' }
-    expect(actionUrl(a, 300)).toBe(
-      'https://commons.wikimedia.org/wiki/Special:FilePath/Tom%20Brady%202021%20(cropped).png?width=300',
-    )
+    const a = { ...p, a: 'cb/Tom_Brady_2021_(cropped).png' }
+    expect(actionUrls(a)).toEqual([
+      'https://upload.wikimedia.org/wikipedia/commons/thumb/c/cb/Tom_Brady_2021_(cropped).png/500px-Tom_Brady_2021_(cropped).png',
+      'https://upload.wikimedia.org/wikipedia/commons/c/cb/Tom_Brady_2021_(cropped).png',
+    ])
     expect(actionCreditUrl(a)).toBe(
       'https://commons.wikimedia.org/wiki/File:Tom_Brady_2021_(cropped).png',
     )

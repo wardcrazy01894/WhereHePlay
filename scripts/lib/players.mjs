@@ -4,6 +4,7 @@
  * multiple-choice decoys. No I/O — scripts/build-players.mjs does that.
  * Rules are documented in docs/DATA.md; change them there in the same PR.
  */
+import { createHash } from 'node:crypto'
 import { conferenceAt } from './schools.mjs'
 
 export const NBA_LEAGUE = 'http://www.wikidata.org/entity/Q155223'
@@ -38,15 +39,29 @@ export function hash(str) {
   return ((h2 >>> 0) ^ (h1 >>> 0)) >>> 0
 }
 
-/** Wikimedia "Special:FilePath/<name>" URL → decoded file name ('' if none). */
+/** File types Wikimedia serves as-is in a thumbnail URL. */
+const RASTER = /\.(jpe?g|png|webp|gif)$/i
+
+/**
+ * Wikimedia "Special:FilePath/<name>" URL → "<xy>/<File_name.jpg>", the
+ * file's storage path on upload.wikimedia.org (xy = first two hex chars of
+ * the MD5 of the underscored name). The client needs the direct path because
+ * only upload.wikimedia.org sends CORS headers, and it must fetch the photo
+ * as a blob to keep the name-bearing URL out of the page (docs/DATA.md
+ * §Photos). '' when there is no image or it is not a plain raster file.
+ */
 export function commonsFile(url) {
   const m = /Special:FilePath\/(.+)$/.exec(url ?? '')
   if (!m) return ''
+  let name
   try {
-    return decodeURIComponent(m[1])
+    name = decodeURIComponent(m[1]).replace(/ /g, '_')
   } catch {
     return ''
   }
+  if (!RASTER.test(name)) return ''
+  const md5 = createHash('md5').update(name).digest('hex')
+  return `${md5.slice(0, 2)}/${name}`
 }
 
 /** nflverse headshot URL → the path after ".../image/" ('' if unexpected). */
@@ -274,4 +289,31 @@ export function pickDecoys(rec, schools, poolSchoolIds) {
     .filter((s) => poolSchoolIds.has(s.id) && !sameConf.includes(s))
     .sort((a, b) => rank(a) - rank(b))
   return [...sameConf, ...rest].slice(0, 3).map((s) => s.id)
+}
+
+/**
+ * Apply data/overrides.json — hand corrections keyed by player id:
+ *   { "nba-pricero01": { "s": ["utah-valley", "nicholls"], "t": "hard" } }
+ * `s` replaces the accepted schools (finishing school first), `t` the tier.
+ * Throws on an unknown player, school or tier so a typo can't pass silently.
+ */
+export function applyOverrides(records, overrides, schoolIds) {
+  const byId = new Map(records.map((r) => [r.id, r]))
+  for (const [id, o] of Object.entries(overrides)) {
+    if (id.startsWith('_')) continue
+    const r = byId.get(id)
+    if (!r) throw new Error(`overrides.json: no player "${id}" in the pool`)
+    if (o.s) {
+      for (const sid of o.s)
+        if (!schoolIds.has(sid))
+          throw new Error(`overrides.json: unknown school "${sid}" for ${id}`)
+      r.schools = [...o.s]
+    }
+    if (o.t) {
+      if (!['easy', 'medium', 'hard'].includes(o.t))
+        throw new Error(`overrides.json: bad tier "${o.t}" for ${id}`)
+      r.tier = o.t
+    }
+  }
+  return records
 }

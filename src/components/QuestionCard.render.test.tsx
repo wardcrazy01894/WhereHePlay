@@ -29,7 +29,7 @@ const player: Player = {
   h: 'private/x',
   d: ['alabama', 'tennessee', 'kentucky'],
   p: 'QB',
-  a: 'Cam Newton 2015.jpg',
+  a: 'ab/Cam_Newton_2015.jpg',
 }
 
 // The most recent state the card emitted (starts as a fresh question).

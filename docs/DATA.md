@@ -5,8 +5,8 @@ Two committed artifacts drive the game:
 - `public/players.json` — 1,964 players (1,085 NFL, 879 NBA)
 - `public/schools.json` — 375 colleges (id, name, search aliases)
 
-They are generated; never edit them by hand. The one hand-maintained input is
-`data/schools.psv`.
+They are generated; never edit them by hand. The hand-maintained inputs are
+`data/schools.psv` and `data/overrides.json`.
 
 ## Rebuilding
 
@@ -78,6 +78,22 @@ are easy; a mid-career player from a one-pro school is hard. It is a
 heuristic — BACKLOG.md lists known misses. A guard test requires every
 league × tier to be deep enough for the 45-day no-repeat window.
 
+## Overrides (`data/overrides.json`)
+
+Hand corrections applied after the automatic pass, keyed by player id:
+
+```json
+{
+  "nba-pricero01": { "s": ["utah-valley", "nicholls"] },
+  "nfl-AlleJo02": { "t": "easy" }
+}
+```
+
+`s` replaces the accepted schools (finishing school first — use it when the
+source misses a transfer or has the order wrong); `t` sets the tier (use it
+when the fame formula is plainly off: Josh Allen is not a "medium"). The
+build fails on an unknown player, school or tier.
+
 ## The schools table (`data/schools.psv`)
 
 One line per school, pipe-separated (the header comment in the file is the
@@ -122,9 +138,14 @@ Nothing is stored in the repo; `src/lib/images.ts` builds URLs.
   `data/nfl-placeholder-heads.json` (committed, cumulative). Those players use
   their Wikimedia photo instead, or are dropped if they have none.
 - **NBA headshots:** `cdn.nba.com/headshots/…/<NBA.com id>.png`.
-- **In-uniform photos:** the Wikidata image (P18), served by Wikimedia
-  Commons at a thumbnail width, with a link to the file page for author and
-  licence.
+- **In-uniform photos:** the Wikidata image (P18). The build stores the
+  file's storage path on Commons (`<md5 prefix>/<File_name>`, raster files
+  only) so the client can request it directly from `upload.wikimedia.org` —
+  a 500px thumbnail, then the original for small files. That host sends CORS
+  headers, which lets the client show the photo from a `blob:` URL before the
+  name hint (the file name is usually the player's name — docs/PLAN.md §Game
+  rules). Once the name is out, the photo links to its Commons page for
+  author and licence.
 
 League headshots are the leagues' copyrighted images, hotlinked. That is a
 deliberate, accepted risk for a free hobby website and a blocker for an app
@@ -135,4 +156,4 @@ store build — see docs/APP.md §Photos.
 `players.json` row (short keys keep it ~575 KB raw):
 `id`, `n` name, `l` league, `s` accepted school ids (finishing school first),
 `c` conference hint, `y` final college fall year, `t` tier, `d` three decoy
-ids, optional `h` headshot key, `p` position (NFL), `a` Commons file name.
+ids, optional `h` headshot key, `p` position (NFL), `a` Commons storage path.

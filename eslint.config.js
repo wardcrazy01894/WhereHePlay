@@ -7,9 +7,16 @@ import tseslint from 'typescript-eslint'
 export default tseslint.config(
   // .claude/worktrees holds full repo copies checked out by isolated review
   // agents (gitignored, so CI never sees them) — linting them would lint every
-  // source file once per live worktree. `data` holds pipeline caches, not code.
+  // source file once per live worktree. `data` holds pipeline caches, not code;
+  // `.wrangler` is the local worker runtime's generated output.
   {
-    ignores: ['dist', 'data', 'node_modules', '.claude/worktrees'],
+    ignores: [
+      'dist',
+      'data',
+      'node_modules',
+      '.claude/worktrees',
+      '**/.wrangler/**',
+    ],
   },
   {
     extends: [js.configs.recommended, ...tseslint.configs.recommended],
@@ -28,12 +35,10 @@ export default tseslint.config(
         'warn',
         { allowConstantExport: true },
       ],
-      // Inherited from KnowYourCity: eslint-plugin-react-hooks v7 flags two
-      // deliberate, commented patterns — the "latest ref" idiom (MapGuess keeps
-      // the Leaflet click handler from re-binding every render) and the
-      // reset-on-input-change `setState` in an effect. Kept at `warn` (not off)
-      // so the signal stays visible; fixing them is behaviour work and must be
-      // test-first per CLAUDE.md.
+      // eslint-plugin-react-hooks v7 flags a few deliberate, commented
+      // patterns (a "latest ref", a reset-on-input-change setState in an
+      // effect). Kept at `warn` (not off) so the signal stays visible; fixing
+      // them is behaviour work and must be test-first per CLAUDE.md.
       'react-hooks/refs': 'warn',
       'react-hooks/set-state-in-effect': 'warn',
       // Allow intentionally-unused stub params/vars when prefixed with `_`.

@@ -103,10 +103,24 @@ export function selectDaily(
   const pool = poolFor(all, mode)
   if (pool.length < QUESTIONS_PER_DAY)
     throw new Error(`Need at least ${QUESTIONS_PER_DAY} players for ${mode}.`)
-  const rank = new Map(pool.map((p) => [p.id, hashString(`${seed}|${p.id}`)]))
-  const sorted = [...pool].sort(
-    (a, b) => rank.get(a.id)! - rank.get(b.id)! || (a.id < b.id ? -1 : 1),
-  )
+  // One hash per player, then a linear scan per slot for the best-ranked
+  // match (rank, then id) — equivalent to sorting the pool and taking the
+  // first match, at a fraction of the cost. dailyLineup calls this once per
+  // day since the epoch, so the per-day cost is what bounds a cold start.
+  const ranks = pool.map((p) => hashString(`${seed}|${p.id}`))
+  const best = (ok: (p: Player) => boolean): Player | undefined => {
+    let at = -1
+    for (let i = 0; i < pool.length; i++) {
+      if (!ok(pool[i])) continue
+      if (
+        at === -1 ||
+        ranks[i] < ranks[at] ||
+        (ranks[i] === ranks[at] && pool[i].id < pool[at].id)
+      )
+        at = i
+    }
+    return at === -1 ? undefined : pool[at]
+  }
   const leagues = leaguePlan(mode, seed)
   const used = new Set<string>()
   const usedSchools = new Set<string>()
@@ -116,11 +130,11 @@ export function selectDaily(
     const fresh = (p: Player) => !usedSchools.has(p.s[0])
     const want = (p: Player) => free(p) && p.t === tier && p.l === leagues[i]
     const pick =
-      sorted.find((p) => want(p) && fresh(p)) ??
-      sorted.find(want) ??
-      sorted.find((p) => free(p) && p.l === leagues[i]) ??
-      sorted.find(free) ??
-      sorted.find((p) => !used.has(p.id))!
+      best((p) => want(p) && fresh(p)) ??
+      best(want) ??
+      best((p) => free(p) && p.l === leagues[i]) ??
+      best(free) ??
+      best((p) => !used.has(p.id))!
     used.add(pick.id)
     usedSchools.add(pick.s[0])
     chosen.push(pick)

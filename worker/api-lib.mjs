@@ -143,18 +143,43 @@ const BLOCKED = [
   'porn',
   'pussy',
 ]
+/** Digits and symbols commonly swapped in for letters. */
+const LEET = {
+  0: 'o',
+  1: 'i',
+  3: 'e',
+  4: 'a',
+  5: 's',
+  7: 't',
+  '@': 'a',
+  $: 's',
+  '!': 'i',
+}
+
 export function isClean(text) {
-  const letters = text.toLowerCase().replace(/[^a-z]/g, '')
+  // Fold compatibility forms (fullwidth letters) and accents, undo leetspeak,
+  // then match on the bare letters. Names are Latin-script only (see
+  // validateName), so lookalike letters from other scripts never get here.
+  const letters = text
+    .normalize('NFKD')
+    .toLowerCase()
+    .replace(/[0134578@$!]/g, (c) => LEET[c])
+    .replace(/[^a-z]/g, '')
   return !BLOCKED.some((w) => letters.includes(w))
 }
 
-/** Display name: 2–20 chars of letters, digits, space and _ . - ' */
+/**
+ * Display name: 2–20 chars of Latin letters (accents allowed), digits, space
+ * and _ . - '. NFKC first, so fullwidth and other compatibility forms become
+ * plain characters; Latin-only, so a Cyrillic or Greek lookalike cannot
+ * impersonate another player or slip a blocked word past the filter.
+ */
 export function validateName(raw) {
   if (typeof raw !== 'string') return fail(400, 'invalid name')
-  const name = raw.normalize('NFC').replace(/\s+/g, ' ').trim()
+  const name = raw.normalize('NFKC').replace(/\s+/g, ' ').trim()
   if (name.length < 2 || name.length > 20)
     return fail(400, 'name must be 2 to 20 characters')
-  if (!/^[\p{L}\p{N} _.'-]+$/u.test(name))
+  if (!/^[\p{Script=Latin}0-9 _.'-]+$/u.test(name))
     return fail(400, "name can use letters, numbers, spaces and _ . - '")
   if (!isClean(name)) return fail(400, 'pick a different name')
   return { ok: true, value: name }
@@ -290,17 +315,21 @@ export async function registerAccount(db, player, username, pass) {
   const salt = randomHex(16)
   const hash = await hashPass(pass, salt)
   const name = player.name || username
+  let changed
   try {
-    await db
+    const res = await db
       .prepare(
         `UPDATE players SET username = ?1, pass_salt = ?2, pass_hash = ?3, name = ?4
          WHERE id = ?5 AND username IS NULL`,
       )
       .bind(username, salt, hash, name, player.id)
       .run()
+    changed = res?.meta?.changes ?? 0
   } catch {
     return fail(409, 'that username is taken')
   }
+  // 0 rows: a concurrent request registered this player first.
+  if (changed !== 1) return fail(409, 'this device is already signed in')
   return { ok: true, value: { name, username } }
 }
 
@@ -432,8 +461,9 @@ export async function updateStreak(db, { board, date }, playerId, now) {
 
 /**
  * The day's board: top TOP_LIMIT by score (earlier finisher first on ties)
- * with display names and the streak each player had THAT day, plus the
- * caller's own row when they are outside the top. Never exposes ids,
+ * with display names and each player's current streak (shown only on the
+ * latest day they played — an older day's board shows 0, since streak history
+ * is not kept), plus the caller's own row when they are outside the top. Never exposes ids,
  * usernames or tokens.
  */
 export async function readBoard(db, board, date, playerId = null) {
@@ -479,6 +509,34 @@ export async function pruneOldScores(db, cutoff) {
   return res?.meta?.changes ?? 0
 }
 
+/** How long an anonymous player who never finished a daily is kept. */
+export const ORPHAN_DAYS = 30
+
+/**
+ * Delete anonymous players (and their tokens) created before `cutoffMs` that
+ * have no score and no streak — every first /score or /name from a new token
+ * creates a row, so without this the table only grows. Accounts are never
+ * touched. A pruned device simply gets a new row on its next write.
+ */
+export async function pruneOrphanPlayers(db, cutoffMs) {
+  const orphans = `SELECT id FROM players WHERE username IS NULL AND created_at < ?1
+    AND id NOT IN (SELECT player_id FROM scores)
+    AND id NOT IN (SELECT player_id FROM streaks)`
+  await db
+    .prepare(`DELETE FROM tokens WHERE player_id IN (${orphans})`)
+    .bind(cutoffMs)
+    .run()
+  const res = await db
+    .prepare(
+      `DELETE FROM players WHERE username IS NULL AND created_at < ?1
+        AND id NOT IN (SELECT player_id FROM scores)
+        AND id NOT IN (SELECT player_id FROM streaks)`,
+    )
+    .bind(cutoffMs)
+    .run()
+  return res?.meta?.changes ?? 0
+}
+
 /** Run the retention prune at most once per UTC day (meta.last_prune). */
 export async function pruneIfDue(db, now) {
   const today = utcDateKey(now)
@@ -487,6 +545,7 @@ export async function pruneIfDue(db, now) {
     .first()
   if (row?.value === today) return null
   const removed = await pruneOldScores(db, cutoffDateKey(now))
+  await pruneOrphanPlayers(db, now.getTime() - ORPHAN_DAYS * 86_400_000)
   await db
     .prepare(
       `INSERT INTO meta (key, value, updated_at) VALUES ('last_prune', ?1, ?2)

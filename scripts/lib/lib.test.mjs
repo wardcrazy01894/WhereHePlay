@@ -15,6 +15,7 @@ import {
   nbaCandidates,
   assignTiers,
   pickDecoys,
+  applyOverrides,
   NBA_LEAGUE,
 } from './players.mjs'
 
@@ -92,8 +93,14 @@ describe('players', () => {
       commonsFile(
         'http://commons.wikimedia.org/wiki/Special:FilePath/Tom%20Brady%202021.png',
       ),
-    ).toBe('Tom Brady 2021.png')
+    ).toBe('cb/Tom_Brady_2021.png')
     expect(commonsFile('')).toBe('')
+    // Not a plain raster image → no usable thumbnail URL.
+    expect(
+      commonsFile(
+        'http://commons.wikimedia.org/wiki/Special:FilePath/Logo.svg',
+      ),
+    ).toBe('')
     expect(
       nflHeadKey(
         'https://static.www.nfl.com/image/private/f_auto,q_auto/league/abc',
@@ -293,6 +300,29 @@ describe('players', () => {
     expect(recs[11].tier).toBe('easy') // famous + 50-player school
     expect(recs[98].tier).toBe('hard') // unknown + one-player school
     expect(recs[40].tier).toBe('medium')
+  })
+
+  it('overrides replace schools and tiers, and reject typos', () => {
+    const recs = [{ id: 'nba-x', schools: ['kansas'], tier: 'hard' }]
+    const ids = new Set(['kansas', 'texas'])
+    applyOverrides(
+      recs,
+      { _comment: 'x', 'nba-x': { s: ['texas', 'kansas'], t: 'easy' } },
+      ids,
+    )
+    expect(recs[0]).toMatchObject({
+      schools: ['texas', 'kansas'],
+      tier: 'easy',
+    })
+    expect(() =>
+      applyOverrides(recs, { 'nba-nope': { t: 'easy' } }, ids),
+    ).toThrow(/no player/)
+    expect(() =>
+      applyOverrides(recs, { 'nba-x': { s: ['nowhere'] } }, ids),
+    ).toThrow(/unknown school/)
+    expect(() =>
+      applyOverrides(recs, { 'nba-x': { t: 'brutal' } }, ids),
+    ).toThrow(/bad tier/)
   })
 
   it('decoys come from the same conference that season and never include his schools', () => {

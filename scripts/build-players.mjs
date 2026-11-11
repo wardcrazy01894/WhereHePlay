@@ -11,6 +11,7 @@ import {
   nbaCandidates,
   assignTiers,
   pickDecoys,
+  applyOverrides,
 } from './lib/players.mjs'
 
 const root = new URL('../', import.meta.url)
@@ -38,7 +39,11 @@ const nba = nbaCandidates(
   new Date().getUTCFullYear(),
 )
 
-const records = assignTiers([...nfl.records, ...nba.records])
+const records = applyOverrides(
+  assignTiers([...nfl.records, ...nba.records]),
+  JSON.parse(await read('data/overrides.json')),
+  new Set(schools.map((s) => s.id)),
+)
 for (const r of records)
   r.conf = conferenceAt(byId.get(r.schools[0]), r.league, r.year)
 for (const league of ['nfl', 'nba']) {

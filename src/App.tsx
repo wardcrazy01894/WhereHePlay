@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react'
 import type { Mode, Player, School } from './types'
 import { MODES, MODE_LABEL } from './types'
-import { getDateKey, isValidDateKey, puzzleNumber } from './lib/daily'
+import { puzzleNumber } from './lib/daily'
+import { resolveDay } from './lib/day'
 import { totalPoints } from './lib/game'
 import { apiEnabled, fetchMe } from './lib/api'
 import {
@@ -31,18 +32,6 @@ const MODE_BLURB: Record<Mode, string> = {
   mixed: 'NFL and NBA players, shuffled together',
   nfl: 'Football only',
   nba: 'Basketball only',
-}
-
-/** `?date=YYYY-MM-DD` plays another day as practice (nothing is recorded). */
-function resolveDay(
-  search: string,
-  now: Date,
-): { dateKey: string; official: boolean } {
-  const today = getDateKey(now)
-  const asked = new URLSearchParams(search).get('date')
-  if (asked && isValidDateKey(asked) && asked !== today)
-    return { dateKey: asked, official: false }
-  return { dateKey: today, official: true }
 }
 
 export function App() {

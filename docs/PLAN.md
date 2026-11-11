@@ -30,6 +30,13 @@ worth the stage it was given at (`src/lib/game.ts`):
   ("First photo") flips that to show the in-uniform photo first — an
   experiment requested at kickoff. Players the league only has a placeholder
   for always use the Wikimedia photo.
+- **No leaks before the hint.** A Wikimedia URL contains the file name, which
+  is usually the player's name. Until the name hint is taken such a photo is
+  fetched and shown from an opaque `blob:` URL, with neutral alt text and no
+  credit link, so the name is not in the page, on long-press or in "open
+  image". League headshot URLs are opaque ids. (The browser's network panel
+  still shows the request — out of scope, like the answers in
+  `players.json`.)
 
 ## Modes and storage
 
@@ -41,6 +48,9 @@ Three modes — `nfl`, `nba`, `mixed` (Grab Bag) — each with:
   within the last 150, with a running correct-answer streak (best is kept).
 
 `?date=YYYY-MM-DD` plays another day as practice: nothing is saved or sent.
+Only puzzle #1 through a week ahead is accepted (`src/lib/day.ts`) — a day's
+lineup is computed by walking forward from the epoch, so an arbitrary
+far-future date in a shared link would otherwise freeze the tab.
 
 Everything client-side is in `localStorage` under `whp:v1:`
 (`src/lib/storage.ts`): `daily:<mode>:<date>` (the game, including the lineup
@@ -65,7 +75,9 @@ does not reshuffle everyone else.
 
 **Cooldown:** a player who appeared in that mode's previous 45 lineups is
 skipped. Lineups are computed by walking forward from puzzle #1
-(2026-11-11), so the result needs no storage and is identical everywhere. A
+(2026-11-11), so the result needs no storage and is identical everywhere. The
+walk costs one hash per player per day (no sorting); if it ever becomes
+noticeable years out, checkpoint it — without changing its output. A
 dataset guard test simulates a year of all three modes and checks the tier
 plan and the no-repeat window on the real data.
 
@@ -96,8 +108,11 @@ stores only its SHA-256 and maps it to a `players` row, created on first
 write. That is the whole anonymous identity: no cookie, no email, no IP
 stored.
 
-**Display names** (`/name`): 2–20 letters, digits, spaces and `_ . - '`, with
-a short blocklist. Names are not unique. Empty shows as "Anonymous".
+**Display names** (`/name`): 2–20 Latin letters (accents allowed), digits,
+spaces and `_ . - '`, NFKC-normalised, with a short blocklist that also folds
+accents and leetspeak. Latin-only on purpose: lookalike letters from other
+scripts can't impersonate a player or dodge the filter. Names are not
+unique. Empty shows as "Anonymous".
 
 **Accounts** (`/register`, `/login`, `/logout`): optional username (3–20 of
 `a-z 0-9 _`, unique) + password. Registering upgrades the current anonymous
@@ -121,19 +136,25 @@ One row per (board, date, player); the **first result stands**. The response
 is the rank (ties share), the field size and the updated streak.
 
 **Board** (`/board`): top 50 by score, earlier finisher first on ties, with
-name, squares, score and that day's streak; the caller's own row is appended
+name, squares, score and the player's current streak (only on the latest day
+they played; streak history is not kept); the caller's own row is appended
 if outside the top. No ids, usernames or tokens are ever returned.
 
 **Abuse controls:** fails closed without the rate-limit binding; 60
 requests/min per IP; 5 login attempts/min per IP + username; server-side
 Origin allowlist; 2 KB body cap; identical error and work for unknown
-username vs wrong password. **Anti-cheat is a non-goal:** scores are computed
+username vs wrong password. The Origin check stops other websites from using
+the API from a browser; it is advisory against scripts (a request with no
+Origin header, e.g. curl, is let through), and a score can be posted up to a
+day ahead of UTC (time zones), so tomorrow's board can be seeded early. **Anti-cheat is a non-goal:** scores are computed
 in the browser and the answers ship in `players.json`, so a determined cheat
 can post 500. It is a game among friends.
 
 **Retention:** daily scores older than 400 days are pruned lazily (at most
 once per UTC day, from a `/score` request — the Cloudflare account has no
-free cron slots). Streaks and players are kept.
+free cron slots). The same pass removes anonymous players older than 30 days
+that never finished a daily. Streaks, accounts and anyone with a score are
+kept.
 
 ## Not built yet
 
