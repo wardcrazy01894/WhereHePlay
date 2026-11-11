@@ -83,23 +83,29 @@ plan and the no-repeat window on the real data.
 
 ## Auto-update (no stale tabs)
 
-Every build bakes its git hash into the bundle and publishes the same hash as
-`version.json` (`vite.config.ts`). The running app re-reads `version.json` —
+Every build bakes a build id into the bundle — the commit hash plus, in CI,
+the workflow run number, so re-deploying the same commit counts as a new
+build — and publishes the same id as `version.json` (`vite.config.ts`; the
+deploy workflow fails if the id is ever `dev`). The running app re-reads `version.json` —
 with a cache-busting query and `cache: 'no-store'` — on load, whenever the
 tab becomes visible, and every five minutes while it is visible
 (`src/lib/version.ts`, wired in `App.tsx`). A different hash means the tab is
 stale, and it reloads onto the new build:
 
-- **Only from the home screen.** A question on screen is never interrupted;
+- **Only from the bare home screen.** The profile dialog (which may hold a
+  half-typed username or password) and any question on screen are never
+  interrupted;
   a small note says a new version is ready, and the reload happens when the
-  player returns to "All games". Daily progress is saved after every action,
+  player returns to "All games" or closes the dialog. Daily progress is saved after every action,
   so nothing is lost either way.
 - **Once per build.** The hash a tab reloaded for is kept in
   `sessionStorage`; if the reloaded page is still the old build (a CDN edge
   lagging behind) it does not reload again for that hash.
 - **The dataset follows the build**: `players.json` and `schools.json` are
-  requested with `?v=<build hash>`, so a new build never pairs with an older
-  cached dataset.
+  requested with `?v=<build id>`, so a NEW bundle never reads an older cached
+  dataset. (The reverse can still happen briefly: a stale tab that has not
+  reloaded yet starts a game and fetches today's dataset. Keep dataset format
+  changes backward compatible for one release, or accept a broken minute.)
 - Off in local development (no `version.json`), and a failed check (offline,
   mid-deploy) does nothing.
 

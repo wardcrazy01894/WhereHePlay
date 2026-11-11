@@ -139,7 +139,9 @@ export function App() {
         current,
         deployed,
         attempted: readAttempt(),
-        safe: onHome,
+        // The bare home screen only. The profile dialog opens over it and
+        // may hold a half-typed username or password, so it counts as busy.
+        safe: onHome && !accountOpen,
       })
     )
       return
@@ -152,7 +154,7 @@ export function App() {
       })
       window.location.reload()
     }
-  }, [deployed, onHome, current])
+  }, [deployed, onHome, accountOpen, current])
 
   const togglePhoto = () => {
     const next = photoStyle === 'headshot' ? 'action' : 'headshot'
@@ -312,6 +314,11 @@ export function App() {
         {stale && view.screen !== 'home' && (
           <p className="update-note" role="status">
             A new version is ready — it loads when you go back to All games.
+          </p>
+        )}
+        {stale && onHome && accountOpen && (
+          <p className="update-note" role="status">
+            A new version is ready — it loads when you close your profile.
           </p>
         )}
       </main>

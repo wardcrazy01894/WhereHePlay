@@ -206,4 +206,22 @@ describe('auto-update', () => {
     fireEvent.click(screen.getByRole('button', { name: '← All games' }))
     await waitFor(() => expect(reload).toHaveBeenCalledTimes(1))
   })
+
+  it('does not wipe a half-filled profile dialog: waits until it is closed', async () => {
+    deploy(import.meta.env.VITE_BUILD_HASH ?? 'dev')
+    render(<App />)
+    await screen.findByRole('heading', { name: 'NFL' })
+    fireEvent.click(screen.getByRole('button', { name: /Set name/ }))
+    fireEvent.change(screen.getByPlaceholderText('Anonymous'), {
+      target: { value: 'Half typ' },
+    })
+    deploy('some-newer-build')
+    document.dispatchEvent(new Event('visibilitychange'))
+    expect(
+      await screen.findByText(/loads when you close your profile/),
+    ).toBeTruthy()
+    expect(reload).not.toHaveBeenCalled()
+    fireEvent.click(screen.getByRole('button', { name: 'Close' }))
+    await waitFor(() => expect(reload).toHaveBeenCalledTimes(1))
+  })
 })
