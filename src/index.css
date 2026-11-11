@@ -146,9 +146,10 @@ input[type='password'] {
   display: flex;
   flex-direction: column;
 }
-/* Wide screens (a desktop browser): the photo choice and the rules sit above
-   the games instead of below the fold. Phones keep the games first. */
-@media (min-width: 720px) {
+/* A desktop browser (wide, with a mouse): the photo choice and the rules sit
+   above the games instead of below the fold. Phones — also in landscape — and
+   tablets keep the games first. */
+@media (min-width: 720px) and (hover: hover) and (pointer: fine) {
   .home-intro {
     order: -2;
   }

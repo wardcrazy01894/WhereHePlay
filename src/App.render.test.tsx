@@ -78,9 +78,11 @@ describe('App', () => {
     expect(setup.querySelector('details.how')).toBeTruthy()
     // Phones keep the document order: games first, setup after.
     const home = container.querySelector('.home')!
-    const order = [...home.children].map((c) => c.className)
-    expect(order.indexOf('modes')).toBeLessThan(order.indexOf('home-setup'))
-    expect(order[0]).toBe('home-intro')
+    const at = (cls: string) =>
+      [...home.children].findIndex((c) => c.classList.contains(cls))
+    expect(at('home-intro')).toBe(0)
+    expect(at('modes')).toBeGreaterThan(0)
+    expect(at('modes')).toBeLessThan(at('home-setup'))
   })
 
   it('"Report a bug" is reachable from the header on every screen, and from the footer', async () => {
