@@ -253,9 +253,14 @@ Both lists hold Commons file names and `build-players` uses none of them
 (`applyBlocklist` in `scripts/lib/photos.mjs`), even when it is the only
 photo of him: he waits for a real one (rule 2).
 
-`data/photo-overrides.json` gives a player a hand-picked Commons photo
-instead (player id → file name): in a pro uniform, playing, for the team he
-is best known for. To act on a "that's not him playing" report: add the file
+`data/photo-overrides.json` gives a player a hand-picked photo instead
+(player id → a Commons file name): in a pro uniform, playing, for the team he
+is best known for. Where Commons has nothing, the value can be a
+TheSportsDB image key, `tsdb:<thumb|cutout|render|fanart>/<file>` — a
+copyrighted game photo, hotlinked, the owner's accepted risk as for league
+headshots. TheSportsDB names its files with opaque ids, so the client shows
+those straight from their URL (`actionDirectUrl`); a Commons file name
+usually names the player, so those are still fetched into a blob first. To act on a "that's not him playing" report: add the file
 name to `notPlaying`, find a good photo in his Commons category and add it to
 the overrides; rebuild; close the issue.
 
@@ -315,5 +320,6 @@ store build — see docs/APP.md §Photos.
 `id`, `n` name, `l` league, `s` accepted school ids (finishing school first),
 `c` conference hint, `y` final college fall year, `t` tier, `d` three decoy
 ids, optional `h` headshot key, `p` position (NFL), `a` Commons storage path,
+(or a `tsdb:` image key),
 `hs` high school (preps to pros only), `e` eligible since (days after puzzle
 #1; present only with both photos).
