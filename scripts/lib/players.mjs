@@ -53,12 +53,17 @@ const RASTER = /\.(jpe?g|png|webp|gif)$/i
 export function commonsFile(url) {
   const m = /Special:FilePath\/(.+)$/.exec(url ?? '')
   if (!m) return ''
-  let name
   try {
-    name = decodeURIComponent(m[1]).replace(/ /g, '_')
+    return commonsPath(decodeURIComponent(m[1]))
   } catch {
     return ''
   }
+}
+
+/** Commons file name (spaces or underscores) → "<xy>/<File_name>" ('' if it
+ *  is not a plain raster image). */
+export function commonsPath(fileName) {
+  const name = String(fileName).trim().replace(/ /g, '_')
   if (!RASTER.test(name)) return ''
   const md5 = createHash('md5').update(name).digest('hex')
   return `${md5.slice(0, 2)}/${name}`
@@ -102,6 +107,7 @@ export function nflCandidates(
   wdRows,
   match,
   placeholders = new Set(),
+  espnHeads = {},
 ) {
   const draft = new Map(
     draftPicks.filter((d) => d.pfr_player_id).map((d) => [d.pfr_player_id, d]),
@@ -118,7 +124,12 @@ export function nflCandidates(
     // The league serves a generic helmet for many retired players; those
     // fall back to the Wikimedia photo, and need one to be askable at all.
     const rawHead = nflHeadKey(p.headshot)
-    const head = placeholders.has(rawHead) ? '' : rawHead
+    // …unless ESPN has a real headshot for him (data/nfl-espn-heads.json).
+    const head = !placeholders.has(rawHead)
+      ? rawHead
+      : espnHeads[rawHead]
+        ? `espn:${espnHeads[rawHead]}`
+        : ''
     const action = commonsFile(w.img)
     if (!head && !action) continue
     const fame = nflFame({

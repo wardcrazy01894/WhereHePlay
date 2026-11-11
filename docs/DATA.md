@@ -2,7 +2,7 @@
 
 Two committed artifacts drive the game:
 
-- `public/players.json` — 1,959 players (1,046 NFL, 913 NBA)
+- `public/players.json` — 2,008 players (1,095 NFL, 913 NBA)
 - `public/schools.json` — 375 colleges plus the "High School (no college)"
   answer (id, name, search aliases)
 
@@ -15,6 +15,7 @@ They are generated; never edit them by hand. The hand-maintained inputs are
 npm run fetch-raw        # → data/raw/ (gitignored): nflverse + Wikidata tables
 npm run build-players    # → public/players.json, public/schools.json
 npm run scan-headshots   # → data/nfl-placeholder-heads.json (see Photos)
+npm run scan-espn-heads  # → data/nfl-espn-heads.json (real headshots for those)
 npm run fetch-photo-meta # → data/raw/commons-meta.json (Commons API)
 npm run audit-photos     # → data/photo-blocklist.json "auto" (college-era photos)
 npm run build-players    # again, now that placeholders and bad photos are known
@@ -173,7 +174,8 @@ conferences are topped up from other pool schools.
 
 Nothing is stored in the repo; `src/lib/images.ts` builds URLs.
 
-- **NFL headshots:** the `static.www.nfl.com` URL from nflverse. For roughly
+- **NFL headshots:** the `static.www.nfl.com` URL from nflverse (or ESPN's,
+  see "Nobody drops out" below). For roughly
   380 retired players that URL serves the league's generic helmet
   placeholder; `scan-headshots` detects it by ETag and records the keys in
   `data/nfl-placeholder-heads.json` (committed, cumulative). Those players use
@@ -203,12 +205,29 @@ photos are screened and the bad ones are never used:
 3. The `manual` list in the same file is hand-kept: photos caught by eye (a
    full contact-sheet review on 2026-11-11) and from player bug reports. It
    is never overwritten.
-4. `build-players` drops every listed photo. The player keeps his league
-   headshot; a player whose only photo was a college one is dropped.
+4. The `allow` list clears photos the audit flagged only for biography text
+   ("formerly with the University of Miami") after a look by eye.
+5. `build-players` drops every blocked photo. The player keeps his headshot.
+6. `data/photo-overrides.json` gives a player a hand-picked Commons photo
+   (player id → file name) when his only listed one is a college photo.
+
+The audit reads `data/raw/photo-candidates.json`, which `build-players`
+writes before applying the blocklist — so the order is build-players →
+fetch-photo-meta → audit-photos → build-players.
 
 To act on a "this photo shows him in college" bug report: add the Commons
 file name (the part of `a` after the slash) to `manual`, rebuild, and close
 the issue.
+
+### Nobody drops out for lack of a photo
+
+The NFL site serves a placeholder for about 380 retired players. For 315 of
+them ESPN has a real headshot (`npm run scan-espn-heads` checks ESPN's image
+server by the ESPN id nflverse carries and records hits in
+`data/nfl-espn-heads.json`; the headshot key is then `espn:<id>`). The rest
+use their Wikimedia photo, or a hand-picked one from
+`data/photo-overrides.json`. One player is out for having no usable photo
+anywhere: Gaines Adams (every free photo of him is in a Clemson uniform).
 
 League headshots are the leagues' copyrighted images, hotlinked. That is a
 deliberate, accepted risk for a free hobby website and a blocker for an app

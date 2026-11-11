@@ -5,6 +5,7 @@ import {
   COOLDOWN_DAYS,
   EPOCH_DATE_KEY,
   TIER_PLAN,
+  tierPlanFor,
   addDays,
   dailyLineup,
 } from './daily'
@@ -87,6 +88,14 @@ describe('players.json', () => {
     )
   })
 
+  it('headshot keys are one of the three known shapes', () => {
+    for (const p of players) {
+      if (!p.h) continue
+      if (p.l === 'nba') expect(p.h, p.id).toMatch(/^\d+$/)
+      else expect(p.h, p.id).toMatch(/^(espn:\d+|(private|upload)\/.+)$/)
+    }
+  })
+
   it('every tier is deep enough that the cooldown never runs dry', () => {
     for (const l of ['nfl', 'nba'] as const)
       for (const t of ['easy', 'medium', 'hard'] as const) {
@@ -104,7 +113,7 @@ describe('players.json', () => {
         expect(
           day.map((p) => p.t),
           `${mode} day ${i}`,
-        ).toEqual(TIER_PLAN)
+        ).toEqual(tierPlanFor(addDays(EPOCH_DATE_KEY, i)))
         const window = new Set(
           days
             .slice(Math.max(0, i - COOLDOWN_DAYS), i)

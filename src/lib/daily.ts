@@ -17,8 +17,22 @@
 import type { League, Mode, Player, Tier } from '../types'
 
 export const QUESTIONS_PER_DAY = 5
-/** Two easy, two medium, one hard — warm-up first, the stumper last. */
-export const TIER_PLAN: Tier[] = ['easy', 'easy', 'medium', 'medium', 'hard']
+/** Three easy, one medium, one hard — warm-ups first, the stumper last. */
+export const TIER_PLAN: Tier[] = ['easy', 'easy', 'easy', 'medium', 'hard']
+/** Puzzle #1 was played as two easy, two medium, one hard. */
+export const LEGACY_TIER_PLAN: Tier[] = [
+  'easy',
+  'easy',
+  'medium',
+  'medium',
+  'hard',
+]
+/** First day of TIER_PLAN. Earlier days keep the plan they were played
+ *  with, so the switch never re-rolled a puzzle anyone had already seen. */
+export const TIER_PLAN_FROM = '2026-11-12'
+export function tierPlanFor(dateKey: string): Tier[] {
+  return dateKey < TIER_PLAN_FROM ? LEGACY_TIER_PLAN : TIER_PLAN
+}
 /** Puzzle #1. */
 export const EPOCH_DATE_KEY = '2026-11-11'
 export const COOLDOWN_DAYS = 45
@@ -99,6 +113,7 @@ export function selectDaily(
   mode: Mode,
   seed: string,
   exclude: ReadonlySet<string> = new Set(),
+  plan: Tier[] = TIER_PLAN,
 ): Player[] {
   const pool = poolFor(all, mode)
   if (pool.length < QUESTIONS_PER_DAY)
@@ -125,7 +140,7 @@ export function selectDaily(
   const used = new Set<string>()
   const usedSchools = new Set<string>()
   const chosen: Player[] = []
-  TIER_PLAN.forEach((tier, i) => {
+  plan.forEach((tier, i) => {
     const free = (p: Player) => !used.has(p.id) && !exclude.has(p.id)
     const fresh = (p: Player) => !usedSchools.has(p.s[0])
     const want = (p: Player) => free(p) && p.t === tier && p.l === leagues[i]
@@ -161,7 +176,13 @@ export function dailyLineup(
 ): Player[] {
   // Days before the epoch (only reachable via ?date=) get a plain draw.
   if (dateKey < EPOCH_DATE_KEY)
-    return selectDaily(all, mode, dateSeed(mode, dateKey))
+    return selectDaily(
+      all,
+      mode,
+      dateSeed(mode, dateKey),
+      undefined,
+      tierPlanFor(dateKey),
+    )
   let list = walks.get(all)
   if (!list) walks.set(all, (list = []))
   let walk = list.find((w) => w.mode === mode)
@@ -172,7 +193,9 @@ export function dailyLineup(
     const exclude = new Set(
       walk.history.slice(-COOLDOWN_DAYS).flatMap((day) => day.map((p) => p.id)),
     )
-    walk.history.push(selectDaily(all, mode, dateSeed(mode, d), exclude))
+    walk.history.push(
+      selectDaily(all, mode, dateSeed(mode, d), exclude, tierPlanFor(d)),
+    )
   }
   return walk.history[index]
 }
