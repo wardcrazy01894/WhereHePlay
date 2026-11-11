@@ -144,3 +144,19 @@ describe('emoji at a cut point', () => {
     expect(() => bugReportUrl('🏈'.repeat(3000), ctx)).not.toThrow()
   })
 })
+
+describe('lone surrogates (pasted junk)', () => {
+  it('never make the fallback link or a send throw', async () => {
+    const junk = 'broken \uD83C here and \uDFC8 there'
+    expect(() => bugReportUrl(junk, ctx)).not.toThrow()
+    expect(decodeURIComponent(bugReportUrl(junk, ctx))).toContain(
+      'broken \uFFFD here',
+    )
+    const f = vi.fn(async () => ({
+      ok: false,
+      status: 503,
+      json: async () => ({}),
+    }))
+    expect((await submitBugReport(junk, ctx, false, f as never)).ok).toBe(false)
+  })
+})

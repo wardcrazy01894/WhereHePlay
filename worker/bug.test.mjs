@@ -310,3 +310,13 @@ describe('/bug route', () => {
     vi.restoreAllMocks()
   })
 })
+
+describe('defang: HTML entities', () => {
+  it('cannot smuggle a mention or an issue reference', () => {
+    const out = defang('&commat;octocat &num;12 &#64;bob')
+    expect(out).not.toMatch(/&(commat|num|#)/)
+    expect(out.startsWith('&amp;commat;octocat &amp;num;12 &amp;#')).toBe(true)
+    // Real markup is still escaped after the ampersand pass.
+    expect(defang('<b>')).toBe('&lt;b&gt;')
+  })
+})

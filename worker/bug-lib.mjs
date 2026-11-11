@@ -20,6 +20,9 @@ export const MAX_CONTEXT = 120
 export function defang(s) {
   return (
     String(s)
+      // First, so entities can't smuggle anything past the rules below
+      // (&commat;octocat would render as a mention, &num;12 as a reference).
+      .replace(/&/g, '&amp;')
       .replace(/```/g, '`​`​`')
       .replace(/@/g, '@​')
       .replace(/!\[/g, '!​[')

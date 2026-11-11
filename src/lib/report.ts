@@ -38,7 +38,16 @@ export function playerRequestMessage(name: string): string {
 /** First `n` characters by code point — a plain slice can cut an emoji in
  *  half, and encodeURIComponent throws on the stray half. */
 export function clip(s: string, n: number): string {
-  return Array.from(s).slice(0, n).join('')
+  return Array.from(wellFormed(s)).slice(0, n).join('')
+}
+
+/** Replace lone surrogates (pasted junk) with U+FFFD: encodeURIComponent
+ *  throws on them, and the fallback link must never throw. */
+export function wellFormed(s: string): string {
+  return s.replace(
+    /[\uD800-\uDBFF](?![\uDC00-\uDFFF])|(?<![\uD800-\uDBFF])[\uDC00-\uDFFF]/g,
+    '\uFFFD',
+  )
 }
 
 const env = () => ({
@@ -95,7 +104,7 @@ export function bugReportUrl(
   ctx: ReportContext,
   kind: ReportKind = 'bug',
 ): string {
-  let text = message.trim()
+  let text = wellFormed(message).trim()
   let url = issueUrl(text, ctx, kind)
   while (url.length > MAX_ISSUE_URL && text.length > 0) {
     text = clip(text, Math.floor(Array.from(text).length * 0.8))
