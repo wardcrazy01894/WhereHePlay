@@ -55,6 +55,16 @@ export type BoardId = Mode | `${Mode}-beginner`
 export function boardId(mode: Mode, variant: Variant = 'standard'): BoardId {
   return variant === 'beginner' ? `${mode}-beginner` : mode
 }
+/** The inverse of boardId, for a board name that came over the wire. */
+export function parseBoardId(
+  board: string,
+): { mode: Mode; variant: Variant } | null {
+  const [mode, tail, ...rest] = board.split('-')
+  if (rest.length || (mode !== 'nfl' && mode !== 'nba' && mode !== 'mixed'))
+    return null
+  if (tail === undefined) return { mode, variant: 'standard' }
+  return tail === 'beginner' ? { mode, variant: 'beginner' } : null
+}
 
 export const MODES: Mode[] = ['mixed', 'nfl', 'nba']
 export const MODE_LABEL: Record<Mode, string> = {

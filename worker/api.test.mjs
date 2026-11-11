@@ -363,6 +363,59 @@ describe('worker routes', () => {
       'spicyal',
     )
   })
+  it("/me carries the player's streaks and recent scores to another device", async () => {
+    const date = today()
+    const old = new Date(Date.now() - 5 * 86_400_000).toISOString().slice(0, 10)
+    await post('/score', {
+      token: tok('a'),
+      board: 'nfl',
+      date,
+      score: 250,
+      marks: '43210',
+    })
+    await post('/score', {
+      token: tok('a'),
+      board: 'mixed-beginner',
+      date,
+      score: 500,
+      marks: '44444',
+    })
+    // Someone else's result, and one of ours from outside the window.
+    await post('/score', {
+      token: tok('f'),
+      board: 'nba',
+      date,
+      score: 0,
+      marks: '00000',
+    })
+    await db
+      .prepare(
+        `INSERT INTO scores (board, date, player_id, score, marks, created_at)
+         SELECT 'nba', ?1, id, 100, '40000', 1 FROM players ORDER BY id LIMIT 1`,
+      )
+      .bind(old)
+      .run()
+    await post('/register', { token: tok('a'), username: 'synced', pass: PASS })
+    const phone = (await post('/login', { username: 'synced', pass: PASS }))
+      .body.token
+    const me = (await post('/me', { token: phone })).body
+    expect(me.username).toBe('synced')
+    expect(me.scores).toEqual([
+      { board: 'mixed-beginner', date, score: 500, marks: '44444' },
+      { board: 'nfl', date, score: 250, marks: '43210' },
+    ])
+    expect(me.streaks).toEqual([
+      { board: 'mixed-beginner', current: 1, best: 1, last: date },
+      { board: 'nfl', current: 1, best: 1, last: date },
+    ])
+    // A token the server has never seen: empty, not an error.
+    expect((await post('/me', { token: tok('c') })).body).toMatchObject({
+      ok: true,
+      username: null,
+      scores: [],
+      streaks: [],
+    })
+  })
   it('caps device sessions per account', async () => {
     await post('/register', { token: tok('a'), username: 'capped', pass: PASS })
     for (let i = 0; i < MAX_TOKENS_PER_ACCOUNT + 3; i++)

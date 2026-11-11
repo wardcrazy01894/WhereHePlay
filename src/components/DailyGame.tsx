@@ -100,9 +100,23 @@ export function DailyGame(props: Props) {
   const showResults = finished && index >= QUESTIONS_PER_DAY
 
   const update = (i: number, q: QuestionState) => {
+    // Another tab may have synced this day in as finished on another device
+    // while this one sat on a question. That result is the one the server
+    // keeps, so show it rather than overwrite it with answers typed here.
+    const stored = official ? loadDaily(mode, dateKey, variant) : undefined
+    if (stored?.synced && stored.questions.every((x) => x.done)) {
+      setGame(stored)
+      setIndex(QUESTIONS_PER_DAY)
+      return
+    }
+    const questions = game.questions.map((x, j) => (j === i ? q : x))
     const next = {
       ...game,
-      questions: game.questions.map((x, j) => (j === i ? q : x)),
+      questions,
+      // A finished day belongs to the account signed in when it ended.
+      ...(identity.username && questions.every((x) => x.done)
+        ? { owner: identity.username }
+        : {}),
     }
     setGame(next)
     if (official) saveDaily(next)
@@ -119,6 +133,11 @@ export function DailyGame(props: Props) {
   // first result stands), and retry on a later visit if it didn't get through.
   useEffect(() => {
     if (!finished || !official || !apiEnabled) return
+    // A day that belongs to an account is only ever sent as that account:
+    // signing out, or in as someone else, with the results on screen must
+    // not post it under the new identity (same rule as src/lib/sync.ts).
+    if (game.owner && game.owner !== identity.username) return
+    const { username } = identity
     let live = true
     submitScore({
       token: identity.token,
@@ -130,8 +149,10 @@ export function DailyGame(props: Props) {
       if (!live || !r.ok) return
       setStanding({ rank: r.rank, total: r.total, streak: r.streak })
       setBoardKey((k) => k + 1)
-      if (!game.submitted) {
-        const done = { ...game, submitted: true }
+      // Accepted under an account: from now on the day is that account's.
+      const claim = username && !game.owner ? { owner: username } : {}
+      if (!game.submitted || claim.owner) {
+        const done = { ...game, submitted: true, ...claim }
         setGame(done)
         saveDaily(done)
       }
@@ -139,9 +160,11 @@ export function DailyGame(props: Props) {
     return () => {
       live = false
     }
-    // Only when the day completes or the identity changes (sign-in).
+    // Only when the day completes or the identity changes: a sign-in (new
+    // token) or creating an account (same token, new username — the day
+    // must be stamped as that account's).
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [finished, identity.token])
+  }, [finished, identity.token, identity.username])
 
   const stats = loadStats(board)
   const streak = Math.max(
@@ -182,6 +205,9 @@ export function DailyGame(props: Props) {
           {squares(marks(game.questions))}
         </div>
         {!official && <p className="muted">Practice day — not recorded.</p>}
+        {game.synced && (
+          <p className="muted small">Played on another device.</p>
+        )}
         {official && (
           <p className="streak-line">
             🔥 {streak}-day streak · best{' '}

@@ -58,6 +58,10 @@ gh workflow run deploy
 Afterwards: `npm run worker:deploy` for code changes; `npm run worker:migrate`
 **before** deploying code that needs a new migration.
 
+Cross-device sync also lives in the worker (`/me` returns the player's
+streaks and recent results): until it is redeployed the site behaves as
+before — nothing syncs, nothing breaks.
+
 A new leaderboard board (e.g. the `-beginner` boards) is a worker code
 change: until `npm run worker:deploy` is run, the deployed worker answers
 `unknown board`, and that daily plays normally but shows "The leaderboard is

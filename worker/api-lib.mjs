@@ -510,6 +510,43 @@ export async function readBoard(db, board, date, playerId = null) {
   return { total: Number(countRes.results[0].total) || 0, entries }
 }
 
+/**
+ * What another device needs to pick up where this player left off: every
+ * streak, and the results still inside the submission window (so "today",
+ * whatever the device's time zone). Only ever the caller's own rows.
+ */
+export async function readProgress(db, playerId, now) {
+  if (playerId == null) return { streaks: [], scores: [] }
+  const since = [...validDateKeys(now)].sort()[0]
+  const streaks = db
+    .prepare(
+      `SELECT board, current, best, last_played_date AS last FROM streaks
+       WHERE player_id = ?1 ORDER BY board`,
+    )
+    .bind(playerId)
+  const scores = db
+    .prepare(
+      `SELECT board, date, score, marks FROM scores
+       WHERE player_id = ?1 AND date >= ?2 ORDER BY date, board`,
+    )
+    .bind(playerId, since)
+  const [st, sc] = await db.batch([streaks, scores])
+  return {
+    streaks: st.results.map((r) => ({
+      board: r.board,
+      current: Number(r.current),
+      best: Number(r.best),
+      last: r.last,
+    })),
+    scores: sc.results.map((r) => ({
+      board: r.board,
+      date: r.date,
+      score: Number(r.score),
+      marks: r.marks,
+    })),
+  }
+}
+
 export async function pruneOldScores(db, cutoff) {
   const res = await db
     .prepare(`DELETE FROM scores WHERE date < ?1`)

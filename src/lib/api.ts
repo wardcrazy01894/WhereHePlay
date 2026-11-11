@@ -70,9 +70,28 @@ export function fetchBoard(board: BoardId, date: string, token?: string) {
   return post<Board>('/board', { board, date, token })
 }
 
+/** A streak as the server keeps it (one per board, per player). */
+export interface ServerStreak {
+  board: string
+  current: number
+  best: number
+  /** Last day that daily was finished. */
+  last: string
+}
+/** One of the player's own recent results. */
+export interface ServerScore {
+  board: string
+  date: string
+  score: number
+  marks: string
+}
 export interface Me {
   name: string
   username: string | null
+  /** Cross-device sync (src/lib/sync.ts). Absent from a worker that predates
+   *  it — the site is deployed by CI, the worker by hand. */
+  streaks?: ServerStreak[]
+  scores?: ServerScore[]
 }
 export const fetchMe = (token: string) => post<Me>('/me', { token })
 export const setName = (token: string, name: string) =>

@@ -40,6 +40,14 @@ export interface DailyGame {
   photo?: PhotoStyle
   /** True once the result was accepted by the leaderboard. */
   submitted?: boolean
+  /** The account (username) this result belongs to, once known: the one
+   *  signed in when it was finished, or the one it was handed to. A day is
+   *  never handed to a different account (src/lib/sync.ts). */
+  owner?: string
+  /** True when this day was played on another device and rebuilt here from
+   *  the account's result (src/lib/sync.ts): the score and squares are real,
+   *  the per-question detail (wrong guesses) is not known. */
+  synced?: boolean
 }
 
 export function loadDaily(

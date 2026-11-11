@@ -43,21 +43,21 @@ WhereHePlay #1 · NFL (headshot)
 
 ## ✨ Features
 
-|     |                               |                                                                                                                                                                     |
-| --- | ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 📅  | **Daily five**                | Three easy, one medium, one hard. Same five for everyone, new at your local midnight, one shot. Nobody repeats within 45 days.                                      |
-| 🌱  | **Beginner daily**            | New to it? Five household names a day in each mode, with its own streak and leaderboard.                                                                            |
-| ♾️  | **Free play**                 | Keep going as long as you like, with a running streak of correct answers.                                                                                           |
-| 🏈  | **Three modes**               | **NFL**, **NBA**, or the **Grab Bag** of both — each with its own daily, streak and leaderboard.                                                                    |
-| 🕰️  | **Conference at the time**    | The conference hint is the one he actually played in: Carmelo Anthony's Syracuse is Big East, a 2023 Oregon Duck is Pac-12, a 2025 one is Big Ten.                  |
-| 📸  | **Headshot or in action**     | Pick which photo you see first: the official headshot, or him playing in a pro uniform. Your pick shows on the share card. Photos in college gear are screened out. |
-| 🏆  | **Daily leaderboard**         | See where your score lands today, with everyone's squares and streaks.                                                                                              |
-| 👤  | **Names, accounts optional**  | Play instantly and pick a display name. A username + password account (no email) carries your name, scores and streaks across devices.                              |
-| 🔥  | **Streaks & share card**      | Wordle-style squares with the puzzle number.                                                                                                                        |
-| 🐛  | **Bug reports, one tap away** | A 🐛 button on every screen: type what went wrong and send; it lands as a GitHub issue without leaving the site.                                                    |
-| 🔎  | **"Is he in the game?"**      | Search the player list by name. Missing someone? One tap files a request to add him.                                                                                |
-| 📱  | **Phone-first**               | Built to be wrapped as an iPhone / Android app later — see [docs/APP.md](docs/APP.md).                                                                              |
-| 💸  | **$0 hosting**                | GitHub Pages + Cloudflare free tiers; photos are hotlinked, not stored.                                                                                             |
+|     |                               |                                                                                                                                                                                            |
+| --- | ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| 📅  | **Daily five**                | Three easy, one medium, one hard. Same five for everyone, new at your local midnight, one shot. Nobody repeats within 45 days.                                                             |
+| 🌱  | **Beginner daily**            | New to it? Five household names a day in each mode, with its own streak and leaderboard.                                                                                                   |
+| ♾️  | **Free play**                 | Keep going as long as you like, with a running streak of correct answers.                                                                                                                  |
+| 🏈  | **Three modes**               | **NFL**, **NBA**, or the **Grab Bag** of both — each with its own daily, streak and leaderboard.                                                                                           |
+| 🕰️  | **Conference at the time**    | The conference hint is the one he actually played in: Carmelo Anthony's Syracuse is Big East, a 2023 Oregon Duck is Pac-12, a 2025 one is Big Ten.                                         |
+| 📸  | **Headshot or in action**     | Pick which photo you see first: the official headshot, or him playing in a pro uniform. Your pick shows on the share card. Photos in college gear are screened out.                        |
+| 🏆  | **Daily leaderboard**         | See where your score lands today, with everyone's squares and streaks.                                                                                                                     |
+| 👤  | **Names, accounts optional**  | Play instantly and pick a display name. A username + password account (no email) carries your name, scores and streaks across devices: finish on the computer and the phone shows it done. |
+| 🔥  | **Streaks & share card**      | Wordle-style squares with the puzzle number.                                                                                                                                               |
+| 🐛  | **Bug reports, one tap away** | A 🐛 button on every screen: type what went wrong and send; it lands as a GitHub issue without leaving the site.                                                                           |
+| 🔎  | **"Is he in the game?"**      | Search the player list by name. Missing someone? One tap files a request to add him.                                                                                                       |
+| 📱  | **Phone-first**               | Built to be wrapped as an iPhone / Android app later — see [docs/APP.md](docs/APP.md).                                                                                                     |
+| 💸  | **$0 hosting**                | GitHub Pages + Cloudflare free tiers; photos are hotlinked, not stored.                                                                                                                    |
 
 ## 🧑‍🤝‍🧑 The players
 
