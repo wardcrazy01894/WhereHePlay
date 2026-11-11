@@ -212,11 +212,12 @@ describe('players', () => {
         espn,
       ).records
     expect(run({ [key]: '5209' })[0].head).toBe('espn:5209')
-    // No ESPN image and no Wikimedia photo → nothing to show → not askable.
-    expect(run({})).toEqual([])
+    // No ESPN image and no Wikimedia photo: he has no photo yet, but he is
+    // still a player — nobody is left out of the dataset over photos.
+    expect(run({})[0]).toMatchObject({ head: '', action: '' })
   })
 
-  it("NFL: a league image that is not a headshot gives way to ESPN's, but stays when ESPN has none", () => {
+  it("NFL: a league image that is not a headshot gives way to ESPN's, and is not used when ESPN has none", () => {
     // Hall of Famers get an action cut-out (or, once, his father's photo)
     // under the headshot URL: data/nfl-not-headshots.json lists those.
     const key = 'private/f_auto,q_auto/league/abc'
@@ -231,8 +232,8 @@ describe('players', () => {
         new Set([key]),
       ).records
     expect(run({ [key]: '964' })[0].head).toBe('espn:964')
-    // Unlike a placeholder, the league image is still a photo of him.
-    expect(run({})[0].head).toBe(key)
+    // A headshot is a headshot: an action cut-out does not stand in for one.
+    expect(run({})[0].head).toBe('')
   })
 
   it('commonsPath turns a file name into its storage path', () => {
@@ -347,13 +348,8 @@ describe('players', () => {
       head: '',
       action: expect.stringContaining('Kevin_Durant.jpg'),
     })
-    // …and with neither he is still a candidate (nobody is dropped for a
-    // missing photo): the build falls back to the placeholder itself.
-    expect(heads({})[0]).toMatchObject({
-      head: '',
-      action: '',
-      placeholderHead: '201142',
-    })
+    // …and with neither he is still a player, just one with no photo yet.
+    expect(heads({})[0]).toMatchObject({ head: '', action: '' })
   })
 
   it('NBA: a listed preps-to-pros player is admitted with the High School answer', () => {

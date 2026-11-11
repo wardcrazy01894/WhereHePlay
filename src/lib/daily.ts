@@ -96,6 +96,55 @@ export function poolFor(all: Player[], mode: Mode): Player[] {
 }
 
 /**
+ * The players who may be drawn on `dateKey`: those with both photos (`e`)
+ * whose eligibility started on or before that day. A day before the epoch
+ * (practice only) uses the launch pool.
+ */
+export function eligibleOn(all: Player[], dateKey: string): Player[] {
+  const day = Math.max(0, puzzleNumber(dateKey) - 1)
+  return all.filter((p) => {
+    if (p.e === undefined) return false
+    if (typeof p.e === 'number') return p.e <= day
+    // Windows [from, until, from, …]: a player who lost a photo keeps the
+    // days he was eligible, so those days' lineups never change.
+    for (let i = 0; i < p.e.length; i += 2)
+      if (p.e[i] <= day && (i + 1 >= p.e.length || day < p.e[i + 1]))
+        return true
+    return false
+  })
+}
+
+/**
+ * How many past lineups a day can keep out without running a tier dry: `base`
+ * (COOLDOWN_DAYS), or fewer while the pool is small — it grows as players
+ * get their photos. For each league and tier the window's lineups plus
+ * today's must fit in the pool. The grab bag alternates leagues, so one
+ * league fills at most half a tier's slots (rounded up). `held` is the number
+ * of players per league and tier already taken by another lineup that day
+ * (the beginner daily keeps clear of the standard one).
+ */
+export function cooldownFor(
+  pool: Player[],
+  mode: Mode,
+  plan: Tier[],
+  base: number,
+  held = 0,
+): number {
+  const leagues: League[] = mode === 'mixed' ? ['nfl', 'nba'] : [mode]
+  let days = base
+  for (const tier of new Set(plan)) {
+    const slots = plan.filter((t) => t === tier).length
+    const perLeague = mode === 'mixed' ? Math.ceil(slots / 2) : slots
+    for (const league of leagues) {
+      const have =
+        pool.filter((p) => p.l === league && p.t === tier).length - held
+      days = Math.min(days, Math.floor(have / perLeague) - 1)
+    }
+  }
+  return Math.max(0, days)
+}
+
+/**
  * League wanted in each slot. Single-league modes: that league. Grab bag:
  * alternate, starting league decided by the day, so a day is 3/2 one way or
  * the other and never five of one league.
@@ -173,14 +222,19 @@ interface Walk {
   mode: Mode
   variant: Variant
   history: Player[][]
-  /** Beginner only: the easy tier, the only players it may ever draw. */
-  easy?: Player[]
 }
 /** One walk per dataset array (identity), mode and variant. */
 const walks = new WeakMap<Player[], Walk[]>()
 
 /**
- * The official lineup for (mode, dateKey), with the recency cooldown.
+ * The official lineup for (mode, dateKey).
+ *
+ * Drawn only from the players eligible that day (both photos — eligibleOn),
+ * skipping whoever appeared in the previous lineups of that board, as many
+ * as the pool can sustain (cooldownFor). Each day depends only on the days
+ * before it and on players already eligible then, so the result is a pure
+ * function of (dataset, mode, date): photos that land later add players to
+ * later days and never touch a day already played.
  *
  * The standard daily depends on nothing but itself. The beginner daily is
  * drawn from the easy tier only (so every fallback in selectDaily stays easy)
@@ -196,17 +250,44 @@ export function dailyLineup(
   let list = walks.get(all)
   if (!list) walks.set(all, (list = []))
   let walk = list.find((w) => w.mode === mode && w.variant === variant)
-  if (!walk) {
-    walk = { mode, variant, history: [] }
-    if (variant === 'beginner') walk.easy = all.filter((p) => p.t === 'easy')
-    list.push(walk)
-  }
-  const { easy } = walk
-  const draw = (d: string, recent: Player[][]): Player[] => {
-    const exclude = new Set(recent.flatMap((day) => day.map((p) => p.id)))
-    if (!easy)
-      return selectDaily(all, mode, dateSeed(mode, d), exclude, tierPlanFor(d))
-    for (const p of dailyLineup(all, mode, d)) exclude.add(p.id)
+  if (!walk) list.push((walk = { mode, variant, history: [] }))
+  const draw = (d: string, history: Player[][]): Player[] => {
+    const eligible = eligibleOn(all, d)
+    const recent = (days: number) =>
+      new Set(
+        (days > 0 ? history.slice(-days) : []).flatMap((day) =>
+          day.map((p) => p.id),
+        ),
+      )
+    if (variant === 'standard') {
+      const plan = tierPlanFor(d)
+      const window = cooldownFor(
+        poolFor(eligible, mode),
+        mode,
+        plan,
+        COOLDOWN_DAYS,
+      )
+      return selectDaily(
+        eligible,
+        mode,
+        dateSeed(mode, d),
+        recent(window),
+        plan,
+      )
+    }
+    const easy = eligible.filter((p) => p.t === 'easy')
+    const standard = dailyLineup(all, mode, d)
+    const window = cooldownFor(
+      poolFor(easy, mode),
+      mode,
+      BEGINNER_PLAN,
+      BEGINNER_COOLDOWN_DAYS,
+      // At most this many of a league's easy players are in the standard
+      // lineup that day (cooldownFor's own bound for a plan).
+      mode === 'mixed' ? 2 : 3,
+    )
+    const exclude = recent(window)
+    for (const p of standard) exclude.add(p.id)
     return selectDaily(
       easy,
       mode,
@@ -217,11 +298,10 @@ export function dailyLineup(
   }
   // Days before the epoch (only reachable via ?date=) get a plain draw.
   if (dateKey < EPOCH_DATE_KEY) return draw(dateKey, [])
-  const window = easy ? BEGINNER_COOLDOWN_DAYS : COOLDOWN_DAYS
   const index = puzzleNumber(dateKey) - 1
-  while (walk.history.length <= index) {
-    const d = addDays(EPOCH_DATE_KEY, walk.history.length)
-    walk.history.push(draw(d, walk.history.slice(-window)))
-  }
+  while (walk.history.length <= index)
+    walk.history.push(
+      draw(addDays(EPOCH_DATE_KEY, walk.history.length), walk.history),
+    )
   return walk.history[index]
 }

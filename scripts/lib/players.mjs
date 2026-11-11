@@ -127,16 +127,14 @@ export function nflCandidates(
     const rawHead = nflHeadKey(p.headshot)
     // …unless ESPN has a real headshot for him (data/nfl-espn-heads.json).
     // A league image that is a photo of him but not a headshot (an action
-    // cut-out — data/nfl-not-headshots.json) also gives way to ESPN's, and
-    // stays when ESPN has none.
+    // cut-out — data/nfl-not-headshots.json) gives way to ESPN's too. With no
+    // ESPN headshot either he has no headshot yet: a headshot is a headshot.
+    // He is still a player — membership never depends on photos; only
+    // players with both photos are DRAWN (eligibleSince in ./photos.mjs).
     const espn = espnHeads[rawHead] ? `espn:${espnHeads[rawHead]}` : ''
-    const head = placeholders.has(rawHead)
-      ? espn
-      : notHeadshots.has(rawHead) && espn
-        ? espn
-        : rawHead
+    const head =
+      placeholders.has(rawHead) || notHeadshots.has(rawHead) ? espn : rawHead
     const action = commonsFile(w.img)
-    if (!head && !action) continue
     const fame = nflFame({
       links: num(w.links),
       probowls: num(d.probowls),
@@ -197,9 +195,8 @@ export const nameKey = (name) =>
  * @param heads  `placeholders`: NBA.com ids whose headshot is the generic
  *   grey silhouette (data/nba-placeholder-heads.json); `espn`: NBA.com id →
  *   ESPN id for those ESPN has a real headshot of (data/nba-espn-heads.json).
- *   A player left with no headshot and no Wikimedia photo is still returned
- *   (`placeholderHead` carries his NBA.com id): nobody is dropped for a
- *   missing photo — see keepEveryone in ./photos.mjs.
+ *   A player left with no headshot and no Wikimedia photo is still returned:
+ *   membership never depends on photos (see eligibleSince in ./photos.mjs).
  */
 export function nbaCandidates(
   baseRows,
@@ -298,7 +295,6 @@ export function nbaCandidates(
       team: '',
       head,
       action,
-      ...(heads.placeholders.has(b.nbaid) ? { placeholderHead: b.nbaid } : {}),
       lastPro,
       ...(prep ? { hs: prep.hs } : {}),
     })

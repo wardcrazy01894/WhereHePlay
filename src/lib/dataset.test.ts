@@ -3,6 +3,9 @@ import { readFileSync } from 'node:fs'
 import type { Player, School } from '../types'
 import {
   BEGINNER_COOLDOWN_DAYS,
+  BEGINNER_PLAN,
+  cooldownFor,
+  eligibleOn,
   COOLDOWN_DAYS,
   EPOCH_DATE_KEY,
   TIER_PLAN,
@@ -44,8 +47,6 @@ describe('players.json', () => {
       expect(['nfl', 'nba'], p.id).toContain(p.l)
       expect(['easy', 'medium', 'hard'], p.id).toContain(p.t)
       expect(p.c, p.id).toBeTruthy()
-      // A photo to show: the league headshot, or the Wikimedia one.
-      expect(p.h || p.a, p.id).toBeTruthy()
       expect(p.y, p.id).toBeGreaterThanOrEqual(1994)
       expect(p.s.length, p.id).toBeGreaterThan(0)
       for (const id of [...p.s, ...p.d])
@@ -100,48 +101,112 @@ describe('players.json', () => {
     }
   })
 
-  it('every player has something to show, and a league placeholder is only ever a last resort', () => {
-    const data = (f: string) =>
-      JSON.parse(
-        readFileSync(new URL(`../../data/${f}`, import.meta.url), 'utf8'),
-      )
-    const nbaPlaceholders = new Set<string>(data('nba-placeholder-heads.json'))
-    const nflPlaceholders = new Set<string>(data('nfl-placeholder-heads.json'))
-    const stuck: string[] = []
+  const data = (f: string) =>
+    JSON.parse(
+      readFileSync(new URL(`../../data/${f}`, import.meta.url), 'utf8'),
+    )
+  it('a headshot is a headshot: no league placeholder, no action cut-out', () => {
+    const not = new Set<string>([
+      ...data('nba-placeholder-heads.json'),
+      ...data('nfl-placeholder-heads.json'),
+      ...Object.keys(data('nfl-not-headshots.json')),
+    ])
+    for (const p of players) if (p.h) expect(not.has(p.h), p.id).toBe(false)
+  })
+  it('a playing photo is a playing photo: nothing from the blocklist', () => {
+    const lists = data('photo-blocklist.json')
+    const allowed = new Set<string>(lists.allow)
+    const blocked = new Set<string>(
+      [
+        ...lists.manual,
+        ...lists.auto,
+        ...lists.notPlaying,
+        ...lists.weak,
+      ].filter((f: string) => !allowed.has(f) || lists.notPlaying.includes(f)),
+    )
+    for (const p of players)
+      if (p.a)
+        expect(blocked.has(p.a.slice(p.a.indexOf('/') + 1)), p.id).toBe(false)
+  })
+  it('`e` (may be drawn): his window is open exactly when he has both photos; and it matches data/eligible-since.json', () => {
+    const since = data('eligible-since.json')
     for (const p of players) {
-      expect(p.h || p.a, p.id).toBeTruthy()
-      const placeholder =
-        !!p.h && (p.l === 'nba' ? nbaPlaceholders : nflPlaceholders).has(p.h)
-      if (!placeholder) continue
-      // Shown only when there is no ESPN headshot and no photo of him at all.
-      expect(p.a, p.id).toBeUndefined()
-      stuck.push(p.n)
+      // One day, or window edges [from, until, from, …]; odd length = open.
+      const edges = [p.e ?? []].flat()
+      expect(edges.length % 2 === 1, p.id).toBe(!!p.h && !!p.a)
+      edges.forEach((d, i) => {
+        expect(Number.isInteger(d) && d >= 0, p.id).toBe(true)
+        if (i) expect(d, p.id).toBeGreaterThan(edges[i - 1])
+      })
+      expect(since[p.id], p.id).toEqual(p.e)
     }
-    // The players still waiting for a real photo. This number only goes down.
-    expect(stuck.length).toBeLessThanOrEqual(14)
+    // The build script counts days from the same epoch as the game.
+    const buildLib = readFileSync(
+      new URL('../../scripts/lib/photos.mjs', import.meta.url),
+      'utf8',
+    )
+    expect(buildLib).toContain(`EPOCH_DATE_KEY = '${EPOCH_DATE_KEY}'`)
   })
-
-  it('every tier is deep enough that the cooldown never runs dry', () => {
-    for (const l of ['nfl', 'nba'] as const)
-      for (const t of ['easy', 'medium', 'hard'] as const) {
-        const perDay = TIER_PLAN.filter((x) => x === t).length
-        const have = players.filter((p) => p.l === l && p.t === t).length
-        expect(have, `${l} ${t}`).toBeGreaterThan(perDay * (COOLDOWN_DAYS + 1))
-      }
+  it('the launch pool is deep enough: every board can go at least two weeks without a repeat', () => {
+    const launch = eligibleOn(players, EPOCH_DATE_KEY)
+    for (const mode of ['nfl', 'nba', 'mixed'] as const) {
+      const pool =
+        mode === 'mixed' ? launch : launch.filter((p) => p.l === mode)
+      expect(
+        cooldownFor(pool, mode, TIER_PLAN, COOLDOWN_DAYS),
+        mode,
+      ).toBeGreaterThanOrEqual(14)
+      expect(
+        cooldownFor(
+          pool.filter((p) => p.t === 'easy'),
+          mode,
+          BEGINNER_PLAN,
+          BEGINNER_COOLDOWN_DAYS,
+          mode === 'mixed' ? 2 : 3,
+        ),
+        `${mode} beginner`,
+      ).toBeGreaterThanOrEqual(14)
+    }
   })
-  it('a year of real dailies follows the plan with no repeat inside the window', () => {
+  /** The no-repeat window a board really has on day `i` (cooldownFor). */
+  const windowOn = (
+    mode: 'nfl' | 'nba' | 'mixed',
+    i: number,
+    beginner: boolean,
+  ) => {
+    const eligible = eligibleOn(players, addDays(EPOCH_DATE_KEY, i))
+    const pool =
+      mode === 'mixed' ? eligible : eligible.filter((p) => p.l === mode)
+    return beginner
+      ? cooldownFor(
+          pool.filter((p) => p.t === 'easy'),
+          mode,
+          BEGINNER_PLAN,
+          BEGINNER_COOLDOWN_DAYS,
+          mode === 'mixed' ? 2 : 3,
+        )
+      : cooldownFor(pool, mode, TIER_PLAN, COOLDOWN_DAYS)
+  }
+  it('a year of real dailies: only players with both photos, on plan, no repeat inside the window', () => {
     for (const mode of ['nfl', 'nba', 'mixed'] as const) {
       const days = Array.from({ length: 365 }, (_, i) =>
         dailyLineup(players, mode, addDays(EPOCH_DATE_KEY, i)),
       )
       days.forEach((day, i) => {
+        const eligible = new Set(
+          eligibleOn(players, addDays(EPOCH_DATE_KEY, i)),
+        )
+        expect(
+          day.every((p) => p.h && p.a && eligible.has(p)),
+          `${mode} day ${i}`,
+        ).toBe(true)
         expect(
           day.map((p) => p.t),
           `${mode} day ${i}`,
         ).toEqual(tierPlanFor(addDays(EPOCH_DATE_KEY, i)))
         const window = new Set(
           days
-            .slice(Math.max(0, i - COOLDOWN_DAYS), i)
+            .slice(Math.max(0, i - windowOn(mode, i, false)), i)
             .flatMap((d) => d.map((p) => p.id)),
         )
         expect(
@@ -149,14 +214,6 @@ describe('players.json', () => {
           `${mode} day ${i}`,
         ).toBe(false)
       })
-    }
-  })
-  it('the easy tier is deep enough for the beginner daily', () => {
-    // Five a day for the whole window, plus the day's own five and the three
-    // easy players the standard daily holds back that day.
-    for (const l of ['nfl', 'nba'] as const) {
-      const have = players.filter((p) => p.l === l && p.t === 'easy').length
-      expect(have, l).toBeGreaterThan(5 * (BEGINNER_COOLDOWN_DAYS + 1) + 3)
     }
   })
   it("a year of real beginner dailies is all easy, with no repeat inside the window and nobody from that day's standard daily", () => {
@@ -169,9 +226,13 @@ describe('players.json', () => {
           day.map((p) => p.t),
           `${mode} day ${i}`,
         ).toEqual(Array(5).fill('easy'))
+        expect(
+          day.every((p) => p.h && p.a),
+          `${mode} day ${i}`,
+        ).toBe(true)
         const blocked = new Set([
           ...days
-            .slice(Math.max(0, i - BEGINNER_COOLDOWN_DAYS), i)
+            .slice(Math.max(0, i - windowOn(mode, i, true)), i)
             .flatMap((d) => d.map((p) => p.id)),
           ...dailyLineup(players, mode, addDays(EPOCH_DATE_KEY, i)).map(
             (p) => p.id,

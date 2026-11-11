@@ -1,5 +1,7 @@
 /**
- * localStorage persistence — everything under the `whp:v1:` prefix. All reads
+ * localStorage persistence — everything under the `whp:v2:` prefix (v1 was
+ * the launch-day data, abandoned when the game restarted on players with both
+ * photos; nothing reads it). All reads
  * are defensive (private windows, cleared or corrupted data): a bad value is
  * treated as absent, never thrown.
  */
@@ -8,7 +10,7 @@ import { boardId } from '../types'
 import type { QuestionState } from './game'
 import { addDays } from './daily'
 
-const PREFIX = 'whp:v1:'
+const PREFIX = 'whp:v2:'
 
 function read<T>(key: string): T | undefined {
   try {

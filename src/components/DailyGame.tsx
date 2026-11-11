@@ -1,7 +1,12 @@
 import { useEffect, useMemo, useState } from 'react'
 import type { Mode, Player, School, Variant } from '../types'
 import { boardId, gameLabel } from '../types'
-import { QUESTIONS_PER_DAY, dailyLineup, puzzleNumber } from '../lib/daily'
+import {
+  QUESTIONS_PER_DAY,
+  dailyLineup,
+  eligibleOn,
+  puzzleNumber,
+} from '../lib/daily'
 import {
   type QuestionState,
   MAX_QUESTION_POINTS,
@@ -47,14 +52,15 @@ function startGame(
   variant: Variant,
 ): Saved {
   const saved = loadDaily(mode, dateKey, variant)
-  const byId = new Map(players.map((p) => [p.id, p]))
   // A dataset update may have changed today's lineup after this player
-  // started: keep THEIR lineup as long as every player in it still exists.
+  // started: keep THEIR lineup as long as every player in it can still be
+  // asked — he exists and has both his photos that day.
+  const askable = new Set(eligibleOn(players, dateKey).map((p) => p.id))
   if (
     saved &&
     saved.lineup.length === QUESTIONS_PER_DAY &&
     saved.questions.length === QUESTIONS_PER_DAY &&
-    saved.lineup.every((id) => byId.has(id))
+    saved.lineup.every((id) => askable.has(id))
   )
     return saved
   return {

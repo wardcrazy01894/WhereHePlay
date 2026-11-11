@@ -30,6 +30,8 @@ for (const l of ['nfl', 'nba'] as League[])
         y: 2010,
         t,
         h: 'x',
+        a: 'ab/x.jpg',
+        e: 0,
         d: ['b', 'c', 'd'],
       })
 const schools = ['a', 'b', 'c', 'd'].map((id) => ({
@@ -53,7 +55,7 @@ beforeEach(() => {
   scoreOk = true
   scoreStatus = 400
   localStorage.setItem(
-    'whp:v1:identity',
+    'whp:v2:identity',
     JSON.stringify({ token: TOKEN, name: 'Al', username: 'al' }),
   )
   vi.stubGlobal(
@@ -174,7 +176,7 @@ describe('cross-device sync', () => {
     first.unmount()
     // Same device, now signed in as someone else who has not played today.
     localStorage.setItem(
-      'whp:v1:identity',
+      'whp:v2:identity',
       JSON.stringify({ token: 'cd'.repeat(24), name: 'Bo', username: 'bo' }),
     )
     me = { name: 'Bo', username: 'bo', scores: [], streaks: [] }
@@ -191,7 +193,7 @@ describe('cross-device sync', () => {
   it('with the results on screen: signing in claims an unowned day once; signing out never reposts it', async () => {
     // An anonymous device finishes the day…
     localStorage.setItem(
-      'whp:v1:identity',
+      'whp:v2:identity',
       JSON.stringify({ token: TOKEN, name: '' }),
     )
     me = { name: '', username: null, scores: [], streaks: [] }
@@ -199,7 +201,7 @@ describe('cross-device sync', () => {
     await screen.findByRole('heading', { name: 'NFL' })
     playNfl()
     await vi.waitFor(() => expect(scorePosts()).toBe(1))
-    const key = `whp:v1:daily:nfl:${today}`
+    const key = `whp:v2:daily:nfl:${today}`
     expect(JSON.parse(localStorage.getItem(key)!).owner).toBeUndefined()
     // …then signs in as Bo without leaving the results: the day becomes Bo's.
     fireEvent.click(screen.getByRole('button', { name: /Set name/ }))
@@ -233,7 +235,7 @@ describe('cross-device sync', () => {
 
   it('with the results on screen: creating an account claims the day (same token), so signing out cannot repost it', async () => {
     localStorage.setItem(
-      'whp:v1:identity',
+      'whp:v2:identity',
       JSON.stringify({ token: TOKEN, name: '' }),
     )
     me = { name: '', username: null, scores: [], streaks: [] }
@@ -241,7 +243,7 @@ describe('cross-device sync', () => {
     await screen.findByRole('heading', { name: 'NFL' })
     playNfl()
     await vi.waitFor(() => expect(scorePosts()).toBe(1))
-    const key = `whp:v1:daily:nfl:${today}`
+    const key = `whp:v2:daily:nfl:${today}`
     fireEvent.click(screen.getByRole('button', { name: /Set name/ }))
     const dialog = screen.getByRole('dialog', { name: 'Your profile' })
     fireEvent.click(
@@ -317,7 +319,7 @@ describe('cross-device sync', () => {
     fireEvent.click(screen.getAllByRole('button', { name: 'Play daily' })[1])
     fireEvent.click(screen.getByRole('button', { name: 'I don’t know' }))
     // Another tab syncs the account's finished result into storage.
-    const key = `whp:v1:daily:nfl:${today}`
+    const key = `whp:v2:daily:nfl:${today}`
     const mine = JSON.parse(localStorage.getItem(key)!)
     const done = {
       stage: 0,

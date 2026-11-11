@@ -6,6 +6,7 @@ import {
   screen,
   fireEvent,
   waitFor,
+  within,
 } from '@testing-library/react'
 import type { League, Player, Tier } from './types'
 import { App } from './App'
@@ -26,6 +27,8 @@ for (const l of ['nfl', 'nba'] as League[])
         y: 2010,
         t,
         h: 'x',
+        a: 'ab/x.jpg',
+        e: 0,
         d: ['b', 'c', 'd'],
       })
 const schools = ['a', 'b', 'c', 'd'].map((id) => ({
@@ -199,13 +202,13 @@ describe('App', () => {
     ).toBeTruthy()
     // Saved under its own key, with an all-easy lineup…
     const key = Object.keys(localStorage).find((k) =>
-      k.startsWith('whp:v1:daily:nfl-beginner:'),
+      k.startsWith('whp:v2:daily:nfl-beginner:'),
     )!
     const saved = JSON.parse(localStorage.getItem(key)!)
     expect(saved.variant).toBe('beginner')
     expect(saved.lineup).toHaveLength(5)
     for (const id of saved.lineup) expect(id).toMatch(/^nfl-easy-/)
-    expect(localStorage.getItem('whp:v1:stats:nfl-beginner')).toBeTruthy()
+    expect(localStorage.getItem('whp:v2:stats:nfl-beginner')).toBeTruthy()
     // …and the card names it.
     fireEvent.click(screen.getByRole('button', { name: 'Share result' }))
     await waitFor(() => expect(writeText).toHaveBeenCalled())
@@ -220,7 +223,7 @@ describe('App', () => {
     expect(screen.getAllByRole('button', { name: 'Play daily' })).toHaveLength(
       3,
     )
-    expect(localStorage.getItem('whp:v1:stats:nfl')).toBeNull()
+    expect(localStorage.getItem('whp:v2:stats:nfl')).toBeNull()
   })
 
   it('first photo: two radio choices; the pick is remembered and stamped on the day that starts', async () => {
@@ -236,12 +239,12 @@ describe('App', () => {
     expect(action.checked).toBe(false)
     fireEvent.click(action)
     expect(action.checked).toBe(true)
-    expect(JSON.parse(localStorage.getItem('whp:v1:photo')!)).toBe('action')
+    expect(JSON.parse(localStorage.getItem('whp:v2:photo')!)).toBe('action')
     // Start a daily: it records the choice it was started with…
     fireEvent.click(screen.getAllByRole('button', { name: 'Play daily' })[1])
     fireEvent.click(screen.getByRole('button', { name: 'I don’t know' }))
     const key = Object.keys(localStorage).find((k) =>
-      k.startsWith('whp:v1:daily:nfl:'),
+      k.startsWith('whp:v2:daily:nfl:'),
     )!
     expect(JSON.parse(localStorage.getItem(key)!).photo).toBe('action')
     // …and keeps it even if the setting is changed back afterwards.
@@ -251,6 +254,64 @@ describe('App', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Continue daily' }))
     fireEvent.click(screen.getByRole('button', { name: 'I don’t know' }))
     expect(JSON.parse(localStorage.getItem(key)!).photo).toBe('action')
+  })
+
+  it('a player still waiting for a photo is in the search but is never dealt, and a saved lineup that has him starts over', async () => {
+    // One famous player with a headshot but no playing photo yet.
+    const waiting: Player = {
+      ...players[0],
+      id: 'nfl-waiting',
+      n: 'Waiting Forphoto',
+      a: undefined,
+      e: undefined,
+    }
+    players.push(waiting)
+    try {
+      // A game saved before the rule, with him in it.
+      const day = resolveDay('', new Date()).dateKey
+      localStorage.setItem(
+        `whp:v2:daily:nfl:${day}`,
+        JSON.stringify({
+          mode: 'nfl',
+          dateKey: day,
+          lineup: [waiting.id, ...players.slice(0, 4).map((p) => p.id)],
+          questions: Array.from({ length: 5 }, () => ({
+            stage: 0,
+            wrong: [],
+            done: true,
+            correct: false,
+            gaveUp: true,
+            points: 0,
+          })),
+        }),
+      )
+      render(<App />)
+      await screen.findByRole('heading', { name: 'NFL' })
+      fireEvent.click(screen.getByRole('button', { name: /Is he in the game/ }))
+      const dialog = screen.getByRole('dialog', { name: 'Is he in the game?' })
+      fireEvent.change(dialog.querySelector('input')!, {
+        target: { value: 'Waiting Forphoto' },
+      })
+      expect(dialog.textContent).toContain('Waiting Forphoto is in the game')
+      fireEvent.click(within(dialog).getByRole('button', { name: 'Close' }))
+      // Opening the daily: the old lineup is not resumed, it starts at 1 of 5.
+      fireEvent.click(screen.getAllByRole('button', { name: /daily/i })[2])
+      expect(screen.getByText(/NFL daily · 1 of 5/)).toBeTruthy()
+      const saved = () =>
+        JSON.parse(localStorage.getItem(`whp:v2:daily:nfl:${day}`)!)
+      fireEvent.click(screen.getByRole('button', { name: 'I don’t know' }))
+      expect(saved().lineup).not.toContain(waiting.id)
+      // Free play: forty draws, never him.
+      fireEvent.click(screen.getByRole('button', { name: '← All games' }))
+      fireEvent.click(screen.getAllByRole('button', { name: 'Free play' })[1])
+      for (let i = 0; i < 40; i++) {
+        fireEvent.click(screen.getByRole('button', { name: 'I don’t know' }))
+        expect(document.body.textContent).not.toContain('Waiting Forphoto')
+        fireEvent.click(screen.getByRole('button', { name: 'Next player' }))
+      }
+    } finally {
+      players.pop()
+    }
   })
 
   it('free play keeps dealing players', async () => {

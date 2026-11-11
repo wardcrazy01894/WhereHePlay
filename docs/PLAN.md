@@ -67,7 +67,8 @@ Only puzzle #1 through a week ahead is accepted (`src/lib/day.ts`) — a day's
 lineup is computed by walking forward from the epoch, so an arbitrary
 far-future date in a shared link would otherwise freeze the tab.
 
-Everything client-side is in `localStorage` under `whp:v1:`
+Everything client-side is in `localStorage` under `whp:v2:` (`v1` was the
+launch-day data, abandoned on the restart of 2026-11-11)
 (`src/lib/storage.ts`; `<board>` is the mode, or `<mode>-beginner`):
 `daily:<board>:<date>` (the game, including the lineup
 it was started on, so a dataset update can't change a game in progress),
@@ -91,8 +92,20 @@ slots alternate leagues (which league starts depends on the day), so a day is
 always a 3/2 split. Ranks are per player, so adding players to the dataset
 does not reshuffle everyone else.
 
+**Who can be drawn:** only a player with **both a real headshot and a real
+playing photo** — the `e` field in `players.json` ("eligible since", in days
+after puzzle #1; `eligibleOn`). Everyone else stays in the dataset, is found
+by the player search, and joins the draw automatically once his photos land.
+The build never moves an `e` into the past (a newly eligible player starts
+the day after the build, as seen from the last time zone on Earth), and each
+day is drawn only from the players eligible that day — so new photos add
+players to later days and can never change a lineup already being played.
+Free play deals from the same pool.
+
 **Cooldown:** a player who appeared in that mode's previous 45 lineups is
-skipped. Lineups are computed by walking forward from puzzle #1
+skipped — or fewer while the pool is small: `cooldownFor` shrinks the window
+to what each league and tier can sustain that day (at launch: 45 days for NFL
+and Grab Bag, 38 for NBA; the beginner daily 30, and 22 for NBA), and it grows back as players get photos. Lineups are computed by walking forward from puzzle #1
 (2026-11-11), so the result needs no storage and is identical everywhere. The
 walk costs one hash per player per day (no sorting); if it ever becomes
 noticeable years out, checkpoint it — without changing its output. A
@@ -103,7 +116,8 @@ plan and the no-repeat window on the real data.
 plan of five easy slots and a pool of the easy tier only — so even the
 fallbacks can only ever pick an easy player. It skips its own previous 30
 lineups (`BEGINNER_COOLDOWN_DAYS`; shorter than 45 because five a day from the
-~200 easy NBA players would run dry) and that day's standard lineup of the
+easy tier alone would run dry — and shorter still while few easy players
+have both photos, by the same `cooldownFor` rule) and that day's standard lineup of the
 same mode, so playing both never shows a player twice in a day. The standard
 daily does not depend on it: its seed and walk are exactly what they were.
 The dataset guard simulates a year of it too.

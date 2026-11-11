@@ -5,7 +5,11 @@ import { poolFor } from './daily'
 /** How many recent players are kept out of the next draw. */
 export const RECENT_WINDOW = 150
 
-/** Next player, never one of the `recent` ids (unless the pool is tiny). */
+/**
+ * Next player, never one of the `recent` ids (unless the pool is tiny).
+ * `all` is the players who may be drawn today (eligibleOn) — the caller
+ * filters, so a player waiting for a photo is never dealt.
+ */
 export function nextFreePlayer(
   all: Player[],
   mode: Mode,

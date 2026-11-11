@@ -6,7 +6,12 @@
 import { readFile, writeFile } from 'node:fs/promises'
 import { parseCsv } from './lib/csv.mjs'
 import { parseSchools, buildMatchers, conferenceAt } from './lib/schools.mjs'
-import { applyBlocklist, keepEveryone } from './lib/photos.mjs'
+import {
+  EPOCH_DATE_KEY,
+  applyBlocklist,
+  eligibleSince,
+  firstNewDay,
+} from './lib/photos.mjs'
 import {
   nflCandidates,
   nbaCandidates,
@@ -98,12 +103,52 @@ await writeFile(
 )
 const candidates = [...nfl.records, ...nba.records]
 const photosDropped = applyBlocklist(candidates, blockedPhotos)
-// Nobody is dropped for a missing photo: those with nothing at all keep the
-// league placeholder until a real one is found (docs/DATA.md §Photos).
-const needPhoto = keepEveryone(candidates)
-const withPhotos = candidates.filter((r) => r.head || r.action)
+// Nobody is dropped over photos — membership never depends on them. What
+// photos decide is who may be DRAWN: only a player with both a real headshot
+// and a real playing photo, from the day in data/eligible-since.json (kept
+// across builds, so a date never moves and a day's lineup never changes once
+// it has started; the very first run makes everyone eligible from puzzle #1).
+const sinceUrl = new URL('data/eligible-since.json', root)
+// The dated file IS the history of every lineup: without it everyone would
+// be "eligible since puzzle #1" again and every day already played would
+// re-roll. So a missing or broken file stops the build (JSON.parse throws on
+// a broken one) unless `--init-eligibility` says this really is a new game.
+const init = process.argv.includes('--init-eligibility')
+const sinceText = await read('data/eligible-since.json').catch(() => null)
+if (sinceText !== null && init)
+  throw new Error(
+    'data/eligible-since.json exists: --init-eligibility would date every new player to puzzle #1 and re-roll days already played. Drop the flag.',
+  )
+if (sinceText === null && !init)
+  throw new Error(
+    'data/eligible-since.json is missing. Restore it from git — rebuilding without it re-rolls every day already played. (A brand-new game: pass --init-eligibility.)',
+  )
+const prevSince = Object.fromEntries(
+  Object.entries(JSON.parse(sinceText ?? '{}')).filter(
+    ([k]) => !k.startsWith('_'),
+  ),
+)
+const since = eligibleSince(
+  prevSince,
+  candidates,
+  init ? 0 : firstNewDay(new Date(), EPOCH_DATE_KEY),
+)
+await writeFile(
+  sinceUrl,
+  JSON.stringify(
+    {
+      _comment:
+        'Who may be drawn, and when: player id → the day his window opened (days since puzzle #1, 2026-11-11), or window edges [from, until, from, …] for a player who lost a photo for a while. A player is drawn only while he has BOTH a real headshot and a real playing photo. Written by `npm run build-players`, which never changes an edge already written and dates new ones the day after the build. NEVER edit or delete this file: it is the history of every lineup, and a changed past edge re-rolls days already played. See docs/DATA.md §Photos.',
+      ...Object.fromEntries(
+        Object.entries(since).sort(([a], [b]) => (a < b ? -1 : 1)),
+      ),
+    },
+    null,
+    2,
+  ) + '\n',
+)
 const records = applyOverrides(
-  assignTiers(withPhotos),
+  assignTiers(candidates),
   JSON.parse(await read('data/overrides.json')),
   new Set(schools.map((s) => s.id)),
 )
@@ -140,6 +185,7 @@ const out = records.map((r) => ({
   ...(r.pos ? { p: r.pos } : {}),
   ...(r.action ? { a: r.action } : {}),
   ...(r.hs ? { hs: r.hs } : {}),
+  ...(r.id in since ? { e: since[r.id] } : {}),
 }))
 await writeFile(
   new URL('public/players.json', root),
@@ -168,12 +214,15 @@ for (const l of ['nfl', 'nba'])
   )
 console.log(`schools: ${schools.length}`)
 console.log(
-  `photos: ${photosDropped} Wikimedia photos withheld (college gear, or not playing for a pro team); ${nfl.records.length + nba.records.length - withPhotos.length} players dropped for having no other photo`,
+  `photos: ${photosDropped} Wikimedia photos withheld (college gear, or not a real playing photo)`,
 )
-if (needPhoto.length)
+for (const league of ['nfl', 'nba']) {
+  const rs = records.filter((r) => r.league === league)
+  const n = (f) => rs.filter(f).length
   console.log(
-    `photos: ${needPhoto.length} players have no real photo and show the league placeholder — find one for data/photo-overrides.json: ${needPhoto.join(', ')}`,
+    `${league} photos: ${n((r) => r.id in since)} of ${rs.length} can be drawn (easy ${n((r) => r.id in since && r.tier === 'easy')} / medium ${n((r) => r.id in since && r.tier === 'medium')} / hard ${n((r) => r.id in since && r.tier === 'hard')}); ${n((r) => !r.head)} need a headshot, ${n((r) => !r.action)} need a playing photo`,
   )
+}
 const prepsIn = records.filter((r) => r.hs).length
 console.log(`preps to pros: ${prepsIn} in the pool`)
 if (nba.missingPreps.length)

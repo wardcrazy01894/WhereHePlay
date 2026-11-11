@@ -1,7 +1,8 @@
 import { describe, it, expect } from 'vitest'
 import {
   applyBlocklist,
-  keepEveryone,
+  eligibleSince,
+  firstNewDay,
   photoFlag,
   photoYear,
 } from './photos.mjs'
@@ -175,6 +176,7 @@ describe('applyBlocklist', () => {
     auto: ['AutoCollege.jpg', 'Cleared.jpg'],
     allow: ['Cleared.jpg'],
     notPlaying: ['Suit.jpg'],
+    weak: ['Warmup.jpg'],
   }
   const rec = (head, file) => ({ head, action: file ? `ab/${file}` : '' })
   it('a college photo is never used, even when it is his only photo', () => {
@@ -189,13 +191,12 @@ describe('applyBlocklist', () => {
     expect(applyBlocklist([r], lists)).toBe(0)
     expect(r.action).toBe('ab/Cleared.jpg')
   })
-  it('a photo that does not show him playing goes — unless it is all there is of him', () => {
-    const withHead = rec('h', 'Suit.jpg')
+  it('a playing photo is a playing photo: a suit or a warm-up shot is not one, even when it is all there is', () => {
+    const suit = rec('h', 'Suit.jpg')
+    const warmup = rec('h', 'Warmup.jpg')
     const lastPhoto = rec('', 'Suit.jpg')
-    expect(applyBlocklist([withHead, lastPhoto], lists)).toBe(1)
-    expect(withHead.action).toBe('')
-    // A portrait is a poor "in action" photo, but better than dropping him.
-    expect(lastPhoto.action).toBe('ab/Suit.jpg')
+    expect(applyBlocklist([suit, warmup, lastPhoto], lists)).toBe(3)
+    expect([suit.action, warmup.action, lastPhoto.action]).toEqual(['', '', ''])
   })
   it('tolerates a list file without the newer keys', () => {
     const r = rec('h', 'Suit.jpg')
@@ -203,19 +204,62 @@ describe('applyBlocklist', () => {
   })
 })
 
-describe('keepEveryone', () => {
-  it('a player with no photo at all keeps the league placeholder rather than leave the game', () => {
-    const fine = { name: 'A', head: 'espn:1', action: '', placeholderHead: '9' }
-    const photoOnly = {
-      name: 'B',
-      head: '',
-      action: 'ab/B.jpg',
-      placeholderHead: '8',
-    }
-    const nothing = { name: 'C', head: '', action: '', placeholderHead: '7' }
-    expect(keepEveryone([fine, photoOnly, nothing])).toEqual(['C'])
-    expect(fine.head).toBe('espn:1')
-    expect(photoOnly.head).toBe('')
-    expect(nothing.head).toBe('7')
+describe('eligibleSince', () => {
+  const rec = (id, head, action) => ({ id, head, action })
+  it('a player is eligible from the day after both his photos exist, and that day never moves', () => {
+    const prev = { 'nfl-a': 0 }
+    const next = eligibleSince(
+      prev,
+      [
+        rec('nfl-a', 'h', 'x/a.jpg'),
+        rec('nfl-new', 'h', 'x/n.jpg'),
+        rec('nfl-headonly', 'h', ''),
+        rec('nfl-photoonly', '', 'x/p.jpg'),
+      ],
+      7,
+    )
+    expect(next).toEqual({ 'nfl-a': 0, 'nfl-new': 7 })
+  })
+  it('losing a photo closes his window from the next day — the days he was drawn in stay his', () => {
+    // Eligible since day 0; his playing photo is blocklisted during day 19.
+    const lost = eligibleSince({ 'nfl-a': 0 }, [rec('nfl-a', 'h', '')], 20)
+    expect(lost).toEqual({ 'nfl-a': [0, 20] })
+    // Nothing changes while he waits…
+    expect(eligibleSince(lost, [rec('nfl-a', 'h', '')], 25)).toEqual(lost)
+    // …and a new photo opens a second window, leaving the first untouched.
+    const back = eligibleSince(lost, [rec('nfl-a', 'h', 'x/a2.jpg')], 31)
+    expect(back).toEqual({ 'nfl-a': [0, 20, 31] })
+    expect(eligibleSince(back, [rec('nfl-a', 'h', 'x/a2.jpg')], 40)).toEqual(
+      back,
+    )
+  })
+  it('a window opened and closed before it ever started leaves no trace', () => {
+    const opened = eligibleSince({}, [rec('nfl-a', 'h', 'x/a.jpg')], 7)
+    expect(eligibleSince(opened, [rec('nfl-a', 'h', '')], 7)).toEqual({})
+  })
+  it('an edge that has not started yet is taken back, never followed by an earlier one', () => {
+    // His window opens on day 9; a build whose "new day" is 8 (an earlier
+    // build the same evening, or a clock that is behind) pulls his photo.
+    expect(eligibleSince({ 'nfl-a': 9 }, [rec('nfl-a', 'h', '')], 8)).toEqual(
+      {},
+    )
+    expect(
+      eligibleSince({ 'nfl-a': [0, 9] }, [rec('nfl-a', 'h', 'x/a.jpg')], 8),
+    ).toEqual({ 'nfl-a': 0 })
+  })
+  it('a player who leaves the dataset keeps his history (he may come back)', () => {
+    expect(eligibleSince({ 'nfl-gone': [0, 5] }, [], 9)).toEqual({
+      'nfl-gone': [0, 5],
+    })
+    // Still open when he vanished: closed, like any other loss.
+    expect(eligibleSince({ 'nfl-gone': 0 }, [], 9)).toEqual({
+      'nfl-gone': [0, 9],
+    })
+  })
+  it('firstNewDay: the day after the latest "today" anywhere on Earth, as days since the epoch', () => {
+    // 2026-11-11 23:30 UTC is already 2026-11-12 in UTC+14.
+    expect(firstNewDay(new Date('2026-11-11T23:30:00Z'), '2026-11-11')).toBe(2)
+    expect(firstNewDay(new Date('2026-11-11T05:00:00Z'), '2026-11-11')).toBe(1)
+    expect(firstNewDay(new Date('2026-11-20T12:00:00Z'), '2026-11-11')).toBe(11)
   })
 })

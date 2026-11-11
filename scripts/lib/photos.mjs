@@ -69,27 +69,30 @@ export function photoFlag(photo, who) {
 /**
  * Clear the in-uniform photo of every record whose photo is on the blocklist
  * (data/photo-blocklist.json) and return how many were cleared.
- *  - `manual` + `auto`, minus `allow`: photos in COLLEGE gear. They give the
- *    answer away, so they go even when they are the player's only photo.
- *  - `notPlaying`: photos that do not show him playing for an NBA/NFL team
- *    (a suit, a press conference, a national-team or overseas-club shirt).
- *    Those are only a poor "in action" photo, so one is kept when the player
- *    has no headshot — better a portrait than dropping him from the game.
+ *  - `manual` + `auto`, minus `allow`: photos in COLLEGE gear — they give the
+ *    answer away.
+ *  - `notPlaying`: not a photo of him playing for an NBA/NFL team at all (a
+ *    suit, a press conference, a national-team or overseas-club shirt).
+ *  - `weak`: pro gear, but not a game photo (warm-ups, a media-day pose) or
+ *    plainly not the team he is known for.
+ * A playing photo is a playing photo: none of these is used, even when it is
+ * the only photo of him. He stays in the dataset and is simply not drawn
+ * until a real one is found (eligibleSince).
  * @param records  [{ head, action: "<xy>/<File_name>" | '' }], mutated
  */
 export function applyBlocklist(records, lists) {
   const allowed = new Set(lists.allow ?? [])
-  const college = new Set(
-    [...(lists.manual ?? []), ...(lists.auto ?? [])].filter(
+  const blocked = new Set([
+    ...[...(lists.manual ?? []), ...(lists.auto ?? [])].filter(
       (f) => !allowed.has(f),
     ),
-  )
-  const notPlaying = new Set(lists.notPlaying ?? [])
+    ...(lists.notPlaying ?? []),
+    ...(lists.weak ?? []),
+  ])
   let cleared = 0
   for (const r of records) {
     if (!r.action) continue
-    const file = r.action.slice(r.action.indexOf('/') + 1)
-    if (college.has(file) || (notPlaying.has(file) && r.head)) {
+    if (blocked.has(r.action.slice(r.action.indexOf('/') + 1))) {
       r.action = ''
       cleared++
     }
@@ -97,21 +100,58 @@ export function applyBlocklist(records, lists) {
   return cleared
 }
 
+/** Puzzle #1 — must equal EPOCH_DATE_KEY in src/lib/daily.ts (a test checks). */
+export const EPOCH_DATE_KEY = '2026-11-11'
+
 /**
- * Nobody leaves the game for want of a photo. A record left with no headshot
- * and no usable photo falls back to the league's own placeholder image
- * (`placeholderHead`) — a poor question, but his, until a real photo is found
- * for data/photo-overrides.json. Returns the names it had to do that for, so
- * the build can say who still needs one.
+ * Who may be drawn, and when. Only a player with BOTH a real headshot and a
+ * real playing photo is put in a daily lineup or free play; everyone else
+ * waits in the dataset. `prev` is data/eligible-since.json: player id → the
+ * day his window opened (days since the epoch), or a flat list of window
+ * edges `[from, until, from, …]` (until is exclusive; an odd length means the
+ * last window is still open).
+ *
+ * Nothing already written ever changes: a player with an open window keeps
+ * it; a newly eligible one opens a window at `newDay`; one who lost a photo
+ * (or left the dataset) has his window closed at `newDay`, and a new photo
+ * later opens another. `newDay` is never in the past (firstNewDay), so no
+ * build can change which players were eligible on a day already played.
  */
-export function keepEveryone(records) {
-  const names = []
-  for (const r of records) {
-    if (r.head || r.action || !r.placeholderHead) continue
-    r.head = r.placeholderHead
-    names.push(r.name)
+export function eligibleSince(prev, records, newDay) {
+  const both = new Set(
+    records.filter((r) => r.head && r.action).map((r) => r.id),
+  )
+  const next = {}
+  for (const id of new Set([...Object.keys(prev), ...both])) {
+    const edges = [prev[id] ?? []].flat()
+    const open = edges.length % 2 === 1
+    if (both.has(id) !== open) {
+      // Opened and closed (or closed and reopened) before that day began:
+      // the edge never took effect, so it is simply taken back. (`>=`: an
+      // edge dated after `newDay` has not started either, and pushing an
+      // earlier day after it would write a window that runs backwards.)
+      if (edges.at(-1) >= newDay) edges.pop()
+      else edges.push(newDay)
+    }
+    if (edges.length) next[id] = edges.length === 1 ? edges[0] : edges
   }
-  return names
+  return next
+}
+
+/**
+ * The first day a player whose photos land `now` may be drawn: the day after
+ * the latest calendar day anyone on Earth is in (UTC+14), as days since the
+ * epoch. The puzzle day is the player's local day, so nobody is in it yet.
+ */
+export function firstNewDay(now, epochDateKey) {
+  const farEast = new Date(now.getTime() + 14 * 3_600_000)
+  const today = Date.UTC(
+    farEast.getUTCFullYear(),
+    farEast.getUTCMonth(),
+    farEast.getUTCDate(),
+  )
+  const epoch = Date.parse(epochDateKey + 'T00:00:00Z')
+  return Math.max(0, Math.round((today - epoch) / 86_400_000) + 1)
 }
 
 /** School names that are also NFL/NBA cities or states used in team names. */

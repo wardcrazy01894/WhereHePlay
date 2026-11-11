@@ -25,6 +25,8 @@ for (const l of ['nfl', 'nba'] as League[])
         y: 2010,
         t,
         h: 'x',
+        a: 'ab/x.jpg',
+        e: 0,
         d: ['a', 'b', 'c'],
       })
 
