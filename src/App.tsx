@@ -28,6 +28,8 @@ import { DailyGame } from './components/DailyGame'
 import { FreePlay } from './components/FreePlay'
 import { Leaderboard } from './components/Leaderboard'
 import { AccountDialog } from './components/AccountDialog'
+import { BugReport } from './components/BugReport'
+import { PlayerSearch } from './components/PlayerSearch'
 
 type View =
   | { screen: 'home' }
@@ -49,6 +51,10 @@ export function App() {
   const [identity, setIdentity] = useState<Identity>(loadIdentity)
   const [photoStyle, setPhotoStyle] = useState<PhotoStyle>(loadPhotoStyle)
   const [accountOpen, setAccountOpen] = useState(false)
+  const [bugOpen, setBugOpen] = useState(false)
+  const [searchOpen, setSearchOpen] = useState(false)
+  // Any dialog over the page (they may hold half-typed text).
+  const dialogOpen = accountOpen || bugOpen || searchOpen
   const [{ dateKey, official }, setDay] = useState(() =>
     resolveDay(window.location.search, new Date()),
   )
@@ -139,9 +145,9 @@ export function App() {
         current,
         deployed,
         attempted: readAttempt(),
-        // The bare home screen only. The profile dialog opens over it and
-        // may hold a half-typed username or password, so it counts as busy.
-        safe: onHome && !accountOpen,
+        // The bare home screen only. The profile and bug-report dialogs open
+        // over it and may hold half-typed text, so they count as busy.
+        safe: onHome && !dialogOpen,
       })
     )
       return
@@ -154,7 +160,7 @@ export function App() {
       })
       window.location.reload()
     }
-  }, [deployed, onHome, accountOpen, current])
+  }, [deployed, onHome, dialogOpen, current])
 
   const togglePhoto = () => {
     const next = photoStyle === 'headshot' ? 'action' : 'headshot'
@@ -174,13 +180,24 @@ export function App() {
         <button type="button" className="brand" onClick={goHome}>
           Where<span>He</span>Play
         </button>
-        <button
-          type="button"
-          className="me"
-          onClick={() => setAccountOpen(true)}
-        >
-          👤 {identity.name || 'Set name'}
-        </button>
+        <div className="top-actions">
+          <button
+            type="button"
+            className="icon-button"
+            aria-label="Report a bug"
+            title="Report a bug"
+            onClick={() => setBugOpen(true)}
+          >
+            🐛
+          </button>
+          <button
+            type="button"
+            className="me"
+            onClick={() => setAccountOpen(true)}
+          >
+            👤 {identity.name || 'Set name'}
+          </button>
+        </div>
       </header>
 
       <main>
@@ -246,6 +263,9 @@ export function App() {
                   🏆 Leaderboards
                 </button>
               )}
+              <button type="button" onClick={() => setSearchOpen(true)}>
+                🔎 Is he in the game?
+              </button>
               <button
                 type="button"
                 onClick={togglePhoto}
@@ -316,9 +336,9 @@ export function App() {
             A new version is ready — it loads when you go back to All games.
           </p>
         )}
-        {stale && onHome && accountOpen && (
+        {stale && onHome && dialogOpen && (
           <p className="update-note" role="status">
-            A new version is ready — it loads when you close your profile.
+            A new version is ready — it loads when you close this dialog.
           </p>
         )}
       </main>
@@ -331,7 +351,35 @@ export function App() {
         />
       )}
 
+      {bugOpen && (
+        <BugReport
+          context={{
+            screen:
+              view.screen === 'home' ? 'home' : `${view.screen} ${view.mode}`,
+            date: dateKey,
+          }}
+          onClose={() => setBugOpen(false)}
+        />
+      )}
+
+      {searchOpen && players && (
+        <PlayerSearch
+          players={players}
+          context={{ screen: 'player search', date: dateKey }}
+          onClose={() => setSearchOpen(false)}
+        />
+      )}
+
       <footer className="site-footer">
+        <div>
+          <button
+            type="button"
+            className="link"
+            onClick={() => setBugOpen(true)}
+          >
+            🐛 Report a bug
+          </button>
+        </div>
         <div>
           Not affiliated with the NFL, the NBA or any school. Player data from{' '}
           <a

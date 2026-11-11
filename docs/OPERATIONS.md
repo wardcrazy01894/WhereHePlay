@@ -65,6 +65,25 @@ Afterwards: `npm run worker:deploy` for code changes; `npm run worker:migrate`
   projects); old scores are pruned lazily from `/score`.
 - Logs: `npx wrangler tail -c worker/wrangler.toml`.
 
+### Bug reports (the `GH_TOKEN` secret)
+
+In-app bug reports become GitHub issues through the worker's `/bug` route.
+It needs one secret; until it is set the route answers 503 and the site
+offers a prefilled issue link instead.
+
+1. GitHub → Settings → Developer settings → Fine-grained tokens → Generate:
+   resource owner `wardcrazy01894`, **only** the `WhereHePlay` repository,
+   repository permission **Issues: Read and write** (nothing else).
+2. `npx wrangler secret put GH_TOKEN -c worker/wrangler.toml` and paste it.
+   No redeploy needed.
+3. Send a test report from the site; it should appear under Issues with the
+   labels `bug` and `from-app`. (Player requests from "Is he in the game?"
+   use the same route and arrive labelled `player-request`.)
+
+When the token expires reports quietly fall back to the prefilled link;
+`npx wrangler tail -c worker/wrangler.toml` shows `bug: github issue create
+failed` with GitHub's reason. Rotate by repeating step 1–2.
+
 By-hand admin (there is no admin UI):
 
 ```bash

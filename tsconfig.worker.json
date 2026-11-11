@@ -13,5 +13,5 @@
     "noEmit": true,
     "types": ["node"]
   },
-  "include": ["worker/api-lib.mjs", "worker/api.mjs"]
+  "include": ["worker/api-lib.mjs", "worker/api.mjs", "worker/bug-lib.mjs"]
 }

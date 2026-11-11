@@ -60,6 +60,50 @@ describe('App', () => {
     expect(screen.getAllByRole('button', { name: 'Free play' })).toHaveLength(3)
   })
 
+  it('"Report a bug" is reachable from the header on every screen, and from the footer', async () => {
+    render(<App />)
+    await screen.findByRole('heading', { name: 'NFL' })
+    // Header icon + footer link.
+    expect(
+      screen.getAllByRole('button', { name: /Report a bug/ }),
+    ).toHaveLength(2)
+    // Mid-game the footer may be off screen; the header button is still there.
+    fireEvent.click(screen.getAllByRole('button', { name: 'Free play' })[0])
+    const header = document.querySelector('header')!
+    fireEvent.click(header.querySelector('button[aria-label="Report a bug"]')!)
+    expect(screen.getByRole('dialog', { name: 'Report a bug' })).toBeTruthy()
+  })
+
+  it('player search: finds a player without showing his college, and offers a one-tap request for a missing one', async () => {
+    const posted: string[] = []
+    render(<App />)
+    await screen.findByRole('heading', { name: 'NFL' })
+    fireEvent.click(screen.getByRole('button', { name: /Is he in the game/ }))
+    const dialog = screen.getByRole('dialog', { name: 'Is he in the game?' })
+    const box = dialog.querySelector('input')!
+    fireEvent.change(box, { target: { value: 'Player nfl easy 0' } })
+    expect(dialog.textContent).toContain('Player nfl easy 0 is in the game')
+    expect(dialog.textContent).not.toContain('School')
+    expect(screen.queryByRole('button', { name: /^Request/ })).toBeNull()
+    // A name that is not in the dataset → one tap files the request.
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async (url: string, init?: RequestInit) => {
+        posted.push(`${url} ${String(init?.body ?? '')}`)
+        return { ok: false, status: 503, json: async () => ({}) }
+      }),
+    )
+    fireEvent.change(box, { target: { value: 'Kurt Warner' } })
+    fireEvent.click(
+      screen.getByRole('button', { name: 'Request “Kurt Warner”' }),
+    )
+    // No API configured in tests → the prefilled GitHub request link.
+    const link = await screen.findByRole('link', { name: /prefilled request/ })
+    expect(decodeURIComponent(link.getAttribute('href')!)).toContain(
+      '[player request] Please add "Kurt Warner" to the game.',
+    )
+  })
+
   it('the last line of the footer is the Spicy Al credit', async () => {
     const { container } = render(<App />)
     await screen.findByRole('heading', { name: 'NFL' })
@@ -218,7 +262,7 @@ describe('auto-update', () => {
     deploy('some-newer-build')
     document.dispatchEvent(new Event('visibilitychange'))
     expect(
-      await screen.findByText(/loads when you close your profile/),
+      await screen.findByText(/loads when you close this dialog/),
     ).toBeTruthy()
     expect(reload).not.toHaveBeenCalled()
     fireEvent.click(screen.getByRole('button', { name: 'Close' }))

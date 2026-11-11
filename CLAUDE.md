@@ -30,21 +30,22 @@ migrations. Never mock the unit under test.
 
 ## Docs stay current in the same PR
 
-| Change touches…                                                   | Update / verify                                    |
-| ----------------------------------------------------------------- | -------------------------------------------------- |
-| `src/lib/game.ts` (ladder, points)                                | PLAN §Game rules, README table, worker MARK_POINTS |
-| `src/lib/daily.ts`                                                | PLAN §Daily selection                              |
-| `src/lib/storage.ts`, `share.ts`, `freeplay.ts`                   | PLAN §Modes and storage                            |
-| `src/lib/version.ts`, the version-json plugin in `vite.config.ts` | PLAN §Auto-update                                  |
-| `worker/*`, `src/lib/api.ts`, Leaderboard, AccountDialog          | PLAN §API + `worker/README.md` + OPERATIONS        |
-| `worker/migrations/*`                                             | OPERATIONS §API worker (run the migration!)        |
-| `scripts/*`, `data/schools.psv`, `public/*.json`                  | `docs/DATA.md`; player counts in README            |
-| `src/lib/images.ts`, photo sources                                | DATA §Photos + `docs/APP.md` §Photos               |
-| `.github/workflows/*`, `scripts/protect-main.sh`                  | OPERATIONS + this file's CI list                   |
-| `vite.config.ts` (`base`), `index.html`, `public/manifest.*`      | OPERATIONS §Custom domain + `docs/APP.md`          |
-| `.github/dependabot.yml`                                          | OPERATIONS §Dependency updates                     |
-| `eslint.config.js`                                                | A comment in the config saying why                 |
-| `package.json` scripts / engines                                  | README + this file's command list                  |
+| Change touches…                                                                       | Update / verify                                                 |
+| ------------------------------------------------------------------------------------- | --------------------------------------------------------------- |
+| `src/lib/game.ts` (ladder, points)                                                    | PLAN §Game rules, README table, worker MARK_POINTS              |
+| `src/lib/daily.ts`                                                                    | PLAN §Daily selection                                           |
+| `src/lib/storage.ts`, `share.ts`, `freeplay.ts`                                       | PLAN §Modes and storage                                         |
+| `src/lib/version.ts`, the version-json plugin in `vite.config.ts`                     | PLAN §Auto-update                                               |
+| `worker/*`, `src/lib/api.ts`, Leaderboard, AccountDialog                              | PLAN §API + `worker/README.md` + OPERATIONS                     |
+| `worker/bug-lib.mjs`, `src/lib/report.ts`, `playerSearch.ts`, BugReport, PlayerSearch | PLAN §Bug reports and player requests + OPERATIONS §Bug reports |
+| `worker/migrations/*`                                                                 | OPERATIONS §API worker (run the migration!)                     |
+| `scripts/*`, `data/schools.psv`, `public/*.json`                                      | `docs/DATA.md`; player counts in README                         |
+| `src/lib/images.ts`, photo sources                                                    | DATA §Photos + `docs/APP.md` §Photos                            |
+| `.github/workflows/*`, `scripts/protect-main.sh`                                      | OPERATIONS + this file's CI list                                |
+| `vite.config.ts` (`base`), `index.html`, `public/manifest.*`                          | OPERATIONS §Custom domain + `docs/APP.md`                       |
+| `.github/dependabot.yml`                                                              | OPERATIONS §Dependency updates                                  |
+| `eslint.config.js`                                                                    | A comment in the config saying why                              |
+| `package.json` scripts / engines                                                      | README + this file's command list                               |
 
 The footer's last line is **"A Spicy Al Software Solution"** — a hard
 requirement, pinned by `src/App.render.test.tsx`.
@@ -84,8 +85,9 @@ PostToolUse hook formats/lints TS files on edit, but not Markdown, JSON or
 ## Secrets
 
 None in the repo. `VITE_API_ENDPOINT` and `VITE_CF_BEACON_TOKEN` are public by
-design (repo Variables in CI, `.env.local` locally). The worker has no secrets
-today; if one is added it goes in Cloudflare via `wrangler secret put`.
+design (repo Variables in CI, `.env.local` locally). The worker's one secret, `GH_TOKEN` (fine-grained PAT, Issues read/write, this
+repo only), lives in Cloudflare via `wrangler secret put` — never here, nor in
+`worker/.dev.vars` (gitignored).
 
 ## Git identity
 

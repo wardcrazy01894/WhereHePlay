@@ -92,9 +92,9 @@ tab becomes visible, and every five minutes while it is visible
 (`src/lib/version.ts`, wired in `App.tsx`). A different hash means the tab is
 stale, and it reloads onto the new build:
 
-- **Only from the bare home screen.** The profile dialog (which may hold a
-  half-typed username or password) and any question on screen are never
-  interrupted;
+- **Only from the bare home screen.** An open dialog (profile, bug report,
+  player search — they may hold half-typed text) and any question on screen
+  are never interrupted;
   a small note says a new version is ready, and the reload happens when the
   player returns to "All games" or closes the dialog. Daily progress is saved after every action,
   so nothing is lost either way.
@@ -172,7 +172,8 @@ they played; streak history is not kept); the caller's own row is appended
 if outside the top. No ids, usernames or tokens are ever returned.
 
 **Abuse controls:** fails closed without the rate-limit binding; 60
-requests/min per IP; 5 login attempts/min per IP + username; server-side
+requests/min per IP; 5 login attempts/min per IP + username; 5 bug reports/min
+per IP; server-side
 Origin allowlist; 2 KB body cap; identical error and work for unknown
 username vs wrong password. The Origin check stops other websites from using
 the API from a browser; it is advisory against scripts (a request with no
@@ -186,6 +187,47 @@ once per UTC day, from a `/score` request — the Cloudflare account has no
 free cron slots). The same pass removes anonymous players older than 30 days
 that never finished a daily. Streaks, accounts and anyone with a score are
 kept.
+
+## Bug reports and player requests
+
+**Report a bug** is always one tap away: a 🐛 button in the header on every
+screen, plus a link in the footer. It opens a dialog: a text box, a checkbox
+to include the session's app log, and Send (`src/components/BugReport.tsx`,
+`src/lib/report.ts`).
+
+**"Is he in the game?"** (home screen) searches the player list by name
+(`src/lib/playerSearch.ts`, `src/components/PlayerSearch.tsx`). It shows
+names and leagues only — never the college, which would answer a question.
+If the name typed is not in the dataset, one button — _Request "Kurt
+Warner"_ — files a request to add him.
+
+Both go through the same pipeline:
+
+- **Automatic path:** the worker's `/bug` route turns the report into a
+  GitHub issue in this repo using a token only the worker holds
+  (`worker/bug-lib.mjs`). Bugs are titled `[bug] …` and labelled `bug` +
+  `from-app`; player requests are `[player request] Please add "…" to the
+game.` with `player-request` + `from-app`. The player needs no GitHub
+  account and gets a link to the issue.
+- **Fallback:** if that can't happen — token not configured (503), a limit
+  hit (429), offline, API unset — the dialog keeps what was typed and offers
+  a prefilled GitHub "new issue" link (kept under 6,000 characters so it
+  opens). Nothing is silently dropped.
+- The issue carries the message, the screen, the puzzle day, the build id,
+  the page URL (only if it is from our own site) and the browser, plus the
+  optional log (errors and app events; no names, tokens or passwords are
+  ever logged).
+- **Issues are public and the text is untrusted**, so everything is
+  defanged first: @mentions, code fences, Markdown links/images and
+  reference definitions, raw HTML and `#123` / `GH-123` references are
+  neutralised — in the title too; lengths are capped (2,000 chars of
+  message, 6,000 of logs, 20 KB body).
+- **Abuse:** 100 reports per UTC day across everyone (counted in D1), 5 per
+  minute per IP (its own limiter; the route refuses to run without it), the
+  general rate limit and the Origin allowlist. The token is a fine-grained
+  PAT limited to Issues on this one repo.
+- An open dialog (profile, bug report, player search) holds off the
+  auto-update reload.
 
 ## Not built yet
 

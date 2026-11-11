@@ -90,7 +90,11 @@ export function AccountDialog({ identity, onChange, onClose }: Props) {
     })
 
   return (
-    <div className="dialog-backdrop" onClick={onClose}>
+    <div
+      className="dialog-backdrop"
+      onClick={onClose}
+      onKeyDown={(e) => e.key === 'Escape' && onClose()}
+    >
       <div
         className="dialog"
         role="dialog"

@@ -28,7 +28,6 @@ Ideas and known gaps, roughly in priority order. Nothing here is promised.
 - Weekly / all-time leaderboards; friends-only boards.
 - Free-play filters (decade, conference, tier).
 - More leagues (WNBA, MLB) — `League` is already a union type.
-- In-app bug report (the sibling games have a worker for this).
 - Checkpoint the daily-lineup walk (it grows by a day's work per day since
   launch) — only if cold start ever gets slow; the output must not change.
 
