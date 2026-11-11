@@ -1,0 +1,17 @@
+{
+  // Type-check the Cloudflare Worker source (JSDoc-typed plain ESM). strict is
+  // OFF on purpose (same as the sibling repos): this pass catches structural
+  // breakage, not argument types. Test files are excluded.
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "allowJs": true,
+    "checkJs": true,
+    "strict": false,
+    "module": "nodenext",
+    "moduleResolution": "nodenext",
+    "allowImportingTsExtensions": false,
+    "noEmit": true,
+    "types": ["node"]
+  },
+  "include": ["worker/api-lib.mjs", "worker/api.mjs"]
+}

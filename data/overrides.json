@@ -1,0 +1,9 @@
+{
+  "_comment": "Hand corrections applied by scripts/build-players.mjs after the automatic pass. Keys are player ids; s = accepted school ids (finishing school first), t = tier. See docs/DATA.md §Overrides.",
+  "nba-pricero01": { "s": ["utah-valley", "nicholls"] },
+  "nba-finnedo01": { "s": ["florida", "virginia-tech"] },
+  "nfl-AlleJo02": { "t": "easy" },
+  "nba-youngtr01": { "t": "easy" },
+  "nfl-QuinBr00": { "t": "medium" },
+  "nfl-RomoTo00": { "t": "medium" }
+}
