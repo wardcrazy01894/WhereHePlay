@@ -33,6 +33,8 @@ export interface DailyGame {
   /** Player ids of the lineup this game was started on. */
   lineup: string[]
   questions: QuestionState[]
+  /** The first-photo choice this day was started with. */
+  photo?: PhotoStyle
   /** True once the result was accepted by the leaderboard. */
   submitted?: boolean
 }

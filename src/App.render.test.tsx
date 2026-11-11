@@ -136,6 +136,36 @@ describe('App', () => {
     expect(screen.getByText('🔥 1-day streak')).toBeTruthy()
   })
 
+  it('first photo: two radio choices; the pick is remembered and stamped on the day that starts', async () => {
+    render(<App />)
+    await screen.findByRole('heading', { name: 'NFL' })
+    const headshot = screen.getByRole('radio', {
+      name: /Headshot/,
+    }) as HTMLInputElement
+    const action = screen.getByRole('radio', {
+      name: /In action/,
+    }) as HTMLInputElement
+    expect(headshot.checked).toBe(true)
+    expect(action.checked).toBe(false)
+    fireEvent.click(action)
+    expect(action.checked).toBe(true)
+    expect(JSON.parse(localStorage.getItem('whp:v1:photo')!)).toBe('action')
+    // Start a daily: it records the choice it was started with…
+    fireEvent.click(screen.getAllByRole('button', { name: 'Play daily' })[1])
+    fireEvent.click(screen.getByRole('button', { name: 'I don’t know' }))
+    const key = Object.keys(localStorage).find((k) =>
+      k.startsWith('whp:v1:daily:nfl:'),
+    )!
+    expect(JSON.parse(localStorage.getItem(key)!).photo).toBe('action')
+    // …and keeps it even if the setting is changed back afterwards.
+    fireEvent.click(screen.getByRole('button', { name: '← All games' }))
+    fireEvent.click(screen.getByRole('radio', { name: /Headshot/ }))
+    // (Resumes on the next unanswered question.)
+    fireEvent.click(screen.getByRole('button', { name: 'Continue daily' }))
+    fireEvent.click(screen.getByRole('button', { name: 'I don’t know' }))
+    expect(JSON.parse(localStorage.getItem(key)!).photo).toBe('action')
+  })
+
   it('free play keeps dealing players', async () => {
     render(<App />)
     await screen.findByRole('heading', { name: 'NFL' })

@@ -70,8 +70,14 @@ describe('share', () => {
       giveUp(newQuestion()),
     ]
     expect(shareText('nfl', '2026-11-11', qs, 'https://x.test/')).toBe(
-      'WhereHePlay #1 · NFL\n🟩🟨🟧🟥⬛ 250/500\nhttps://x.test/',
+      'WhereHePlay #1 · NFL (headshot)\n🟩🟨🟧🟥⬛ 250/500\nhttps://x.test/',
     )
+    // The first-photo choice is on the card.
+    expect(
+      shareText('nba', '2026-11-12', qs, 'https://x.test/', 'action').split(
+        '\n',
+      )[0],
+    ).toBe('WhereHePlay #2 · NBA (in action)')
     expect(squares('9')).toBe('⬛')
   })
 })

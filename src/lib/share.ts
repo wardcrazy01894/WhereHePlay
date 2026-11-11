@@ -5,6 +5,14 @@ import { type QuestionState, mark, totalPoints } from './game'
 import { QUESTIONS_PER_DAY, puzzleNumber } from './daily'
 import { MAX_QUESTION_POINTS } from './game'
 
+import { type PhotoStyle } from './storage'
+
+/** How the first-photo choice reads on the share card and the picker. */
+export const PHOTO_LABEL: Record<PhotoStyle, string> = {
+  headshot: 'headshot',
+  action: 'in action',
+}
+
 /** 🟩 photo only · 🟨 with name · 🟧 with conference · 🟥 multiple choice · ⬛ missed */
 const SQUARES: Record<string, string> = {
   '4': '🟩',
@@ -26,10 +34,11 @@ export function shareText(
   dateKey: string,
   qs: QuestionState[],
   url: string,
+  photo: PhotoStyle = 'headshot',
 ): string {
   const max = QUESTIONS_PER_DAY * MAX_QUESTION_POINTS
   return [
-    `WhereHePlay #${puzzleNumber(dateKey)} · ${MODE_LABEL[mode]}`,
+    `WhereHePlay #${puzzleNumber(dateKey)} · ${MODE_LABEL[mode]} (${PHOTO_LABEL[photo]})`,
     `${squares(marks(qs))} ${totalPoints(qs)}/${max}`,
     url,
   ].join('\n')

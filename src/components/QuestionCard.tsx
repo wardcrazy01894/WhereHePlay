@@ -71,7 +71,7 @@ export function QuestionCard({
             {!showConf
               ? '—'
               : player.s[0] === HIGH_SCHOOL_ID
-                ? 'None — he never played in college'
+                ? 'Wouldn’t you like to know weather boy'
                 : `${player.c} (${player.y} season)`}
           </span>
         </li>
