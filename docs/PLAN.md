@@ -21,7 +21,8 @@ worth the stage it was given at (`src/lib/game.ts`):
 - The player can also take the next hint without guessing.
 - **Straight from high school?** For an NBA player who skipped college the
   answer is just "High School" (it is in the autocomplete); the reveal names
-  the actual school, and the conference hint says he never played in college.
+  the actual school, and the conference hint just says "Wouldn't you like to
+  know weather boy".
 - **Any college he played for is correct** (transfers). The reveal, the
   conference hint and the multiple choice use the school he finished at.
 - The **four choices** are the finishing school plus three decoys from the
@@ -29,9 +30,10 @@ worth the stage it was given at (`src/lib/game.ts`):
   order fixed per player. The buttons ignore taps for 400 ms after appearing,
   because they replace the hint button under the player's finger.
 - **Photos.** The first photo is the league headshot; the name hint adds an
-  in-uniform Wikimedia photo when one exists. A setting on the home screen
-  ("First photo") flips that to show the in-uniform photo first — an
-  experiment requested at kickoff. Players the league only has a placeholder
+  in-uniform Wikimedia photo when one exists. A two-option picker on the home
+  screen ("First photo you see": Headshot / In action) flips that to show
+  the in-action photo first. The choice is stamped on a daily when it starts
+  (changing it later affects the next one) and printed on the share card. Players the league only has a placeholder
   for always use the Wikimedia photo.
 - **No leaks before the hint.** A Wikimedia URL contains the file name, which
   is usually the player's name. Until the name hint is taken such a photo is
@@ -64,7 +66,7 @@ it was started on, so a dataset update can't change a game in progress),
 **Streaks** count consecutive days a daily was finished in that mode. The
 shown streak is the larger of the device's and the server's.
 
-**Share card:** `WhereHePlay #N · NFL`, five squares (🟩 photo, 🟨 name,
+**Share card:** `WhereHePlay #N · NFL (headshot)` — or `(in action)` — five squares (🟩 photo, 🟨 name,
 🟧 conference, 🟥 multiple choice, ⬛ missed), the score and the link.
 
 ## Daily selection

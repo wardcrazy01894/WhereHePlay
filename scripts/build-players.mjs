@@ -41,8 +41,21 @@ const nba = nbaCandidates(
   JSON.parse(await read('data/preps-to-pros.json')).players,
 )
 
+// Wikimedia photos that show the player in college (data/photo-blocklist.json,
+// from `npm run audit-photos` plus hand-added bug reports) are never used. A
+// player left with no photo at all cannot be asked.
+const blockedPhotos = JSON.parse(await read('data/photo-blocklist.json'))
+const blocked = new Set([...blockedPhotos.manual, ...blockedPhotos.auto])
+let photosDropped = 0
+const withPhotos = [...nfl.records, ...nba.records].filter((r) => {
+  if (r.action && blocked.has(r.action.slice(r.action.indexOf('/') + 1))) {
+    r.action = ''
+    photosDropped++
+  }
+  return r.head || r.action
+})
 const records = applyOverrides(
-  assignTiers([...nfl.records, ...nba.records]),
+  assignTiers(withPhotos),
   JSON.parse(await read('data/overrides.json')),
   new Set(schools.map((s) => s.id)),
 )
@@ -106,6 +119,9 @@ for (const l of ['nfl', 'nba'])
     `${l}: ${count(l)} players (easy ${count(l, 'easy')} / medium ${count(l, 'medium')} / hard ${count(l, 'hard')})`,
   )
 console.log(`schools: ${schools.length}`)
+console.log(
+  `photos: ${photosDropped} college-era Wikimedia photos withheld; ${nfl.records.length + nba.records.length - withPhotos.length} players dropped for having no other photo`,
+)
 const prepsIn = records.filter((r) => r.hs).length
 console.log(`preps to pros: ${prepsIn} in the pool`)
 if (nba.missingPreps.length)

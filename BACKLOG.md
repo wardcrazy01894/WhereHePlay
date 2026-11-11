@@ -12,10 +12,14 @@ Ideas and known gaps, roughly in priority order. Nothing here is promised.
 - **Conference timelines** in `data/schools.psv` were written by hand and have
   not been audited school by school — small-conference and football-only
   affiliations before 2005 are the likeliest to be wrong.
-- **Wikimedia photos in college uniform.** About 350 retired NFL players have
-  no real league headshot, so their first photo is the Wikimedia one, which
-  occasionally shows the college uniform (a giveaway). Needs a manual pass or
-  a blocklist.
+- **Replacement photos.** 323 Wikimedia photos are withheld because they show
+  (or probably show) the player in college (docs/DATA.md §No college gear).
+  39 retired NFL players had no other photo and are out of the game — Vince
+  Young, Sean Taylor, Shaun Alexander, LaMarr Woodley, Eddie Lacy among them.
+  Finding a pro-era Commons photo for each (Wikidata only lists one) would
+  bring them back. The contact-sheet review used small thumbnails, so a tiny
+  college logo could still have slipped through; bug reports feed the manual
+  list.
 - **NBA transfers.** Wikidata does not always list every college stint (or
   their order), so a correct "he started at X" guess can be marked wrong, and
   the finishing school can be the wrong one (Ronnie Price was). Fix each in

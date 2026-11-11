@@ -19,6 +19,8 @@
     "fetch-raw": "node scripts/fetch-raw.mjs",
     "build-players": "node scripts/build-players.mjs",
     "scan-headshots": "node scripts/scan-headshots.mjs",
+    "fetch-photo-meta": "node scripts/fetch-photo-meta.mjs",
+    "audit-photos": "node scripts/audit-photos.mjs",
     "worker:dev": "wrangler dev -c worker/wrangler.toml",
     "worker:deploy": "wrangler deploy -c worker/wrangler.toml",
     "worker:migrate": "wrangler d1 migrations apply whp-api --remote -c worker/wrangler.toml",

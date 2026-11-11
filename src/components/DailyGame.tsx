@@ -37,7 +37,12 @@ interface Props {
 }
 
 /** Resolve a saved game against the dataset, or start today's fresh. */
-function startGame(players: Player[], mode: Mode, dateKey: string): Saved {
+function startGame(
+  players: Player[],
+  mode: Mode,
+  dateKey: string,
+  photo: PhotoStyle,
+): Saved {
   const saved = loadDaily(mode, dateKey)
   const byId = new Map(players.map((p) => [p.id, p]))
   // A dataset update may have changed today's lineup after this player
@@ -52,6 +57,9 @@ function startGame(players: Player[], mode: Mode, dateKey: string): Saved {
   return {
     mode,
     dateKey,
+    // The first-photo choice is fixed when the day starts, so the share card
+    // can say truthfully which way it was played.
+    photo,
     lineup: dailyLineup(players, mode, dateKey).map((p) => p.id),
     questions: Array.from({ length: QUESTIONS_PER_DAY }, newQuestion),
   }
@@ -61,7 +69,7 @@ export function DailyGame(props: Props) {
   const { players, schools, mode, dateKey, official, identity, photoStyle } =
     props
   const [game, setGame] = useState<Saved>(() =>
-    startGame(players, mode, dateKey),
+    startGame(players, mode, dateKey, photoStyle),
   )
   // Which question is on screen. Starts at the first unanswered one.
   const [index, setIndex] = useState(() => {
@@ -77,6 +85,8 @@ export function DailyGame(props: Props) {
     return game.lineup.map((id) => byId.get(id)!)
   }, [players, game.lineup])
 
+  // How this day is being played (older saves have no record: use the setting).
+  const played = game.photo ?? photoStyle
   const finished = game.questions.every((q) => q.done)
   const total = totalPoints(game.questions)
   const showResults = finished && index >= QUESTIONS_PER_DAY
@@ -133,7 +143,7 @@ export function DailyGame(props: Props) {
 
   const share = async () => {
     const url = window.location.origin + import.meta.env.BASE_URL
-    const text = shareText(mode, dateKey, game.questions, url)
+    const text = shareText(mode, dateKey, game.questions, url, played)
     try {
       if (navigator.share && /Mobi|Android/i.test(navigator.userAgent))
         await navigator.share({ text })
@@ -232,7 +242,7 @@ export function DailyGame(props: Props) {
         player={lineup[index]}
         schools={schools}
         state={q}
-        photoStyle={photoStyle}
+        photoStyle={played}
         onChange={(next) => update(index, next)}
       />
       {q.done && (

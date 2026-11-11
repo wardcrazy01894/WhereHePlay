@@ -172,14 +172,16 @@ describe('QuestionCard', () => {
       expect(reveal).toContain('St. Vincent–St. Mary High School (Akron)')
     })
 
-    it('the conference hint says he never played in college, and High School is one of the four choices', () => {
+    it('the conference hint refuses to say, and High School is one of the four choices', () => {
       vi.useFakeTimers()
       render(<PrepHarness />)
       fireEvent.click(screen.getByRole('button', { name: /Show his name/ }))
       fireEvent.click(
         screen.getByRole('button', { name: /Show his conference/ }),
       )
-      expect(screen.getByText('None — he never played in college')).toBeTruthy()
+      expect(
+        screen.getByText('Wouldn’t you like to know weather boy'),
+      ).toBeTruthy()
       fireEvent.click(screen.getByRole('button', { name: /Show 4 choices/ }))
       act(() => {
         vi.advanceTimersByTime(CHOICE_ARM_MS)

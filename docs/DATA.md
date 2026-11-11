@@ -2,7 +2,7 @@
 
 Two committed artifacts drive the game:
 
-- `public/players.json` — 1,998 players (1,085 NFL, 913 NBA)
+- `public/players.json` — 1,959 players (1,046 NFL, 913 NBA)
 - `public/schools.json` — 375 colleges plus the "High School (no college)"
   answer (id, name, search aliases)
 
@@ -15,7 +15,9 @@ They are generated; never edit them by hand. The hand-maintained inputs are
 npm run fetch-raw        # → data/raw/ (gitignored): nflverse + Wikidata tables
 npm run build-players    # → public/players.json, public/schools.json
 npm run scan-headshots   # → data/nfl-placeholder-heads.json (see Photos)
-npm run build-players    # again, now that placeholders are known
+npm run fetch-photo-meta # → data/raw/commons-meta.json (Commons API)
+npm run audit-photos     # → data/photo-blocklist.json "auto" (college-era photos)
+npm run build-players    # again, now that placeholders and bad photos are known
 npm run build-players -- --report   # also lists college names with no school row
 npm test                 # dataset guards (src/lib/dataset.test.ts)
 ```
@@ -185,6 +187,28 @@ Nothing is stored in the repo; `src/lib/images.ts` builds URLs.
   name hint (the file name is usually the player's name — docs/PLAN.md §Game
   rules). Once the name is out, the photo links to its Commons page for
   author and licence.
+
+### No college gear (`data/photo-blocklist.json`)
+
+A photo of the player in college would answer the question, so Wikimedia
+photos are screened and the bad ones are never used:
+
+1. `npm run fetch-photo-meta` pulls each photo's capture date, description
+   and categories from the Commons API (cached in `data/raw/`).
+2. `npm run audit-photos` flags a photo when it was taken in or before the
+   fall of his final college season, or when its file name, description or
+   categories name his school's team or use college-only words (NCAA, a bowl
+   game, a conference media day…). Deliberately trigger-happy. The result is
+   the `auto` list in `data/photo-blocklist.json`.
+3. The `manual` list in the same file is hand-kept: photos caught by eye (a
+   full contact-sheet review on 2026-11-11) and from player bug reports. It
+   is never overwritten.
+4. `build-players` drops every listed photo. The player keeps his league
+   headshot; a player whose only photo was a college one is dropped.
+
+To act on a "this photo shows him in college" bug report: add the Commons
+file name (the part of `a` after the slash) to `manual`, rebuild, and close
+the issue.
 
 League headshots are the leagues' copyrighted images, hotlinked. That is a
 deliberate, accepted risk for a free hobby website and a blocker for an app

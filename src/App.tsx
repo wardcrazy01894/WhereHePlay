@@ -162,8 +162,7 @@ export function App() {
     }
   }, [deployed, onHome, dialogOpen, current])
 
-  const togglePhoto = () => {
-    const next = photoStyle === 'headshot' ? 'action' : 'headshot'
+  const choosePhoto = (next: PhotoStyle) => {
     setPhotoStyle(next)
     savePhotoStyle(next)
   }
@@ -266,15 +265,28 @@ export function App() {
               <button type="button" onClick={() => setSearchOpen(true)}>
                 🔎 Is he in the game?
               </button>
-              <button
-                type="button"
-                onClick={togglePhoto}
-                aria-pressed={photoStyle === 'action'}
-              >
-                First photo:{' '}
-                {photoStyle === 'headshot' ? 'headshot' : 'in uniform'}
-              </button>
             </div>
+            <fieldset className="photo-choice">
+              <legend>First photo you see</legend>
+              {(['headshot', 'action'] as const).map((style) => (
+                <label key={style}>
+                  <input
+                    type="radio"
+                    name="photo-style"
+                    checked={photoStyle === style}
+                    onChange={() => choosePhoto(style)}
+                  />
+                  <span>
+                    {style === 'headshot' ? 'Headshot' : 'In action'}
+                    <small>
+                      {style === 'headshot'
+                        ? 'official portrait'
+                        : 'playing, in a pro uniform'}
+                    </small>
+                  </span>
+                </label>
+              ))}
+            </fieldset>
             <details className="how">
               <summary>How it works</summary>
               <ul>
