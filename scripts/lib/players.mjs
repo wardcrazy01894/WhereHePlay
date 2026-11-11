@@ -293,8 +293,10 @@ export function pickDecoys(rec, schools, poolSchoolIds) {
 
 /**
  * Apply data/overrides.json — hand corrections keyed by player id:
- *   { "nba-pricero01": { "s": ["utah-valley", "nicholls"], "t": "hard" } }
- * `s` replaces the accepted schools (finishing school first), `t` the tier.
+ *   { "nba-pricero01": { "s": ["utah-valley", "nicholls"], "y": 2004, "t": "hard" } }
+ * `s` replaces the accepted schools (finishing school first), `y` the fall
+ * year of his final college season (the conference hint is looked up for
+ * that year, so a changed finishing school usually needs it), `t` the tier.
  * Throws on an unknown player, school or tier so a typo can't pass silently.
  */
 export function applyOverrides(records, overrides, schoolIds) {
@@ -308,6 +310,11 @@ export function applyOverrides(records, overrides, schoolIds) {
         if (!schoolIds.has(sid))
           throw new Error(`overrides.json: unknown school "${sid}" for ${id}`)
       r.schools = [...o.s]
+    }
+    if (o.y !== undefined) {
+      if (!Number.isInteger(o.y) || o.y < FIRST_COLLEGE_YEAR || o.y > 2100)
+        throw new Error(`overrides.json: bad year "${o.y}" for ${id}`)
+      r.year = o.y
     }
     if (o.t) {
       if (!['easy', 'medium', 'hard'].includes(o.t))

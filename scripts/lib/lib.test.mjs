@@ -325,6 +325,21 @@ describe('players', () => {
     ).toThrow(/bad tier/)
   })
 
+  it('overrides can set the final college year, and reject a bad one', () => {
+    const recs = [
+      { id: 'nba-x', schools: ['kansas'], year: 2010, tier: 'hard' },
+    ]
+    const ids = new Set(['kansas', 'texas'])
+    applyOverrides(recs, { 'nba-x': { s: ['texas', 'kansas'], y: 2015 } }, ids)
+    expect(recs[0]).toMatchObject({ schools: ['texas', 'kansas'], year: 2015 })
+    expect(() => applyOverrides(recs, { 'nba-x': { y: 1980 } }, ids)).toThrow(
+      /bad year/,
+    )
+    expect(() => applyOverrides(recs, { 'nba-x': { y: '2015' } }, ids)).toThrow(
+      /bad year/,
+    )
+  })
+
   it('decoys come from the same conference that season and never include his schools', () => {
     const rec = {
       id: 'nfl-x',
