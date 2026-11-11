@@ -4,7 +4,7 @@
 
 **The daily "where did he play in college?" game for NFL and NBA players.**
 
-### ▶ [Play now → wardcrazy01894.github.io/WhereHePlay](https://wardcrazy01894.github.io/WhereHePlay/)
+### ▶ [Play now → whereheplay.com](https://whereheplay.com/)
 
 [![CI](https://github.com/wardcrazy01894/WhereHePlay/actions/workflows/ci.yml/badge.svg)](https://github.com/wardcrazy01894/WhereHePlay/actions/workflows/ci.yml)
 [![deploy](https://github.com/wardcrazy01894/WhereHePlay/actions/workflows/deploy.yml/badge.svg)](https://github.com/wardcrazy01894/WhereHePlay/actions/workflows/deploy.yml)
@@ -76,7 +76,7 @@ tiers: **$0/month**. Photos are hotlinked, not stored.
 
 ```bash
 npm install
-npm run dev            # http://localhost:5173/WhereHePlay/
+npm run dev            # http://localhost:5173/
 npm run typecheck && npm run lint && npm run format:check && npm test && npm run build
 ```
 

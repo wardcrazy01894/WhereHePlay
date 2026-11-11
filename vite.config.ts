@@ -2,11 +2,11 @@ import { execSync } from 'child_process'
 import { defineConfig, configDefaults } from 'vitest/config'
 import react from '@vitejs/plugin-react'
 
-// `base` is the repo name because the site is served as a GitHub Pages PROJECT
-// page (https://wardcrazy01894.github.io/WhereHePlay/). Flip it to '/' when a
-// custom domain is attached (docs/OPERATIONS.md §Custom domain). A native app
-// build (Capacitor, docs/APP.md) sets VITE_BASE=./ so assets load from the
-// bundled files.
+// Served at the root of the custom domain (https://whereheplay.com/), so the
+// base is '/'. (It was '/WhereHePlay/' while the site was a GitHub Pages
+// project page; public/CNAME carries the domain.) A native app build
+// (Capacitor, docs/APP.md) sets VITE_BASE=./ so assets load from the bundled
+// files.
 
 // The build id open tabs compare against version.json (src/lib/version.ts).
 // In CI it is "<commit>.<run number>": the run number makes a re-deploy of
@@ -26,7 +26,7 @@ function getBuildHash(): string {
 const BUILD_HASH = getBuildHash()
 
 export default defineConfig({
-  base: process.env.VITE_BASE ?? '/WhereHePlay/',
+  base: process.env.VITE_BASE ?? '/',
   plugins: [
     react(),
     {
