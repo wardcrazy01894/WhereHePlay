@@ -105,7 +105,7 @@ Free play deals from the same pool.
 **Cooldown:** a player who appeared in that mode's previous 45 lineups is
 skipped — or fewer while the pool is small: `cooldownFor` shrinks the window
 to what each league and tier can sustain that day (at launch: 45 days for NFL
-and Grab Bag, 38 for NBA), and it grows back as players get photos. Lineups are computed by walking forward from puzzle #1
+and Grab Bag, 38 for NBA; the beginner daily 30, and 22 for NBA), and it grows back as players get photos. Lineups are computed by walking forward from puzzle #1
 (2026-11-11), so the result needs no storage and is identical everywhere. The
 walk costs one hash per player per day (no sorting); if it ever becomes
 noticeable years out, checkpoint it — without changing its output. A

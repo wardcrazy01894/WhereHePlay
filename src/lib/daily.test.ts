@@ -264,6 +264,38 @@ describe('only players with both photos are drawn (`e`: eligible since day N)', 
     // A practice day before the epoch draws from the launch pool.
     expect(ids(eligibleOn(all, addDays(EPOCH_DATE_KEY, -5)))).toEqual([a.id])
   })
+  it('eligibleOn: windows — a player who lost a photo keeps the days he had, and may return', () => {
+    const [a] = fixture(1)
+    // Eligible days 0–19, out from day 20, back from day 31.
+    const p = { ...a, e: [0, 20, 31] }
+    const on = (i: number) => eligibleOn([p], day(i)).length === 1
+    expect([0, 19, 20, 30, 31, 400].map(on)).toEqual([
+      true,
+      true,
+      false,
+      false,
+      true,
+      true,
+    ])
+    expect(eligibleOn([{ ...a, e: [3, 9] }], day(9))).toEqual([])
+  })
+  it('taking a photo away later never changes a day already played', () => {
+    const base = fixture(240)
+    // The same data after 60 players lost a photo on day 10.
+    const later = base.map((p, i) => (i % 4 === 0 ? { ...p, e: [0, 10] } : p))
+    for (const variant of ['standard', 'beginner'] as const)
+      for (let i = 0; i < 10; i++)
+        expect(ids(dailyLineup(later, 'mixed', day(i), variant))).toEqual(
+          ids(dailyLineup(base, 'mixed', day(i), variant)),
+        )
+    const out = new Set(
+      later.filter((p) => Array.isArray(p.e)).map((p) => p.id),
+    )
+    for (let i = 10; i < 60; i++)
+      expect(dailyLineup(later, 'nfl', day(i)).some((p) => out.has(p.id))).toBe(
+        false,
+      )
+  })
   it('a player waiting for a photo is never in a lineup, in any mode or variant', () => {
     const all = fixture(240).map((p, i) =>
       i % 3 === 0 ? { ...p, e: undefined } : p,

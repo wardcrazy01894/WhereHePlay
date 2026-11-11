@@ -1,5 +1,5 @@
 {
-  "_comment": "Who may be drawn, and since when: player id → days since puzzle #1 (2026-11-11). Only players with BOTH a real headshot and a real playing photo are listed. Written by `npm run build-players`, which keeps every existing date and gives newly eligible players the day after the build — never edit a date into the past, or a lineup already being played would change. See docs/DATA.md §Photos.",
+  "_comment": "Who may be drawn, and when: player id → the day his window opened (days since puzzle #1, 2026-11-11), or window edges [from, until, from, …] for a player who lost a photo for a while. A player is drawn only while he has BOTH a real headshot and a real playing photo. Written by `npm run build-players`, which never changes an edge already written and dates new ones the day after the build. NEVER edit or delete this file: it is the history of every lineup, and a changed past edge re-rolls days already played. See docs/DATA.md §Photos.",
   "nba-adamsst01": 0,
   "nba-afflaar01": 0,
   "nba-aldamsa01": 0,

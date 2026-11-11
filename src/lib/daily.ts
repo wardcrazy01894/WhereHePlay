@@ -102,7 +102,16 @@ export function poolFor(all: Player[], mode: Mode): Player[] {
  */
 export function eligibleOn(all: Player[], dateKey: string): Player[] {
   const day = Math.max(0, puzzleNumber(dateKey) - 1)
-  return all.filter((p) => p.e !== undefined && p.e <= day)
+  return all.filter((p) => {
+    if (p.e === undefined) return false
+    if (typeof p.e === 'number') return p.e <= day
+    // Windows [from, until, from, …]: a player who lost a photo keeps the
+    // days he was eligible, so those days' lineups never change.
+    for (let i = 0; i < p.e.length; i += 2)
+      if (p.e[i] <= day && (i + 1 >= p.e.length || day < p.e[i + 1]))
+        return true
+    return false
+  })
 }
 
 /**

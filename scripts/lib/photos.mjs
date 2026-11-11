@@ -104,19 +104,34 @@ export function applyBlocklist(records, lists) {
 export const EPOCH_DATE_KEY = '2026-11-11'
 
 /**
- * Who may be drawn, and since when. Only a player with BOTH a real headshot
- * and a real playing photo is put in a daily lineup or free play; everyone
- * else waits in the dataset. `prev` is data/eligible-since.json (player id →
- * days since the epoch). A player who already has a date keeps it; a newly
- * eligible one gets `newDay`; one who lost a photo is removed (and would get
- * a fresh date later). Because a date is never in the past, landing new
- * photos can never change a lineup that is already being played.
+ * Who may be drawn, and when. Only a player with BOTH a real headshot and a
+ * real playing photo is put in a daily lineup or free play; everyone else
+ * waits in the dataset. `prev` is data/eligible-since.json: player id → the
+ * day his window opened (days since the epoch), or a flat list of window
+ * edges `[from, until, from, …]` (until is exclusive; an odd length means the
+ * last window is still open).
+ *
+ * Nothing already written ever changes: a player with an open window keeps
+ * it; a newly eligible one opens a window at `newDay`; one who lost a photo
+ * (or left the dataset) has his window closed at `newDay`, and a new photo
+ * later opens another. `newDay` is never in the past (firstNewDay), so no
+ * build can change which players were eligible on a day already played.
  */
 export function eligibleSince(prev, records, newDay) {
+  const both = new Set(
+    records.filter((r) => r.head && r.action).map((r) => r.id),
+  )
   const next = {}
-  for (const r of records) {
-    if (!r.head || !r.action) continue
-    next[r.id] = r.id in prev ? prev[r.id] : newDay
+  for (const id of new Set([...Object.keys(prev), ...both])) {
+    const edges = [prev[id] ?? []].flat()
+    const open = edges.length % 2 === 1
+    if (both.has(id) !== open) {
+      // Opened and closed (or closed and reopened) before that day began:
+      // the edge never took effect, so it is simply taken back.
+      if (edges.at(-1) === newDay) edges.pop()
+      else edges.push(newDay)
+    }
+    if (edges.length) next[id] = edges.length === 1 ? edges[0] : edges
   }
   return next
 }

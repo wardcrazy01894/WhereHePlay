@@ -187,11 +187,15 @@ Nothing is stored in the repo; `src/lib/images.ts` builds URLs.
    does not depend on photos at all (`nflCandidates` / `nbaCandidates`).
 4. **Who can be drawn:** only a player with both. `build-players` writes `e`
    ("eligible since", days after puzzle #1) for them, from
-   `data/eligible-since.json`: an existing date is kept forever, a newly
-   eligible player gets the day after the build (`firstNewDay`), one who loses
-   a photo is removed. The game draws a day only from players eligible that
-   day (docs/PLAN.md §Daily selection), so shipping photos makes players
-   available the next day and never disturbs a day in progress. The build
+   `data/eligible-since.json`: nothing already written ever changes. A newly
+   eligible player's window opens the day after the build (`firstNewDay`);
+   one who loses a photo (a bug report blocklists it) has his window closed
+   from the next day and keeps the days he had (`e` becomes
+   `[from, until, …]`); a new photo opens another window. The game draws a
+   day only from players eligible that day (docs/PLAN.md §Daily selection),
+   so shipping or pulling photos takes effect the next day and never changes
+   a day already played. **Never edit or delete that file** — it is the
+   history of every lineup; `build-players` refuses to run without it. The build
    prints, per league, how many can be drawn and how many still need each
    kind of photo.
 

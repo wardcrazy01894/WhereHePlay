@@ -109,22 +109,32 @@ const photosDropped = applyBlocklist(candidates, blockedPhotos)
 // across builds, so a date never moves and a day's lineup never changes once
 // it has started; the very first run makes everyone eligible from puzzle #1).
 const sinceUrl = new URL('data/eligible-since.json', root)
+// The dated file IS the history of every lineup: without it everyone would
+// be "eligible since puzzle #1" again and every day already played would
+// re-roll. So a missing or broken file stops the build (JSON.parse throws on
+// a broken one) unless `--init-eligibility` says this really is a new game.
+const init = process.argv.includes('--init-eligibility')
+const sinceText = await read('data/eligible-since.json').catch(() => null)
+if (sinceText === null && !init)
+  throw new Error(
+    'data/eligible-since.json is missing. Restore it from git — rebuilding without it re-rolls every day already played. (A brand-new game: pass --init-eligibility.)',
+  )
 const prevSince = Object.fromEntries(
-  Object.entries(await json('data/eligible-since.json', '{}')).filter(
+  Object.entries(JSON.parse(sinceText ?? '{}')).filter(
     ([k]) => !k.startsWith('_'),
   ),
 )
 const since = eligibleSince(
   prevSince,
   candidates,
-  Object.keys(prevSince).length ? firstNewDay(new Date(), EPOCH_DATE_KEY) : 0,
+  init ? 0 : firstNewDay(new Date(), EPOCH_DATE_KEY),
 )
 await writeFile(
   sinceUrl,
   JSON.stringify(
     {
       _comment:
-        'Who may be drawn, and since when: player id → days since puzzle #1 (2026-11-11). Only players with BOTH a real headshot and a real playing photo are listed. Written by `npm run build-players`, which keeps every existing date and gives newly eligible players the day after the build — never edit a date into the past, or a lineup already being played would change. See docs/DATA.md §Photos.',
+        'Who may be drawn, and when: player id → the day his window opened (days since puzzle #1, 2026-11-11), or window edges [from, until, from, …] for a player who lost a photo for a while. A player is drawn only while he has BOTH a real headshot and a real playing photo. Written by `npm run build-players`, which never changes an edge already written and dates new ones the day after the build. NEVER edit or delete this file: it is the history of every lineup, and a changed past edge re-rolls days already played. See docs/DATA.md §Photos.',
       ...Object.fromEntries(
         Object.entries(since).sort(([a], [b]) => (a < b ? -1 : 1)),
       ),

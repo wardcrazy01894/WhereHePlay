@@ -27,13 +27,15 @@ export interface Player {
   /** Wikimedia Commons storage path of an in-uniform photo, when one exists. */
   a?: string
   /**
-   * Eligible since: days after puzzle #1 from which he may be drawn. Present
-   * only for a player with BOTH a real headshot and a real playing photo;
-   * everyone else waits in the dataset (and is still found by the search).
-   * Set by the build and never moved into the past, so new photos cannot
-   * change a lineup that is already being played.
+   * Eligible since: days after puzzle #1 from which he may be drawn — he has
+   * BOTH a real headshot and a real playing photo. Everyone else waits in the
+   * dataset (and is still found by the search). A flat list is windows
+   * `[from, until, from, …]` (until exclusive): he lost a photo for a while,
+   * and keeps the days he was eligible. The build never changes an edge in
+   * the past, so shipping or pulling photos cannot change a lineup that is
+   * already being played.
    */
-  e?: number
+  e?: number | number[]
   /** The high school of a player who skipped college (his answer is the
    *  pseudo-school HIGH_SCHOOL_ID); shown in the reveal. */
   hs?: string

@@ -220,11 +220,30 @@ describe('eligibleSince', () => {
     )
     expect(next).toEqual({ 'nfl-a': 0, 'nfl-new': 7 })
   })
-  it('losing a photo ends it; getting one back starts a new date', () => {
-    const lost = eligibleSince({ 'nfl-a': 0 }, [rec('nfl-a', 'h', '')], 3)
-    expect(lost).toEqual({})
-    expect(eligibleSince(lost, [rec('nfl-a', 'h', 'x/a.jpg')], 9)).toEqual({
-      'nfl-a': 9,
+  it('losing a photo closes his window from the next day — the days he was drawn in stay his', () => {
+    // Eligible since day 0; his playing photo is blocklisted during day 19.
+    const lost = eligibleSince({ 'nfl-a': 0 }, [rec('nfl-a', 'h', '')], 20)
+    expect(lost).toEqual({ 'nfl-a': [0, 20] })
+    // Nothing changes while he waits…
+    expect(eligibleSince(lost, [rec('nfl-a', 'h', '')], 25)).toEqual(lost)
+    // …and a new photo opens a second window, leaving the first untouched.
+    const back = eligibleSince(lost, [rec('nfl-a', 'h', 'x/a2.jpg')], 31)
+    expect(back).toEqual({ 'nfl-a': [0, 20, 31] })
+    expect(eligibleSince(back, [rec('nfl-a', 'h', 'x/a2.jpg')], 40)).toEqual(
+      back,
+    )
+  })
+  it('a window opened and closed before it ever started leaves no trace', () => {
+    const opened = eligibleSince({}, [rec('nfl-a', 'h', 'x/a.jpg')], 7)
+    expect(eligibleSince(opened, [rec('nfl-a', 'h', '')], 7)).toEqual({})
+  })
+  it('a player who leaves the dataset keeps his history (he may come back)', () => {
+    expect(eligibleSince({ 'nfl-gone': [0, 5] }, [], 9)).toEqual({
+      'nfl-gone': [0, 5],
+    })
+    // Still open when he vanished: closed, like any other loss.
+    expect(eligibleSince({ 'nfl-gone': 0 }, [], 9)).toEqual({
+      'nfl-gone': [0, 9],
     })
   })
   it('firstNewDay: the day after the latest "today" anywhere on Earth, as days since the epoch', () => {

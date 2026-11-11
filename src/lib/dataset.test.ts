@@ -128,14 +128,17 @@ describe('players.json', () => {
       if (p.a)
         expect(blocked.has(p.a.slice(p.a.indexOf('/') + 1)), p.id).toBe(false)
   })
-  it('`e` (may be drawn) is exactly: has both photos; and it matches data/eligible-since.json', () => {
+  it('`e` (may be drawn): his window is open exactly when he has both photos; and it matches data/eligible-since.json', () => {
     const since = data('eligible-since.json')
     for (const p of players) {
-      expect(p.e !== undefined, p.id).toBe(!!p.h && !!p.a)
-      if (p.e !== undefined) {
-        expect(Number.isInteger(p.e) && p.e >= 0, p.id).toBe(true)
-        expect(since[p.id], p.id).toBe(p.e)
-      }
+      // One day, or window edges [from, until, from, …]; odd length = open.
+      const edges = [p.e ?? []].flat()
+      expect(edges.length % 2 === 1, p.id).toBe(!!p.h && !!p.a)
+      edges.forEach((d, i) => {
+        expect(Number.isInteger(d) && d >= 0, p.id).toBe(true)
+        if (i) expect(d, p.id).toBeGreaterThan(edges[i - 1])
+      })
+      expect(since[p.id], p.id).toEqual(p.e)
     }
     // The build script counts days from the same epoch as the game.
     const buildLib = readFileSync(
@@ -190,8 +193,11 @@ describe('players.json', () => {
         dailyLineup(players, mode, addDays(EPOCH_DATE_KEY, i)),
       )
       days.forEach((day, i) => {
+        const eligible = new Set(
+          eligibleOn(players, addDays(EPOCH_DATE_KEY, i)),
+        )
         expect(
-          day.every((p) => p.h && p.a && p.e !== undefined && p.e <= i),
+          day.every((p) => p.h && p.a && eligible.has(p)),
           `${mode} day ${i}`,
         ).toBe(true)
         expect(
