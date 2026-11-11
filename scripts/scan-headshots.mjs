@@ -1,20 +1,19 @@
 /**
- * Find NFL "headshots" that are really the league's generic helmet
- * placeholder (retired players such as Tony Romo get one, each under its own
- * URL). `npm run scan-headshots` HEADs every NFL photo in public/players.json
- * and records the keys whose ETag is the placeholder's in
- * data/nfl-placeholder-heads.json (committed, cumulative). build-players then
- * shows those players' Wikimedia photo instead, or drops them if they have
- * none. Run order: build-players → scan-headshots → build-players.
+ * Find league "headshots" that are really a generic placeholder. Both leagues
+ * serve one for many retired players, each under the player's own URL:
+ *  - NFL: a helmet (Tony Romo gets one) → data/nfl-placeholder-heads.json
+ *    (image keys);
+ *  - NBA: a grey silhouette → data/nba-placeholder-heads.json (NBA.com ids).
+ * `npm run scan-headshots` HEADs every league photo in public/players.json
+ * and records the ones whose ETag is the placeholder's. Both lists are
+ * committed and cumulative. build-players then uses ESPN's headshot for those
+ * players (scan-espn-heads), else their Wikimedia photo, else drops them.
+ * Run order: build-players → scan-headshots → scan-espn-heads → build-players.
  */
 import { readFile, writeFile } from 'node:fs/promises'
 
-/** ETag of the placeholder image (verified 2026-11-11 on six retired QBs). */
-const PLACEHOLDER_ETAG = 'f63433b569d11ff35f8fe048849e34a1'
 const CONCURRENCY = 8
 const root = new URL('../', import.meta.url)
-const listUrl = new URL('data/nfl-placeholder-heads.json', root)
-const cacheUrl = new URL('data/raw/nfl_head_etags.json', root)
 const readJson = async (url, fallback) => {
   try {
     return JSON.parse(await readFile(url, 'utf8'))
@@ -22,35 +21,64 @@ const readJson = async (url, fallback) => {
     return fallback
   }
 }
-
 const players = JSON.parse(
   await readFile(new URL('public/players.json', root), 'utf8'),
 )
-const keys = players.filter((p) => p.l === 'nfl' && p.h).map((p) => p.h)
-const cache = await readJson(cacheUrl, {})
-const todo = keys.filter((k) => !(k in cache))
-let failed = 0
-async function worker() {
-  for (let k = todo.pop(); k; k = todo.pop()) {
-    try {
-      const res = await fetch('https://static.www.nfl.com/image/' + k, {
-        method: 'HEAD',
-      })
-      if (res.ok) cache[k] = (res.headers.get('etag') ?? '').replace(/"/g, '')
-      else failed++
-    } catch {
-      failed++
+/** A league's own image keys: not ESPN's, not a hand-picked one. */
+const own = (league) =>
+  players
+    .filter((p) => p.l === league && p.h && !/^(espn|clubs):/.test(p.h))
+    .map((p) => p.h)
+
+const LEAGUES = [
+  {
+    name: 'NFL',
+    keys: own('nfl'),
+    url: (k) => 'https://static.www.nfl.com/image/' + k,
+    /** Verified 2026-11-11 on six retired QBs. */
+    etag: 'f63433b569d11ff35f8fe048849e34a1',
+    list: 'data/nfl-placeholder-heads.json',
+    cache: 'data/raw/nfl_head_etags.json',
+  },
+  {
+    name: 'NBA',
+    keys: own('nba'),
+    url: (k) => `https://cdn.nba.com/headshots/nba/latest/260x190/${k}.png`,
+    /** Verified 2026-11-11: 227 byte-identical 4,937-byte silhouettes. */
+    etag: '7475ba9619305909d7998dd9dba02481',
+    list: 'data/nba-placeholder-heads.json',
+    cache: 'data/raw/nba_head_etags.json',
+  },
+]
+
+let anyFailed = false
+for (const league of LEAGUES) {
+  const cacheUrl = new URL(league.cache, root)
+  const listUrl = new URL(league.list, root)
+  const cache = await readJson(cacheUrl, {})
+  const todo = league.keys.filter((k) => !(k in cache))
+  let failed = 0
+  async function worker() {
+    for (let k = todo.pop(); k; k = todo.pop()) {
+      try {
+        const res = await fetch(league.url(k), { method: 'HEAD' })
+        if (res.ok) cache[k] = (res.headers.get('etag') ?? '').replace(/"/g, '')
+        else failed++
+      } catch {
+        failed++
+      }
     }
   }
-}
-await Promise.all(Array.from({ length: CONCURRENCY }, worker))
-await writeFile(cacheUrl, JSON.stringify(cache))
+  await Promise.all(Array.from({ length: CONCURRENCY }, worker))
+  await writeFile(cacheUrl, JSON.stringify(cache))
 
-const known = new Set(await readJson(listUrl, []))
-for (const [k, etag] of Object.entries(cache))
-  if (etag === PLACEHOLDER_ETAG) known.add(k)
-await writeFile(listUrl, JSON.stringify([...known].sort(), null, 2) + '\n')
-console.log(
-  `checked ${keys.length} NFL photos; ${known.size} placeholders; ${failed} failed`,
-)
-if (failed) process.exitCode = 1
+  const known = new Set(await readJson(listUrl, []))
+  for (const [k, etag] of Object.entries(cache))
+    if (etag === league.etag) known.add(k)
+  await writeFile(listUrl, JSON.stringify([...known].sort(), null, 2) + '\n')
+  console.log(
+    `checked ${league.keys.length} ${league.name} photos; ${known.size} placeholders; ${failed} failed`,
+  )
+  if (failed) anyFailed = true
+}
+if (anyFailed) process.exitCode = 1

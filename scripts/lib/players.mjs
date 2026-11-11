@@ -108,6 +108,7 @@ export function nflCandidates(
   match,
   placeholders = new Set(),
   espnHeads = {},
+  notHeadshots = new Set(),
 ) {
   const draft = new Map(
     draftPicks.filter((d) => d.pfr_player_id).map((d) => [d.pfr_player_id, d]),
@@ -125,11 +126,15 @@ export function nflCandidates(
     // fall back to the Wikimedia photo, and need one to be askable at all.
     const rawHead = nflHeadKey(p.headshot)
     // …unless ESPN has a real headshot for him (data/nfl-espn-heads.json).
-    const head = !placeholders.has(rawHead)
-      ? rawHead
-      : espnHeads[rawHead]
-        ? `espn:${espnHeads[rawHead]}`
-        : ''
+    // A league image that is a photo of him but not a headshot (an action
+    // cut-out — data/nfl-not-headshots.json) also gives way to ESPN's, and
+    // stays when ESPN has none.
+    const espn = espnHeads[rawHead] ? `espn:${espnHeads[rawHead]}` : ''
+    const head = placeholders.has(rawHead)
+      ? espn
+      : notHeadshots.has(rawHead) && espn
+        ? espn
+        : rawHead
     const action = commonsFile(w.img)
     if (!head && !action) continue
     const fame = nflFame({
@@ -189,8 +194,21 @@ export const nameKey = (name) =>
  *   college. They have no college stint, so they are admitted by this list:
  *   their answer is HIGH_SCHOOL_ID and the real high school rides along for
  *   the reveal. Returns `missingPreps`: listed names not found in the source.
+ * @param heads  `placeholders`: NBA.com ids whose headshot is the generic
+ *   grey silhouette (data/nba-placeholder-heads.json); `espn`: NBA.com id →
+ *   ESPN id for those ESPN has a real headshot of (data/nba-espn-heads.json).
+ *   A player left with no headshot and no Wikimedia photo is still returned
+ *   (`placeholderHead` carries his NBA.com id): nobody is dropped for a
+ *   missing photo — see keepEveryone in ./photos.mjs.
  */
-export function nbaCandidates(baseRows, teamRows, match, nowYear, preps = []) {
+export function nbaCandidates(
+  baseRows,
+  teamRows,
+  match,
+  nowYear,
+  preps = [],
+  heads = { placeholders: new Set(), espn: {} },
+) {
   const prepByName = new Map(preps.map((p) => [nameKey(p.name), p]))
   const foundPreps = new Set()
   const base = new Map()
@@ -260,6 +278,12 @@ export function nbaCandidates(baseRows, teamRows, match, nowYear, preps = []) {
     // The preps list is hand-picked, so it is not second-guessed by the
     // fame / era filter.
     if (!prep && !passesEra(fame, lastPro, 'nba')) continue
+    const head = !heads.placeholders.has(b.nbaid)
+      ? b.nbaid
+      : heads.espn[b.nbaid]
+        ? `espn:${heads.espn[b.nbaid]}`
+        : ''
+    const action = commonsFile(b.img)
     const key = `${b.name}|${schools[0]}`
     if (seen.has(key)) continue
     seen.add(key)
@@ -272,8 +296,9 @@ export function nbaCandidates(baseRows, teamRows, match, nowYear, preps = []) {
       fame,
       pos: '',
       team: '',
-      head: b.nbaid,
-      action: commonsFile(b.img),
+      head,
+      action,
+      ...(heads.placeholders.has(b.nbaid) ? { placeholderHead: b.nbaid } : {}),
       lastPro,
       ...(prep ? { hs: prep.hs } : {}),
     })

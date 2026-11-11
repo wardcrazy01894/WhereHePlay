@@ -13,9 +13,10 @@ import type { Player } from '../types'
 
 export function headshotUrl(p: Player): string | null {
   if (!p.h) return null
-  // "espn:<id>": the NFL's own image is a placeholder, ESPN has a real one.
+  // "espn:<id>": the league's own image is a placeholder (or, for a few NFL
+  // legends, an action cut-out) and ESPN has a real headshot.
   if (p.h.startsWith('espn:'))
-    return `https://a.espncdn.com/i/headshots/nfl/players/full/${p.h.slice(5)}.png`
+    return `https://a.espncdn.com/i/headshots/${p.l}/players/full/${p.h.slice(5)}.png`
   // "clubs:<path>": a hand-picked image on the NFL clubs' image server.
   if (p.h.startsWith('clubs:'))
     return `https://static.clubs.nfl.com/image/${p.h.slice(6)}`
