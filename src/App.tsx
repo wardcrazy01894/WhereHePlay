@@ -208,17 +208,19 @@ export function App() {
         {!ready && !loadError && <p className="muted">Loading players…</p>}
 
         {ready && view.screen === 'home' && (
-          <>
-            <p className="tagline">
-              Where did he play in college? Five players a day. Fewer hints,
-              more points.
-            </p>
-            {!official && (
-              <p className="muted">
-                Practice day {dateKey} (puzzle #{puzzleNumber(dateKey)}) — not
-                recorded.
+          <div className="home">
+            <div className="home-intro">
+              <p className="tagline">
+                Where did he play in college? Five players a day. Fewer hints,
+                more points.
               </p>
-            )}
+              {!official && (
+                <p className="muted">
+                  Practice day {dateKey} (puzzle #{puzzleNumber(dateKey)}) — not
+                  recorded.
+                </p>
+              )}
+            </div>
             <div className="modes">
               {MODES.map((mode) => {
                 const saved = official ? loadDaily(mode, dateKey) : undefined
@@ -291,48 +293,54 @@ export function App() {
                 🔎 Is he in the game?
               </button>
             </div>
-            <fieldset className="photo-choice">
-              <legend>First photo you see</legend>
-              {(['headshot', 'action'] as const).map((style) => (
-                <label key={style}>
-                  <input
-                    type="radio"
-                    name="photo-style"
-                    checked={photoStyle === style}
-                    onChange={() => choosePhoto(style)}
-                  />
-                  <span>
-                    {style === 'headshot' ? 'Headshot' : 'In action'}
-                    <small>
-                      {style === 'headshot'
-                        ? 'official portrait'
-                        : 'playing, in a pro uniform'}
-                    </small>
-                  </span>
-                </label>
-              ))}
-            </fieldset>
-            <details className="how">
-              <summary>How it works</summary>
-              <ul>
-                <li>
-                  You start with just a photo: 100 points if you name the
-                  college.
-                </li>
-                <li>Hint 1 shows his name (75). Hint 2 his conference (50).</li>
-                <li>Hint 3 is four colleges to pick from (25).</li>
-                <li>
-                  A wrong typed guess uses up a hint. “I don’t know” ends it for
-                  0.
-                </li>
-                <li>Transfers count: any college he played for is right.</li>
-                <li>
-                  New here? The beginner daily is five household names a day,
-                  scored the same way.
-                </li>
-              </ul>
-            </details>
-          </>
+            {/* One block, after the games in the document (and on phones);
+                index.css lifts it above them on wide screens. */}
+            <div className="home-setup">
+              <fieldset className="photo-choice">
+                <legend>First photo you see</legend>
+                {(['headshot', 'action'] as const).map((style) => (
+                  <label key={style}>
+                    <input
+                      type="radio"
+                      name="photo-style"
+                      checked={photoStyle === style}
+                      onChange={() => choosePhoto(style)}
+                    />
+                    <span>
+                      {style === 'headshot' ? 'Headshot' : 'In action'}
+                      <small>
+                        {style === 'headshot'
+                          ? 'official portrait'
+                          : 'playing, in a pro uniform'}
+                      </small>
+                    </span>
+                  </label>
+                ))}
+              </fieldset>
+              <details className="how">
+                <summary>How it works</summary>
+                <ul>
+                  <li>
+                    You start with just a photo: 100 points if you name the
+                    college.
+                  </li>
+                  <li>
+                    Hint 1 shows his name (75). Hint 2 his conference (50).
+                  </li>
+                  <li>Hint 3 is four colleges to pick from (25).</li>
+                  <li>
+                    A wrong typed guess uses up a hint. “I don’t know” ends it
+                    for 0.
+                  </li>
+                  <li>Transfers count: any college he played for is right.</li>
+                  <li>
+                    New here? The beginner daily is five household names a day,
+                    scored the same way.
+                  </li>
+                </ul>
+              </details>
+            </div>
+          </div>
         )}
 
         {ready && view.screen === 'daily' && (
