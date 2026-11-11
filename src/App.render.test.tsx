@@ -74,6 +74,11 @@ describe('App', () => {
     const { container } = render(<App />)
     await screen.findByRole('heading', { name: 'NFL' })
     const setup = container.querySelector('.home > .home-setup')!
+    // The rules first, then the photo choice.
+    expect([...setup.children].map((c) => c.tagName)).toEqual([
+      'DETAILS',
+      'FIELDSET',
+    ])
     expect(setup.querySelector('fieldset.photo-choice')).toBeTruthy()
     expect(setup.querySelector('details.how')).toBeTruthy()
     // Document order (no CSS reordering): intro, setup, then the games —

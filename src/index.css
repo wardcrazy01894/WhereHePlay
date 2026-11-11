@@ -149,7 +149,13 @@ input[type='password'] {
 /* The photo choice and the rules sit above the games on every screen (they
    come first in the document; nothing is reordered here). */
 .home-setup {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
   margin-bottom: 18px;
+}
+.home-setup .photo-choice {
+  margin-bottom: 0;
 }
 .modes {
   display: grid;

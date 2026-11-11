@@ -248,27 +248,6 @@ export function App() {
             {/* Before the games, on every screen: what you are about to play
                 and how, without scrolling past the cards to find it. */}
             <div className="home-setup">
-              <fieldset className="photo-choice">
-                <legend>First photo you see</legend>
-                {(['headshot', 'action'] as const).map((style) => (
-                  <label key={style}>
-                    <input
-                      type="radio"
-                      name="photo-style"
-                      checked={photoStyle === style}
-                      onChange={() => choosePhoto(style)}
-                    />
-                    <span>
-                      {style === 'headshot' ? 'Headshot' : 'In action'}
-                      <small>
-                        {style === 'headshot'
-                          ? 'official portrait'
-                          : 'playing, in a pro uniform'}
-                      </small>
-                    </span>
-                  </label>
-                ))}
-              </fieldset>
               <details className="how">
                 <summary>How it works</summary>
                 <ul>
@@ -291,6 +270,27 @@ export function App() {
                   </li>
                 </ul>
               </details>
+              <fieldset className="photo-choice">
+                <legend>First photo you see</legend>
+                {(['headshot', 'action'] as const).map((style) => (
+                  <label key={style}>
+                    <input
+                      type="radio"
+                      name="photo-style"
+                      checked={photoStyle === style}
+                      onChange={() => choosePhoto(style)}
+                    />
+                    <span>
+                      {style === 'headshot' ? 'Headshot' : 'In action'}
+                      <small>
+                        {style === 'headshot'
+                          ? 'official portrait'
+                          : 'playing, in a pro uniform'}
+                      </small>
+                    </span>
+                  </label>
+                ))}
+              </fieldset>
             </div>
             <div className="modes">
               {MODES.map((mode) => {
