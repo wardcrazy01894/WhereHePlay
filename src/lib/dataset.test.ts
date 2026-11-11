@@ -60,6 +60,33 @@ describe('players.json', () => {
       ).toEqual([p.s[0]])
     }
   })
+  it('preps-to-pros players are in, answer "High School", and carry their real school', () => {
+    const preps = players.filter((p) => p.s[0] === 'high-school')
+    expect(preps.length).toBeGreaterThanOrEqual(30)
+    for (const p of preps) {
+      expect(p.l, p.id).toBe('nba')
+      expect(p.s, p.id).toEqual(['high-school'])
+      expect(p.hs, p.id).toBeTruthy()
+      expect(p.d, p.id).not.toContain('high-school')
+    }
+    for (const n of [
+      'LeBron James',
+      'Kobe Bryant',
+      'Kevin Garnett',
+      'Dwight Howard',
+      'Tracy McGrady',
+    ])
+      expect(
+        preps.some((p) => p.n === n),
+        n,
+      ).toBe(true)
+    // Nobody else carries a high school, and it is a typed answer.
+    expect(players.filter((p) => p.hs && p.s[0] !== 'high-school')).toEqual([])
+    expect(schools.find((s) => s.id === 'high-school')?.aliases).toContain(
+      'High School',
+    )
+  })
+
   it('every tier is deep enough that the cooldown never runs dry', () => {
     for (const l of ['nfl', 'nba'] as const)
       for (const t of ['easy', 'medium', 'hard'] as const) {

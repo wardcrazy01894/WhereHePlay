@@ -39,7 +39,7 @@ migrations. Never mock the unit under test.
 | `worker/*`, `src/lib/api.ts`, Leaderboard, AccountDialog                              | PLAN §API + `worker/README.md` + OPERATIONS                     |
 | `worker/bug-lib.mjs`, `src/lib/report.ts`, `playerSearch.ts`, BugReport, PlayerSearch | PLAN §Bug reports and player requests + OPERATIONS §Bug reports |
 | `worker/migrations/*`                                                                 | OPERATIONS §API worker (run the migration!)                     |
-| `scripts/*`, `data/schools.psv`, `public/*.json`                                      | `docs/DATA.md`; player counts in README                         |
+| `scripts/*`, `data/*.json`, `data/schools.psv`, `public/*.json`                       | `docs/DATA.md`; player counts in README                         |
 | `src/lib/images.ts`, photo sources                                                    | DATA §Photos + `docs/APP.md` §Photos                            |
 | `.github/workflows/*`, `scripts/protect-main.sh`                                      | OPERATIONS + this file's CI list                                |
 | `vite.config.ts` (`base`), `index.html`, `public/manifest.*`                          | OPERATIONS §Custom domain + `docs/APP.md`                       |

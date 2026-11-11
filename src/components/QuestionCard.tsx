@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import type { Player, School } from '../types'
+import { HIGH_SCHOOL_ID } from '../types'
 import {
   type QuestionState,
   LAST_STAGE,
@@ -67,7 +68,11 @@ export function QuestionCard({
         <li className={showConf ? 'on' : 'off'}>
           <span className="hint-label">Conference</span>
           <span className="hint-value">
-            {showConf ? `${player.c} (${player.y} season)` : '—'}
+            {!showConf
+              ? '—'
+              : player.s[0] === HIGH_SCHOOL_ID
+                ? 'None — he never played in college'
+                : `${player.c} (${player.y} season)`}
           </span>
         </li>
       </ul>
@@ -88,8 +93,17 @@ export function QuestionCard({
           role="status"
         >
           <div className="reveal-line">
-            {state.correct ? '✅' : '❌'} {player.n} played at{' '}
-            <strong>{name(player.s[0])}</strong>
+            {state.correct ? '✅' : '❌'}{' '}
+            {player.s[0] === HIGH_SCHOOL_ID ? (
+              <>
+                {player.n} skipped college — straight to the NBA from{' '}
+                <strong>{player.hs ?? 'high school'}</strong>
+              </>
+            ) : (
+              <>
+                {player.n} played at <strong>{name(player.s[0])}</strong>
+              </>
+            )}
           </div>
           {player.s.length > 1 && (
             <div className="reveal-also">

@@ -121,4 +121,74 @@ describe('QuestionCard', () => {
     expect(screen.getByRole('status').textContent).toContain('❌')
     expect(screen.getByRole('status').textContent).toContain('Auburn')
   })
+
+  describe('a player who skipped college', () => {
+    const prep: Player = {
+      id: 'nba-jamesle01',
+      n: 'LeBron James',
+      l: 'nba',
+      s: ['high-school'],
+      c: 'No college',
+      y: 2002,
+      t: 'easy',
+      h: '2544',
+      d: ['auburn', 'alabama', 'kentucky'],
+      hs: 'St. Vincent–St. Mary High School (Akron)',
+    }
+    const all: School[] = [
+      ...schools,
+      {
+        id: 'high-school',
+        name: 'High School (no college)',
+        aliases: ['High School', 'HS'],
+      },
+    ]
+    function PrepHarness() {
+      const [state, setState] = useState(newQuestion)
+      return (
+        <QuestionCard
+          player={prep}
+          schools={all}
+          state={state}
+          photoStyle="headshot"
+          onChange={(next) => {
+            last = next
+            setState(next)
+          }}
+        />
+      )
+    }
+
+    it('typing "high school" is the right answer, and the reveal names the school', () => {
+      render(<PrepHarness />)
+      type('high school')
+      fireEvent.mouseDown(
+        screen.getByRole('option', { name: 'High School (no college)' }),
+      )
+      fireEvent.click(screen.getByRole('button', { name: 'Guess' }))
+      expect(last).toMatchObject({ done: true, correct: true, points: 100 })
+      const reveal = screen.getByRole('status').textContent!
+      expect(reveal).toContain('skipped college')
+      expect(reveal).toContain('St. Vincent–St. Mary High School (Akron)')
+    })
+
+    it('the conference hint says he never played in college, and High School is one of the four choices', () => {
+      vi.useFakeTimers()
+      render(<PrepHarness />)
+      fireEvent.click(screen.getByRole('button', { name: /Show his name/ }))
+      fireEvent.click(
+        screen.getByRole('button', { name: /Show his conference/ }),
+      )
+      expect(screen.getByText('None — he never played in college')).toBeTruthy()
+      fireEvent.click(screen.getByRole('button', { name: /Show 4 choices/ }))
+      act(() => {
+        vi.advanceTimersByTime(CHOICE_ARM_MS)
+      })
+      fireEvent.click(
+        screen.getByRole('button', { name: 'High School (no college)' }),
+      )
+      expect(last).toMatchObject({ done: true, correct: true, points: 25 })
+      vi.useRealTimers()
+    })
+  })
 })

@@ -2,11 +2,12 @@
 
 Two committed artifacts drive the game:
 
-- `public/players.json` — 1,964 players (1,085 NFL, 879 NBA)
-- `public/schools.json` — 375 colleges (id, name, search aliases)
+- `public/players.json` — 1,998 players (1,085 NFL, 913 NBA)
+- `public/schools.json` — 375 colleges plus the "High School (no college)"
+  answer (id, name, search aliases)
 
 They are generated; never edit them by hand. The hand-maintained inputs are
-`data/schools.psv` and `data/overrides.json`.
+`data/schools.psv`, `data/overrides.json` and `data/preps-to-pros.json`.
 
 ## Rebuilding
 
@@ -53,8 +54,9 @@ without that, Stephen Curry and Kevin Durant silently vanish.
 4. **Answerable:** the college he finished at is in the schools table (junior
    colleges are not), and there is a photo to show.
 
-NBA players who never played college ball (preps-to-pros, internationals,
-G League Ignite) have no college stint and drop out naturally.
+NBA players who never played college ball have no college stint.
+Internationals and G League Ignite players drop out naturally; players who
+went straight from a US high school to the NBA are kept — see Preps to pros.
 
 `MIN_FAME`, `LEGEND_FAME`, `PRO_FOCUS_YEAR` and `FIRST_COLLEGE_YEAR` are
 constants at the top of that file. Lower `MIN_FAME` for a bigger, more
@@ -77,6 +79,41 @@ So Tom Brady (Michigan) and Stephen Curry (Davidson, top of the fame list)
 are easy; a mid-career player from a one-pro school is hard. It is a
 heuristic — BACKLOG.md lists known misses. A guard test requires every
 league × tier to be deep enough for the 45-day no-repeat window.
+
+## Preps to pros (`data/preps-to-pros.json`)
+
+NBA players who went straight from high school to the NBA (Garnett in 1995
+through the 2005 draft, plus Thon Maker and Anfernee Simons later) have no
+college to guess, so they get their own answer: the pseudo-school
+`high-school`, shown as **"High School (no college)"** in the autocomplete
+(aliases: High School, HS, Prep, No college, None…). Nobody has to know
+_which_ high school — but the reveal names it.
+
+They are admitted by a hand-kept list, because nothing in the source data
+separates "no college" from "college not recorded" or from an international
+player:
+
+```json
+{
+  "name": "LeBron James",
+  "hs": "St. Vincent–St. Mary High School (Akron)",
+  "draft": 2003
+}
+```
+
+- Matched to the Wikidata row by name (case, spacing and punctuation ignored).
+  The build prints any listed name it could not find.
+- Listed players skip the fame and era filter (the list is the filter).
+- `y` is the fall before the draft (his senior year); the conference hint
+  reads "None — he never played in college".
+- Their multiple-choice decoys are three of the twelve programs with the most
+  NBA players in the pool (where you would guess a star went), never random
+  schools.
+- A player who signed overseas or with the G League out of high school
+  (Brandon Jennings, Emmanuel Mudiay) is **not** on the list.
+
+To add one: add a line and rebuild. A dataset guard test checks that the
+famous ones are present and that every one carries a high school.
 
 ## Overrides (`data/overrides.json`)
 
@@ -158,4 +195,5 @@ store build — see docs/APP.md §Photos.
 `players.json` row (short keys keep it ~575 KB raw):
 `id`, `n` name, `l` league, `s` accepted school ids (finishing school first),
 `c` conference hint, `y` final college fall year, `t` tier, `d` three decoy
-ids, optional `h` headshot key, `p` position (NFL), `a` Commons storage path.
+ids, optional `h` headshot key, `p` position (NFL), `a` Commons storage path,
+`hs` high school (preps to pros only).

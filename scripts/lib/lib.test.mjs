@@ -288,6 +288,109 @@ describe('players', () => {
     })
   })
 
+  it('NBA: a listed preps-to-pros player is admitted with the High School answer', () => {
+    const base = [
+      {
+        bbref: 'j/jamesle01',
+        name: 'LeBron James',
+        nbaid: '2544',
+        img: '',
+        links: '114',
+        dob: '1984-12-30T00:00:00Z',
+      },
+      {
+        bbref: 'x/obscure01',
+        name: 'Obscure Prep',
+        nbaid: '9',
+        img: '',
+        links: '2',
+        dob: '1980-01-01T00:00:00Z',
+      },
+      {
+        bbref: 'd/doncilu01',
+        name: 'Luka Doncic',
+        nbaid: '7',
+        img: '',
+        links: '90',
+        dob: '1999-02-28T00:00:00Z',
+      },
+    ]
+    const teams = [
+      {
+        bbref: 'j/jamesle01',
+        teamLabel: 'Cleveland Cavaliers',
+        league: NBA_LEAGUE,
+        start: '2003-01-01T00:00:00Z',
+        end: '',
+      },
+      {
+        bbref: 'x/obscure01',
+        teamLabel: 'Utah Jazz',
+        league: NBA_LEAGUE,
+        start: '1998-01-01T00:00:00Z',
+        end: '1999-01-01T00:00:00Z',
+      },
+      {
+        bbref: 'd/doncilu01',
+        teamLabel: 'Dallas Mavericks',
+        league: NBA_LEAGUE,
+        start: '2018-01-01T00:00:00Z',
+        end: '',
+      },
+    ]
+    const preps = [
+      { name: 'Lebron  JAMES', hs: 'St. Vincent–St. Mary', draft: 2003 }, // matched ignoring case/spacing
+      { name: 'Obscure Prep', hs: 'Somewhere High', draft: 1998 }, // kept despite the fame/era filter
+      { name: 'Not In Source', hs: 'Nowhere', draft: 2000 },
+    ]
+    const { records, missingPreps } = nbaCandidates(
+      base,
+      teams,
+      match,
+      2026,
+      preps,
+    )
+    expect(records.map((r) => r.name).sort()).toEqual([
+      'LeBron James',
+      'Obscure Prep',
+    ])
+    expect(records.find((r) => r.name === 'LeBron James')).toMatchObject({
+      schools: ['high-school'],
+      year: 2002,
+      hs: 'St. Vincent–St. Mary',
+    })
+    // An international with no college stint and not on the list stays out.
+    expect(records.some((r) => r.name === 'Luka Doncic')).toBe(false)
+    expect(missingPreps).toEqual(['Not In Source'])
+  })
+
+  it("a prep player's decoys are top programs, never random schools", () => {
+    const rec = {
+      id: 'nba-jamesle01',
+      league: 'nba',
+      schools: ['high-school'],
+      year: 2002,
+      conf: 'No college',
+    }
+    const d = pickDecoys(rec, schools, new Set(['texas', 'kansas']), [
+      'kansas',
+      'texas',
+      'baylor',
+      'gonzaga',
+    ])
+    expect(d).toHaveLength(3)
+    for (const id of d)
+      expect(['kansas', 'texas', 'baylor', 'gonzaga']).toContain(id)
+    expect(
+      pickDecoys(rec, schools, new Set(), [
+        'kansas',
+        'texas',
+        'baylor',
+        'gonzaga',
+      ]),
+    ).toEqual(d)
+  })
+
   it('tiers: the famous at a pipeline school are easy, the tail is hard', () => {
     const recs = Array.from({ length: 100 }, (_, i) => ({
       id: `nfl-${String(i).padStart(3, '0')}`,

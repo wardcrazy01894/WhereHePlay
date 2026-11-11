@@ -23,8 +23,11 @@ export interface Player {
   d: string[]
   /** Position (NFL only). */
   p?: string
-  /** Wikimedia Commons file name of an in-uniform photo, when one exists. */
+  /** Wikimedia Commons storage path of an in-uniform photo, when one exists. */
   a?: string
+  /** The high school of a player who skipped college (his answer is the
+   *  pseudo-school HIGH_SCHOOL_ID); shown in the reveal. */
+  hs?: string
 }
 
 /** One row of public/schools.json. */
@@ -33,6 +36,9 @@ export interface School {
   name: string
   aliases?: string[]
 }
+
+/** The "school" that is the right answer for a preps-to-pros player. */
+export const HIGH_SCHOOL_ID = 'high-school'
 
 export const MODES: Mode[] = ['mixed', 'nfl', 'nba']
 export const MODE_LABEL: Record<Mode, string> = {

@@ -19,6 +19,9 @@ worth the stage it was given at (`src/lib/game.ts`):
   suggestions). A **wrong multiple-choice pick** ends the question with 0.
 - **"I don't know"** is available at every stage: 0 points, answer revealed.
 - The player can also take the next hint without guessing.
+- **Straight from high school?** For an NBA player who skipped college the
+  answer is just "High School" (it is in the autocomplete); the reveal names
+  the actual school, and the conference hint says he never played in college.
 - **Any college he played for is correct** (transfers). The reveal, the
   conference hint and the multiple choice use the school he finished at.
 - The **four choices** are the finishing school plus three decoys from the
@@ -146,7 +149,8 @@ scripts can't impersonate a player or dodge the filter. Names are not
 unique. Empty shows as "Anonymous".
 
 **Accounts** (`/register`, `/login`, `/logout`): optional username (3–20 of
-`a-z 0-9 _`, unique) + password. Registering upgrades the current anonymous
+`a-z 0-9 _`, unique) + password. The create-account form says in so many
+words that the username is not an email and that no email is ever asked for. Registering upgrades the current anonymous
 player in place, so existing scores and streaks are kept. Signing in on
 another device issues a new token for the same player (newest 10 kept).
 Signing out returns the device to a fresh anonymous identity. Scores made

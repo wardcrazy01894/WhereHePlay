@@ -346,6 +346,9 @@ ut-rio-grande|UT Rio Grande Valley||Texas–Pan American Broncs;UT Rio Grande Va
 houston-christian|Houston Christian||Houston Christian Huskies;Houston Baptist Huskies|Houston Baptist||1994:NAIA,2008:Independent,2009:Great West,2013:Southland
 hartford|Hartford||Hartford Hawks|||1994:America East,2023:Division III
 
+# --- Not a school: the answer for NBA players who skipped college ---
+high-school|High School (no college)|||High School;HS;Prep;Preps to pros;No college;None;Straight to the NBA||No college
+
 # --- Division II / III / NAIA and others (conference hint = level) ---
 grand-valley|Grand Valley State|Grand Valley;Grand Valley State|Grand Valley State Lakers|GVSU|Division II|
 saginaw-valley|Saginaw Valley State|Saginaw Valley State|Saginaw Valley State Cardinals|SVSU|Division II|
