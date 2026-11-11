@@ -99,6 +99,23 @@ describe('mergeStats (a streak follows the account)', () => {
       lastDate: TODAY,
     })
   })
+  it('a streak built on this device is not lowered by the account playing the next day', () => {
+    // Five days anonymously on the phone, through yesterday; the account
+    // (computer) only knows today. It is one unbroken run: six.
+    const local = { ...empty, current: 5, best: 5, lastDate: '2026-11-11' }
+    expect(mergeStats(local, server(1, 1, TODAY))).toMatchObject({
+      current: 6,
+      best: 6,
+      lastDate: TODAY,
+    })
+    // …but a gap really does restart it.
+    const stale = { ...empty, current: 5, best: 5, lastDate: '2026-11-09' }
+    expect(mergeStats(stale, server(1, 1, TODAY))).toMatchObject({
+      current: 1,
+      best: 5,
+      lastDate: TODAY,
+    })
+  })
   it('returns the same object when nothing changes, and ignores junk', () => {
     const local = { ...empty, current: 3, best: 4, lastDate: TODAY }
     expect(mergeStats(local, server(3, 4, TODAY))).toBe(local)
@@ -212,6 +229,27 @@ describe('planSync', () => {
     )
     expect(p.unsent.map((g) => g.mode)).toEqual(['nfl'])
   })
+  it('never hands one account’s day to another account', () => {
+    const mine = { ...finished('nfl'), owner: 'al' }
+    const theirs = { ...finished('nba'), owner: 'someone-else' }
+    const p = plan({ username: 'al', scores: [], streaks: [] }, [mine, theirs])
+    expect(p.unsent.map((g) => g.mode)).toEqual(['nfl'])
+    // An unowned day the account already has a result for becomes its own,
+    // so a later sign-in as someone else cannot take it.
+    const both = plan(
+      {
+        username: 'al',
+        scores: [{ board: 'nfl', date: TODAY, score: 0, marks: '00000' }],
+        streaks: [],
+      },
+      [finished('nfl')],
+    )
+    expect(both.unsent).toEqual([])
+    expect(both.claimed.map((g) => g.mode)).toEqual(['nfl'])
+    // A result pulled from the account is stamped with it.
+    const pulled = plan({ username: 'al', scores: [score], streaks: [] })
+    expect(pulled.games[0].owner).toBe('al')
+  })
   it('never sends for an anonymous device, or to a worker that predates sync', () => {
     const local = [finished('nfl')]
     expect(
@@ -221,6 +259,7 @@ describe('planSync', () => {
       games: [],
       stats: [],
       unsent: [],
+      claimed: [],
     })
   })
 })

@@ -44,6 +44,10 @@ const isCount = (n: unknown): n is number =>
 /**
  * Fold the server's streak into the device's. The newer last-played day
  * decides the current count (same day: the larger); best only ever grows.
+ * One exception keeps a streak built on this device from being lowered: when
+ * the server's day is the day right after the device's, the run is unbroken,
+ * so it is at least the device's count plus one (the account may only know
+ * the days played since signing in).
  * Returns `local` itself when nothing changes.
  */
 export function mergeStats(local: Stats, server: ServerStreak): Stats {
@@ -55,7 +59,10 @@ export function mergeStats(local: Stats, server: ServerStreak): Stats {
     return local
   let { current, lastDate } = local
   if (server.last > lastDate) {
-    current = server.current
+    current =
+      lastDate && server.last === addDays(lastDate, 1)
+        ? Math.max(server.current, current + 1)
+        : server.current
     lastDate = server.last
   } else if (server.last === lastDate) {
     current = Math.max(current, server.current)
@@ -135,6 +142,9 @@ export interface SyncPlan {
   stats: { board: BoardId; stats: Stats }[]
   /** Today's dailies finished here that the account has no result for. */
   unsent: DailyGame[]
+  /** Today's dailies finished here, with no owner yet, that the account
+   *  already has a result for: to be marked as this account's. */
+  claimed: DailyGame[]
 }
 
 const isFinished = (g: DailyGame | undefined) =>
@@ -153,7 +163,8 @@ export function planSync(input: {
   localStats: (board: BoardId) => Stats
 }): SyncPlan {
   const { players, me, today, localGame, localStats } = input
-  const plan: SyncPlan = { games: [], stats: [], unsent: [] }
+  const plan: SyncPlan = { games: [], stats: [], unsent: [], claimed: [] }
+  const owner = me.username ? { owner: me.username } : {}
 
   const scores = Array.isArray(me.scores) ? me.scores : null
   const known = new Set<string>()
@@ -165,7 +176,7 @@ export function planSync(input: {
     // only in progress here.
     const variant = game.variant ?? 'standard'
     if (!isFinished(localGame(game.mode, game.dateKey, variant)))
-      plan.games.push(game)
+      plan.games.push({ ...game, ...owner })
   }
 
   for (const streak of Array.isArray(me.streaks) ? me.streaks : []) {
@@ -180,18 +191,18 @@ export function planSync(input: {
 
   // Played before signing in on this device: hand today's results to the
   // account, so its streak counts them. Accounts only (signing OUT must not
-  // repost the day as a second, anonymous player), and only when the server
-  // told us what it has.
+  // repost the day as a second, anonymous player), only when the server told
+  // us what it has, and never a day that already belongs to another account
+  // (sign out, sign in as someone else: their board must not get this day).
   if (me.username && scores)
     for (const mode of MODES)
       for (const variant of VARIANTS) {
         const local = localGame(mode, today, variant)
-        if (
-          local &&
-          isFinished(local) &&
-          !known.has(`${boardId(mode, variant)}|${today}`)
-        )
+        if (!local || !isFinished(local)) continue
+        if (local.owner && local.owner !== me.username) continue
+        if (!known.has(`${boardId(mode, variant)}|${today}`))
           plan.unsent.push(local)
+        else if (!local.owner) plan.claimed.push(local)
       }
   return plan
 }
@@ -199,12 +210,16 @@ export function planSync(input: {
 /**
  * Apply the server's view of this player to the device. Resolves to true
  * when anything on the device changed (the caller re-renders).
+ *
+ * `refused` is the caller's per-session memory of hand-overs the server
+ * turned down, so one is not re-posted on every visit to the home screen.
  */
 export async function syncProgress(
   players: Player[],
   me: Progress & { username: string | null },
   token: string,
   today: string,
+  refused: Set<string> = new Set(),
 ): Promise<boolean> {
   const plan = planSync({
     players,
@@ -213,11 +228,15 @@ export async function syncProgress(
     localGame: loadDaily,
     localStats: loadStats,
   })
+  const owner = me.username ? { owner: me.username } : {}
   for (const game of plan.games) saveDaily(game)
+  for (const game of plan.claimed) saveDaily({ ...game, ...owner })
   for (const { board, stats } of plan.stats) saveStats(board, stats)
   let changed = plan.games.length > 0 || plan.stats.length > 0
   for (const game of plan.unsent) {
     const board = boardId(game.mode, game.variant)
+    const attempt = `${token}|${board}|${game.dateKey}`
+    if (refused.has(attempt)) continue
     const r = await submitScore({
       token,
       board,
@@ -225,8 +244,11 @@ export async function syncProgress(
       score: totalPoints(game.questions),
       marks: marks(game.questions),
     })
-    if (!r.ok) continue
-    if (!game.submitted) saveDaily({ ...game, submitted: true })
+    if (!r.ok) {
+      refused.add(attempt)
+      continue
+    }
+    saveDaily({ ...game, submitted: true, ...owner })
     if (r.streak) {
       const local = loadStats(board)
       const next = mergeStats(local, {

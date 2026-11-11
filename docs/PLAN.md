@@ -189,13 +189,25 @@ tab comes back, the client folds that into `localStorage`:
   "Played on another device."). The server keeps the first result, so it
   also replaces a game only in progress here;
 - each streak takes the newer last-played day's count (same day: the larger);
-  best only grows — so a streak continues whichever device plays;
+  best only grows — so a streak continues whichever device plays. A streak
+  built on this device is not lowered: if the server's day is the day after
+  the device's, the count is at least the device's plus one;
 - when signed in, today's dailies finished on this device that the account
   has no result for are submitted (played before signing in). Never for an
   anonymous device: signing out must not repost the day as a second player.
-  Earlier days played anonymously are still not merged.
+  A finished day records its `owner` (the account signed in when it ended,
+  or the one it was handed to) and is never handed to a different account.
+  A refused hand-over is not retried until the next page load. Earlier days
+  played anonymously are still not merged.
 
-It only runs from the home screen, never under a question. Not synced: a
+Known limits: a day played anonymously and then handed to an account is on
+that day's board twice (once as the anonymous device); streaks in
+`localStorage` belong to the device, so after switching accounts on one
+device the larger of the two can show.
+
+It only runs from the home screen, never under a question (and a game open
+in a second tab yields to a result synced in meanwhile rather than overwrite
+it). Not synced: a
 daily still in progress (only finished results reach the server), free play,
 and the first-photo setting. A worker that predates this simply returns no
 `streaks`/`scores` and the client does nothing.

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import type { Mode, Player, School, Variant } from './types'
 import { MODES, MODE_LABEL, boardId } from './types'
 import { getDateKey, puzzleNumber } from './lib/daily'
@@ -94,6 +94,8 @@ export function App() {
   // screen, so a game on screen is never swapped out from under the player.
   const [syncAsk, setSyncAsk] = useState(0)
   const [, setSynced] = useState(0)
+  // Hand-overs the server refused this session (not retried every visit).
+  const refused = useRef(new Set<string>())
   useEffect(() => {
     if (!apiEnabled || !players || !onHome) return
     let live = true
@@ -108,7 +110,13 @@ export function App() {
       if (next.name !== identity.name || next.username !== identity.username)
         changeIdentity(next)
       // The real local day, never a ?date= practice day.
-      const changed = await syncProgress(players, r, token, getDateKey())
+      const changed = await syncProgress(
+        players,
+        r,
+        token,
+        getDateKey(),
+        refused.current,
+      )
       if (live && changed) setSynced((n) => n + 1)
     })
     return () => {

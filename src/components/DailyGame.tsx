@@ -100,9 +100,23 @@ export function DailyGame(props: Props) {
   const showResults = finished && index >= QUESTIONS_PER_DAY
 
   const update = (i: number, q: QuestionState) => {
+    // Another tab may have synced this day in as finished on another device
+    // while this one sat on a question. That result is the one the server
+    // keeps, so show it rather than overwrite it with answers typed here.
+    const stored = official ? loadDaily(mode, dateKey, variant) : undefined
+    if (stored?.synced && stored.questions.every((x) => x.done)) {
+      setGame(stored)
+      setIndex(QUESTIONS_PER_DAY)
+      return
+    }
+    const questions = game.questions.map((x, j) => (j === i ? q : x))
     const next = {
       ...game,
-      questions: game.questions.map((x, j) => (j === i ? q : x)),
+      questions,
+      // A finished day belongs to the account signed in when it ended.
+      ...(identity.username && questions.every((x) => x.done)
+        ? { owner: identity.username }
+        : {}),
     }
     setGame(next)
     if (official) saveDaily(next)

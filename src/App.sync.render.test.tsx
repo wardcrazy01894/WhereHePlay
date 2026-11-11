@@ -35,11 +35,14 @@ const today = getDateKey()
 
 /** What the account already holds, as `/me` reports it. */
 let me: Record<string, unknown>
+/** Flip to make the worker refuse scores. */
+let scoreOk = true
 const posted: { path: string; body: Record<string, unknown> }[] = []
 
 beforeEach(() => {
   localStorage.clear()
   posted.length = 0
+  scoreOk = true
   localStorage.setItem(
     'whp:v1:identity',
     JSON.stringify({ token: TOKEN, name: 'Al', username: 'al' }),
@@ -61,6 +64,12 @@ beforeEach(() => {
           : path === '/score'
             ? { rank: 1, total: 1, streak: { current: 6, best: 6 } }
             : { total: 0, entries: [] }
+      if (path === '/score' && !scoreOk)
+        return {
+          ok: false,
+          status: 400,
+          json: async () => ({ error: 'invalid date' }),
+        }
       return {
         ok: true,
         status: 200,
@@ -127,6 +136,101 @@ describe('cross-device sync', () => {
       marks: '00000',
     })
     expect(await screen.findByText('🔥 6-day streak')).toBeTruthy()
+  })
+
+  /** Finish today's NFL daily with five "I don't know"s. */
+  const playNfl = () => {
+    fireEvent.click(screen.getAllByRole('button', { name: 'Play daily' })[1])
+    for (let i = 0; i < 5; i++) {
+      fireEvent.click(screen.getByRole('button', { name: 'I don’t know' }))
+      fireEvent.click(
+        screen.getByRole('button', {
+          name: i < 4 ? 'Next player' : 'See results',
+        }),
+      )
+    }
+  }
+  const scorePosts = () => posted.filter((p) => p.path === '/score').length
+
+  it('a day played as one account is never handed to another', async () => {
+    me = { name: 'Al', username: 'al', scores: [], streaks: [] }
+    const first = render(<App />)
+    await screen.findByRole('heading', { name: 'NFL' })
+    playNfl()
+    await vi.waitFor(() => expect(scorePosts()).toBeGreaterThan(0))
+    first.unmount()
+    // Same device, now signed in as someone else who has not played today.
+    localStorage.setItem(
+      'whp:v1:identity',
+      JSON.stringify({ token: 'cd'.repeat(24), name: 'Bo', username: 'bo' }),
+    )
+    me = { name: 'Bo', username: 'bo', scores: [], streaks: [] }
+    posted.length = 0
+    render(<App />)
+    await screen.findByRole('heading', { name: 'NFL' })
+    await vi.waitFor(() =>
+      expect(posted.some((p) => p.path === '/me')).toBe(true),
+    )
+    await new Promise((r) => setTimeout(r, 20))
+    expect(scorePosts()).toBe(0)
+  })
+
+  it('a refused hand-over is not retried on every visit', async () => {
+    me = { name: 'Al', username: 'al', scores: [], streaks: [] }
+    scoreOk = false
+    const first = render(<App />)
+    await screen.findByRole('heading', { name: 'NFL' })
+    playNfl()
+    first.unmount()
+    posted.length = 0
+    render(<App />)
+    await screen.findByRole('button', { name: 'Daily done · 0' })
+    await vi.waitFor(() => expect(scorePosts()).toBe(1))
+    // The tab comes back, twice: /me is asked again, the score is not.
+    for (let i = 0; i < 2; i++) {
+      const before = posted.filter((p) => p.path === '/me').length
+      document.dispatchEvent(new Event('visibilitychange'))
+      await vi.waitFor(() =>
+        expect(posted.filter((p) => p.path === '/me').length).toBe(before + 1),
+      )
+      await new Promise((r) => setTimeout(r, 20))
+    }
+    expect(scorePosts()).toBe(1)
+  })
+
+  it('a second tab that finishes the day elsewhere wins over answers typed here', async () => {
+    me = { name: 'Al', username: 'al', scores: [], streaks: [] }
+    render(<App />)
+    await screen.findByRole('heading', { name: 'NFL' })
+    fireEvent.click(screen.getAllByRole('button', { name: 'Play daily' })[1])
+    fireEvent.click(screen.getByRole('button', { name: 'I don’t know' }))
+    // Another tab syncs the account's finished result into storage.
+    const key = `whp:v1:daily:nfl:${today}`
+    const mine = JSON.parse(localStorage.getItem(key)!)
+    const done = {
+      stage: 0,
+      wrong: [],
+      done: true,
+      correct: true,
+      gaveUp: false,
+      points: 100,
+    }
+    localStorage.setItem(
+      key,
+      JSON.stringify({
+        ...mine,
+        questions: [done, done, done, done, done],
+        submitted: true,
+        synced: true,
+      }),
+    )
+    fireEvent.click(screen.getByRole('button', { name: 'Next player' }))
+    fireEvent.click(screen.getByRole('button', { name: 'I don’t know' }))
+    // This tab shows the result that stands, and did not overwrite it.
+    expect(screen.getByLabelText('Result by question').textContent).toBe(
+      '🟩🟩🟩🟩🟩',
+    )
+    expect(JSON.parse(localStorage.getItem(key)!).synced).toBe(true)
   })
 
   it('a worker that predates sync changes nothing', async () => {
