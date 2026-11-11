@@ -177,7 +177,8 @@ unique. Empty shows as "Anonymous".
 words that the username is not an email and that no email is ever asked for. Registering upgrades the current anonymous
 player in place, so existing scores and streaks are kept. Signing in on
 another device issues a new token for the same player (newest 10 kept).
-Signing out returns the device to a fresh anonymous identity.
+Signing out returns the device to a fresh anonymous identity. What the device
+did anonymously before signing in is folded into the account (below).
 
 **Cross-device sync** (`src/lib/sync.ts`, `/me`). `/me` returns, besides the
 name, the caller's own streaks (every board) and results inside the
@@ -199,11 +200,16 @@ tab comes back, the client folds that into `localStorage`:
   or the one it was handed to) and is never handed to a different account.
   The results screen follows the same rule when the identity changes under
   it. A hand-over the server refuses (4xx) is not retried until the next
-  page load; one that failed in transit is retried on the next visit. Earlier days
-  played anonymously are still not merged.
+  page load; one that failed in transit is retried on the next visit.
 
-Known limits: a day played anonymously and then handed to an account is on
-that day's board twice (once as the anonymous device); streaks in
+Signing in sends the device's current token with `/login`; when it belongs to
+an anonymous player the server folds that player into the account
+(`adoptAnonymous`): results move over (the account's own result for a board
+and day stands), streaks merge, and the anonymous player is deleted — so a
+day played before signing in is on the board once, under the account.
+Accounts are never merged into each other.
+
+Known limits: streaks in
 `localStorage` belong to the device, so after switching accounts on one
 device the larger of the two can show.
 

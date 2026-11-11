@@ -200,7 +200,13 @@ export default {
               { error: 'too many attempts, try again in a minute' },
               429,
             )
-          const r = await loginAccount(db, u.value, body.pass, now.getTime())
+          const r = await loginAccount(
+            db,
+            u.value,
+            body.pass,
+            now.getTime(),
+            body.token,
+          )
           if (!r.ok) return bad(r)
           return reply({ ok: true, ...r.value })
         }

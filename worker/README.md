@@ -30,7 +30,7 @@ All routes are `POST` with JSON:
 | `/me`       | `token`                            | `name, username, streaks[], scores[]` |
 | `/name`     | `token, name`                      | `name, username`                      |
 | `/register` | `token, username, pass`            | `name, username`                      |
-| `/login`    | `username, pass`                   | `token, name, username`               |
+| `/login`    | `username, pass, token?`           | `token, name, username`               |
 | `/logout`   | `token`                            | —                                     |
 | `/bug`      | `message, context, logs`           | `url` of the GitHub issue             |
 
@@ -38,3 +38,7 @@ All routes are `POST` with JSON:
 `mixed-beginner` (`BOARDS` in `api-lib.mjs`); anything else is a 400.
 
 `pass` is the client-derived key (64 hex chars), never the password.
+
+`/login`'s optional `token` is the device's current token: if it belongs to an
+anonymous player, that player's results and streaks are folded into the
+account and the anonymous player is deleted.

@@ -98,8 +98,17 @@ export const setName = (token: string, name: string) =>
   post<Me>('/name', { token, name })
 export const register = (token: string, username: string, pass: string) =>
   post<Me>('/register', { token, username, pass })
-export const login = (username: string, pass: string) =>
-  post<Me & { token: string }>('/login', { username, pass })
+/**
+ * `deviceToken` is the token this device has used so far. If it belongs to an
+ * anonymous player, the server folds that player's results and streaks into
+ * the account (so a day played before signing in is not on the board twice).
+ */
+export const login = (username: string, pass: string, deviceToken?: string) =>
+  post<Me & { token: string }>('/login', {
+    username,
+    pass,
+    token: deviceToken,
+  })
 export const logout = (token: string) => post<object>('/logout', { token })
 
 /** Client-side half of the split KDF (see worker/api-lib.mjs §Passwords). */

@@ -349,7 +349,7 @@ const DUMMY_SALT = '00000000000000000000000000000000'
  * Verify a login and mint a fresh token for this device. The same error and
  * the same amount of hashing whether the username exists or not.
  */
-export async function loginAccount(db, username, pass, now) {
+export async function loginAccount(db, username, pass, now, deviceToken) {
   const row = await db
     .prepare(
       `SELECT id, name, username, pass_salt, pass_hash FROM players WHERE username = ?1`,
@@ -359,6 +359,8 @@ export async function loginAccount(db, username, pass, now) {
   const hash = await hashPass(pass, row?.pass_salt ?? DUMMY_SALT)
   if (!row || !safeEqual(hash, row.pass_hash))
     return fail(401, 'wrong username or password')
+  // What this device did before signing in becomes the account's.
+  await adoptAnonymous(db, deviceToken, row.id, now)
   const token = randomHex(24)
   await db
     .prepare(
@@ -376,6 +378,92 @@ export async function loginAccount(db, username, pass, now) {
     .bind(row.id, MAX_TOKENS_PER_ACCOUNT)
     .run()
   return { ok: true, value: { token, name: row.name, username: row.username } }
+}
+
+/**
+ * Two streak rows for the same board, as one. The later last-played day
+ * decides the count (same day: the larger); when the two days are
+ * consecutive the run is unbroken, so it is at least the earlier count + 1.
+ */
+export function mergeStreaks(a, b) {
+  if (!a) return b
+  if (!b) return a
+  const [older, newer] =
+    a.last_played_date <= b.last_played_date ? [a, b] : [b, a]
+  let current
+  if (older.last_played_date === newer.last_played_date)
+    current = Math.max(older.current, newer.current)
+  else if (previousDateKey(newer.last_played_date) === older.last_played_date)
+    current = Math.max(newer.current, older.current + 1)
+  else current = newer.current
+  return {
+    current,
+    best: Math.max(a.best, b.best, current),
+    last_played_date: newer.last_played_date,
+  }
+}
+
+/**
+ * Fold the ANONYMOUS player behind `deviceToken` into account `accountId`:
+ * its results move over (where the account already has one for that board
+ * and day, the account's stands), its streaks are merged, and the anonymous
+ * player and its tokens are deleted — so signing in after playing leaves one
+ * row on the leaderboard, not an "Anonymous" twin. Holding the token is the
+ * proof of owning that anonymous identity. Does nothing for a bad or unknown
+ * token, or one that belongs to an account (accounts are never merged).
+ */
+export async function adoptAnonymous(db, deviceToken, accountId, now) {
+  if (!isValidToken(deviceToken)) return false
+  const from = await playerForToken(db, deviceToken)
+  if (!from || from.username || from.id === accountId) return false
+  await db
+    .prepare(
+      `INSERT OR IGNORE INTO scores (board, date, player_id, score, marks, created_at)
+       SELECT board, date, ?2, score, marks, created_at FROM scores WHERE player_id = ?1`,
+    )
+    .bind(from.id, accountId)
+    .run()
+  const streaks = (id) =>
+    db
+      .prepare(
+        `SELECT board, current, best, last_played_date FROM streaks WHERE player_id = ?1`,
+      )
+      .bind(id)
+      .all()
+  const theirs = (await streaks(from.id)).results ?? []
+  const mine = new Map(
+    ((await streaks(accountId)).results ?? []).map((r) => [r.board, r]),
+  )
+  for (const row of theirs) {
+    const next = mergeStreaks(mine.get(row.board), row)
+    await db
+      .prepare(
+        `INSERT INTO streaks (board, player_id, current, best, last_played_date, updated_at)
+         VALUES (?1, ?2, ?3, ?4, ?5, ?6)
+         ON CONFLICT(board, player_id) DO UPDATE SET
+           current = excluded.current, best = excluded.best,
+           last_played_date = excluded.last_played_date, updated_at = excluded.updated_at`,
+      )
+      .bind(
+        row.board,
+        accountId,
+        next.current,
+        next.best,
+        next.last_played_date,
+        now,
+      )
+      .run()
+  }
+  for (const table of ['scores', 'streaks', 'tokens'])
+    await db
+      .prepare(`DELETE FROM ${table} WHERE player_id = ?1`)
+      .bind(from.id)
+      .run()
+  await db
+    .prepare(`DELETE FROM players WHERE id = ?1 AND username IS NULL`)
+    .bind(from.id)
+    .run()
+  return true
 }
 
 /** Sign this device out of an ACCOUNT (anonymous tokens are left alone). */
