@@ -212,7 +212,8 @@ export function planSync(input: {
  * when anything on the device changed (the caller re-renders).
  *
  * `refused` is the caller's per-session memory of hand-overs the server
- * turned down, so one is not re-posted on every visit to the home screen.
+ * turned down (a 4xx), so one is not re-posted on every visit to the home
+ * screen. Failures in transit are not remembered.
  */
 export async function syncProgress(
   players: Player[],
@@ -245,7 +246,11 @@ export async function syncProgress(
       marks: marks(game.questions),
     })
     if (!r.ok) {
-      refused.add(attempt)
+      // A 4xx is the server saying no (e.g. the day is outside its window):
+      // asking again cannot help. No answer, a 5xx or a 429 is worth another
+      // try on the next visit.
+      const s = r.status ?? 0
+      if (s >= 400 && s < 500 && s !== 429) refused.add(attempt)
       continue
     }
     saveDaily({ ...game, submitted: true, ...owner })

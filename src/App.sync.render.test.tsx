@@ -1,6 +1,12 @@
 // @vitest-environment jsdom
 import { describe, it, expect, afterEach, beforeEach, vi } from 'vitest'
-import { cleanup, render, screen, fireEvent } from '@testing-library/react'
+import {
+  cleanup,
+  render,
+  screen,
+  fireEvent,
+  within,
+} from '@testing-library/react'
 import type { League, Player, Tier } from './types'
 import { getDateKey } from './lib/daily'
 
@@ -31,18 +37,21 @@ const schools = ['a', 'b', 'c', 'd'].map((id) => ({
   name: `School ${id.toUpperCase()}`,
 }))
 const TOKEN = 'ab'.repeat(24)
+const BO_TOKEN = 'cd'.repeat(24)
 const today = getDateKey()
 
 /** What the account already holds, as `/me` reports it. */
 let me: Record<string, unknown>
 /** Flip to make the worker refuse scores. */
 let scoreOk = true
+let scoreStatus = 400
 const posted: { path: string; body: Record<string, unknown> }[] = []
 
 beforeEach(() => {
   localStorage.clear()
   posted.length = 0
   scoreOk = true
+  scoreStatus = 400
   localStorage.setItem(
     'whp:v1:identity',
     JSON.stringify({ token: TOKEN, name: 'Al', username: 'al' }),
@@ -63,11 +72,13 @@ beforeEach(() => {
           ? me
           : path === '/score'
             ? { rank: 1, total: 1, streak: { current: 6, best: 6 } }
-            : { total: 0, entries: [] }
+            : path === '/login'
+              ? { token: BO_TOKEN, name: 'Bo', username: 'bo' }
+              : { total: 0, entries: [] }
       if (path === '/score' && !scoreOk)
         return {
           ok: false,
-          status: 400,
+          status: scoreStatus,
           json: async () => ({ error: 'invalid date' }),
         }
       return {
@@ -173,6 +184,62 @@ describe('cross-device sync', () => {
     )
     await new Promise((r) => setTimeout(r, 20))
     expect(scorePosts()).toBe(0)
+  })
+
+  it('with the results on screen: signing in claims an unowned day once; signing out never reposts it', async () => {
+    // An anonymous device finishes the day…
+    localStorage.setItem(
+      'whp:v1:identity',
+      JSON.stringify({ token: TOKEN, name: '' }),
+    )
+    me = { name: '', username: null, scores: [], streaks: [] }
+    render(<App />)
+    await screen.findByRole('heading', { name: 'NFL' })
+    playNfl()
+    await vi.waitFor(() => expect(scorePosts()).toBe(1))
+    const key = `whp:v1:daily:nfl:${today}`
+    expect(JSON.parse(localStorage.getItem(key)!).owner).toBeUndefined()
+    // …then signs in as Bo without leaving the results: the day becomes Bo's.
+    fireEvent.click(screen.getByRole('button', { name: /Set name/ }))
+    const dialog = screen.getByRole('dialog', { name: 'Your profile' })
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Sign in' }))
+    fireEvent.change(within(dialog).getByLabelText('Username'), {
+      target: { value: 'bo' },
+    })
+    fireEvent.change(within(dialog).getByLabelText('Password'), {
+      target: { value: 'correct horse' },
+    })
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Sign in' }))
+    await vi.waitFor(() => expect(scorePosts()).toBe(2), { timeout: 5000 })
+    await vi.waitFor(() =>
+      expect(JSON.parse(localStorage.getItem(key)!).owner).toBe('bo'),
+    )
+    // Signing out (a fresh anonymous token) must not post Bo's day again.
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Sign out' }))
+    await vi.waitFor(() =>
+      expect(posted.some((p) => p.path === '/logout')).toBe(true),
+    )
+    await within(dialog).findByText('Signed out.')
+    await new Promise((r) => setTimeout(r, 20))
+    expect(
+      posted.filter((p) => p.path === '/score').map((p) => p.body.token),
+    ).toEqual([TOKEN, BO_TOKEN])
+  })
+
+  it('a hand-over that failed in transit (no answer, 5xx) is tried again', async () => {
+    me = { name: 'Al', username: 'al', scores: [], streaks: [] }
+    scoreOk = false
+    scoreStatus = 503
+    const first = render(<App />)
+    await screen.findByRole('heading', { name: 'NFL' })
+    playNfl()
+    first.unmount()
+    posted.length = 0
+    render(<App />)
+    await screen.findByRole('button', { name: 'Daily done · 0' })
+    await vi.waitFor(() => expect(scorePosts()).toBe(1))
+    document.dispatchEvent(new Event('visibilitychange'))
+    await vi.waitFor(() => expect(scorePosts()).toBe(2))
   })
 
   it('a refused hand-over is not retried on every visit', async () => {

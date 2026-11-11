@@ -197,7 +197,9 @@ tab comes back, the client folds that into `localStorage`:
   anonymous device: signing out must not repost the day as a second player.
   A finished day records its `owner` (the account signed in when it ended,
   or the one it was handed to) and is never handed to a different account.
-  A refused hand-over is not retried until the next page load. Earlier days
+  The results screen follows the same rule when the identity changes under
+  it. A hand-over the server refuses (4xx) is not retried until the next
+  page load; one that failed in transit is retried on the next visit. Earlier days
   played anonymously are still not merged.
 
 Known limits: a day played anonymously and then handed to an account is on

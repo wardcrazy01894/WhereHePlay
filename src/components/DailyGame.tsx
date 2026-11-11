@@ -133,6 +133,11 @@ export function DailyGame(props: Props) {
   // first result stands), and retry on a later visit if it didn't get through.
   useEffect(() => {
     if (!finished || !official || !apiEnabled) return
+    // A day that belongs to an account is only ever sent as that account:
+    // signing out, or in as someone else, with the results on screen must
+    // not post it under the new identity (same rule as src/lib/sync.ts).
+    if (game.owner && game.owner !== identity.username) return
+    const { username } = identity
     let live = true
     submitScore({
       token: identity.token,
@@ -144,8 +149,10 @@ export function DailyGame(props: Props) {
       if (!live || !r.ok) return
       setStanding({ rank: r.rank, total: r.total, streak: r.streak })
       setBoardKey((k) => k + 1)
-      if (!game.submitted) {
-        const done = { ...game, submitted: true }
+      // Accepted under an account: from now on the day is that account's.
+      const claim = username && !game.owner ? { owner: username } : {}
+      if (!game.submitted || claim.owner) {
+        const done = { ...game, submitted: true, ...claim }
         setGame(done)
         saveDaily(done)
       }
