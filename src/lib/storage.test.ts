@@ -5,6 +5,7 @@ import { giveUp, guess, newQuestion, takeHint } from './game'
 import { nextFreePlayer } from './freeplay'
 import { actionCreditUrl, actionUrls, headshotUrl } from './images'
 import type { Player } from '../types'
+import { boardId, gameLabel } from '../types'
 
 const empty: Stats = {
   current: 0,
@@ -80,6 +81,18 @@ describe('share', () => {
     ).toBe('WhereHePlay #2 · NBA (in action)')
     expect(squares('9')).toBe('⬛')
   })
+  it('a beginner daily says so on the card', () => {
+    expect(
+      shareText(
+        'mixed',
+        '2026-11-11',
+        [],
+        'https://x.test/',
+        'headshot',
+        'beginner',
+      ).split('\n')[0],
+    ).toBe('WhereHePlay #1 · Grab Bag Beginner (headshot)')
+  })
 })
 
 describe('free play', () => {
@@ -133,5 +146,15 @@ describe('images', () => {
     expect(actionCreditUrl(a)).toBe(
       'https://commons.wikimedia.org/wiki/File:Tom_Brady_2021_(cropped).png',
     )
+  })
+})
+
+describe('board ids', () => {
+  it('a standard daily keeps the bare mode; a beginner daily gets its own id', () => {
+    expect(boardId('nfl')).toBe('nfl')
+    expect(boardId('mixed', 'standard')).toBe('mixed')
+    expect(boardId('nba', 'beginner')).toBe('nba-beginner')
+    expect(gameLabel('nba')).toBe('NBA')
+    expect(gameLabel('mixed', 'beginner')).toBe('Grab Bag Beginner')
   })
 })

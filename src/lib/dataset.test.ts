@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest'
 import { readFileSync } from 'node:fs'
 import type { Player, School } from '../types'
 import {
+  BEGINNER_COOLDOWN_DAYS,
   COOLDOWN_DAYS,
   EPOCH_DATE_KEY,
   TIER_PLAN,
@@ -124,6 +125,39 @@ describe('players.json', () => {
         )
         expect(
           day.some((p) => window.has(p.id)),
+          `${mode} day ${i}`,
+        ).toBe(false)
+      })
+    }
+  })
+  it('the easy tier is deep enough for the beginner daily', () => {
+    // Five a day for the whole window, plus the day's own five and the three
+    // easy players the standard daily holds back that day.
+    for (const l of ['nfl', 'nba'] as const) {
+      const have = players.filter((p) => p.l === l && p.t === 'easy').length
+      expect(have, l).toBeGreaterThan(5 * (BEGINNER_COOLDOWN_DAYS + 1) + 3)
+    }
+  })
+  it("a year of real beginner dailies is all easy, with no repeat inside the window and nobody from that day's standard daily", () => {
+    for (const mode of ['nfl', 'nba', 'mixed'] as const) {
+      const days = Array.from({ length: 365 }, (_, i) =>
+        dailyLineup(players, mode, addDays(EPOCH_DATE_KEY, i), 'beginner'),
+      )
+      days.forEach((day, i) => {
+        expect(
+          day.map((p) => p.t),
+          `${mode} day ${i}`,
+        ).toEqual(Array(5).fill('easy'))
+        const blocked = new Set([
+          ...days
+            .slice(Math.max(0, i - BEGINNER_COOLDOWN_DAYS), i)
+            .flatMap((d) => d.map((p) => p.id)),
+          ...dailyLineup(players, mode, addDays(EPOCH_DATE_KEY, i)).map(
+            (p) => p.id,
+          ),
+        ])
+        expect(
+          day.some((p) => blocked.has(p.id)),
           `${mode} day ${i}`,
         ).toBe(false)
       })

@@ -3,7 +3,8 @@
  * are defensive (private windows, cleared or corrupted data): a bad value is
  * treated as absent, never thrown.
  */
-import type { Mode } from '../types'
+import type { BoardId, Mode, Variant } from '../types'
+import { boardId } from '../types'
 import type { QuestionState } from './game'
 import { addDays } from './daily'
 
@@ -29,6 +30,8 @@ function write(key: string, value: unknown): void {
 
 export interface DailyGame {
   mode: Mode
+  /** Absent on a standard daily (and on every save from before beginner mode). */
+  variant?: Variant
   dateKey: string
   /** Player ids of the lineup this game was started on. */
   lineup: string[]
@@ -39,14 +42,19 @@ export interface DailyGame {
   submitted?: boolean
 }
 
-export function loadDaily(mode: Mode, dateKey: string): DailyGame | undefined {
-  const g = read<DailyGame>(`daily:${mode}:${dateKey}`)
+export function loadDaily(
+  mode: Mode,
+  dateKey: string,
+  variant: Variant = 'standard',
+): DailyGame | undefined {
+  const g = read<DailyGame>(`daily:${boardId(mode, variant)}:${dateKey}`)
   if (!g || g.mode !== mode || g.dateKey !== dateKey) return undefined
+  if ((g.variant ?? 'standard') !== variant) return undefined
   if (!Array.isArray(g.lineup) || !Array.isArray(g.questions)) return undefined
   return g
 }
 export function saveDaily(g: DailyGame): void {
-  write(`daily:${g.mode}:${g.dateKey}`, g)
+  write(`daily:${boardId(g.mode, g.variant)}:${g.dateKey}`, g)
 }
 
 // ---- Streaks + history --------------------------------------------------------
@@ -69,8 +77,9 @@ const EMPTY: Stats = {
   totalPoints: 0,
 }
 
-export function loadStats(mode: Mode): Stats {
-  const s = read<Stats>(`stats:${mode}`)
+/** Streaks are per daily game: a beginner daily has its own. */
+export function loadStats(board: BoardId): Stats {
+  const s = read<Stats>(`stats:${board}`)
   if (!s || typeof s.current !== 'number' || typeof s.best !== 'number')
     return { ...EMPTY }
   return { ...EMPTY, ...s }
@@ -99,8 +108,8 @@ export function liveStreak(s: Stats, todayKey: string): number {
     : 0
 }
 
-export function saveStats(mode: Mode, s: Stats): void {
-  write(`stats:${mode}`, s)
+export function saveStats(board: BoardId, s: Stats): void {
+  write(`stats:${board}`, s)
 }
 
 // ---- Free play -----------------------------------------------------------------

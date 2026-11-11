@@ -5,6 +5,7 @@ import { DatabaseSync } from 'node:sqlite'
 import worker from './api.mjs'
 import {
   validateScore,
+  validateBoardQuery,
   validateName,
   validateUsername,
   scoreForMarks,
@@ -88,6 +89,13 @@ describe('validation', () => {
 
   it('accepts a consistent submission', () => {
     expect(validateScore(good, now).ok).toBe(true)
+  })
+  it('accepts the beginner boards', () => {
+    for (const board of ['nfl-beginner', 'nba-beginner', 'mixed-beginner']) {
+      expect(validateScore({ ...good, board }, now).ok).toBe(true)
+      expect(validateBoardQuery({ board, date: good.date }, now).ok).toBe(true)
+    }
+    expect(validateScore({ ...good, board: 'beginner' }, now).ok).toBe(false)
   })
   it('rejects a score that does not match the marks', () => {
     expect(validateScore({ ...good, score: 500 }, now).error).toBe(
