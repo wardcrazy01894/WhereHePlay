@@ -16,7 +16,6 @@ Ideas and known gaps, roughly in priority order. Nothing here is promised.
   show (or probably show) the player in college (docs/DATA.md §No college
   gear). The contact-sheet review used small thumbnails, so a tiny college
   logo could still have slipped through; bug reports feed the manual list.
-  Gaines Adams is the one player out for lack of any usable photo.
 - **NBA transfers.** Wikidata does not always list every college stint (or
   their order), so a correct "he started at X" guess can be marked wrong, and
   the finishing school can be the wrong one (Ronnie Price was). Fix each in

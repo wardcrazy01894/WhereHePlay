@@ -2,7 +2,7 @@
 
 Two committed artifacts drive the game:
 
-- `public/players.json` — 2,008 players (1,095 NFL, 913 NBA)
+- `public/players.json` — 2,009 players (1,096 NFL, 913 NBA)
 - `public/schools.json` — 375 colleges plus the "High School (no college)"
   answer (id, name, search aliases)
 
@@ -226,8 +226,10 @@ them ESPN has a real headshot (`npm run scan-espn-heads` checks ESPN's image
 server by the ESPN id nflverse carries and records hits in
 `data/nfl-espn-heads.json`; the headshot key is then `espn:<id>`). The rest
 use their Wikimedia photo, or a hand-picked one from
-`data/photo-overrides.json`. One player is out for having no usable photo
-anywhere: Gaines Adams (every free photo of him is in a Clemson uniform).
+`data/photo-overrides.json` — which can also name an image on the NFL clubs'
+image server (`clubs:<path>`) as a last resort: Gaines Adams, whose only free
+photos are in a Clemson uniform, uses a Buccaneers team-site photo. Nobody is
+left out for lack of a photo.
 
 League headshots are the leagues' copyrighted images, hotlinked. That is a
 deliberate, accepted risk for a free hobby website and a blocker for an app
