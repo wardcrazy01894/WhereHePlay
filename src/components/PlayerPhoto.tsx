@@ -1,6 +1,11 @@
 import { useEffect, useState } from 'react'
 import type { Player } from '../types'
-import { actionCreditUrl, actionUrls, headshotUrl } from '../lib/images'
+import {
+  actionCreditUrl,
+  actionDirectUrl,
+  actionUrls,
+  headshotUrl,
+} from '../lib/images'
 
 interface Props {
   player: Player
@@ -58,9 +63,14 @@ function useBlobImage(urls: string[]): string | null | undefined {
  */
 export function PlayerPhoto({ player, kind, revealed }: Props) {
   const [headshotFailed, setHeadshotFailed] = useState(false)
+  const [directFailed, setDirectFailed] = useState(false)
   // No real headshot on file → the in-uniform photo stands in for it.
   const wantAction = kind === 'action' || !player.h
-  const action = useBlobImage(wantAction ? actionUrls(player) : [])
+  // A photo with an opaque URL is shown as it is; a Commons one (its URL
+  // names him) is fetched into a blob first.
+  const direct = wantAction && !directFailed ? actionDirectUrl(player) : null
+  const blob = useBlobImage(wantAction && !direct ? actionUrls(player) : [])
+  const action = direct ?? blob
   const headshot = headshotFailed ? null : headshotUrl(player)
   const loading = wantAction && action === undefined
   const src = action ?? (loading ? null : headshot)
@@ -73,7 +83,9 @@ export function PlayerPhoto({ player, kind, revealed }: Props) {
           alt={revealed ? player.n : 'Mystery player'}
           referrerPolicy="no-referrer"
           draggable={false}
-          onError={() => !action && setHeadshotFailed(true)}
+          onError={() =>
+            direct ? setDirectFailed(true) : !action && setHeadshotFailed(true)
+          }
         />
       ) : (
         <div

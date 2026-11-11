@@ -3,7 +3,12 @@ import { type Stats, bumpStats, liveStreak } from './storage'
 import { shareText, squares } from './share'
 import { giveUp, guess, newQuestion, takeHint } from './game'
 import { nextFreePlayer } from './freeplay'
-import { actionCreditUrl, actionUrls, headshotUrl } from './images'
+import {
+  actionCreditUrl,
+  actionDirectUrl,
+  actionUrls,
+  headshotUrl,
+} from './images'
 import type { Player } from '../types'
 import { boardId, gameLabel } from '../types'
 
@@ -144,6 +149,19 @@ describe('images', () => {
   })
   it('no headshot key → null', () => {
     expect(headshotUrl({ ...p, h: undefined })).toBeNull()
+  })
+  it('a "tsdb:" playing photo is a direct image URL (opaque file name, no CORS), not a Commons fetch', () => {
+    const t = { ...p, a: 'tsdb:thumb/0lob5a1593879029.jpg' }
+    expect(actionDirectUrl(t)).toBe(
+      'https://r2.thesportsdb.com/images/media/player/thumb/0lob5a1593879029.jpg',
+    )
+    expect(actionUrls(t)).toEqual([])
+    expect(actionCreditUrl(t)).toBeNull()
+    // A Commons photo has no direct URL: its file name would name him.
+    expect(actionDirectUrl({ ...p, a: 'cb/Tom_Brady_2021.png' })).toBeNull()
+    expect(actionDirectUrl(p)).toBeNull()
+    // Anything malformed is treated as no photo at all.
+    expect(actionDirectUrl({ ...p, a: 'tsdb:../../x.jpg' })).toBeNull()
   })
   it('in-uniform photo: thumbnail then original, straight from the CORS-enabled host', () => {
     expect(actionUrls(p)).toEqual([])

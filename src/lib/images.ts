@@ -29,9 +29,24 @@ export function headshotUrl(p: Player): string | null {
     : `https://static.www.nfl.com/image/${p.h}`
 }
 
+/** "tsdb:<kind>/<file>": a playing photo hosted by TheSportsDB. */
+const TSDB = /^tsdb:((?:thumb|cutout|render|fanart)\/[a-z0-9]+\.(?:jpg|png))$/
+
+/**
+ * The playing photo as a plain image URL, when it has one that is safe to
+ * put in the page: TheSportsDB names its files with opaque ids, so the URL
+ * does not give the player away (and its host sends no CORS headers, so it
+ * could not be fetched into a blob anyway). Null for a Commons photo — see
+ * actionUrls — and for no photo.
+ */
+export function actionDirectUrl(p: Player): string | null {
+  const m = TSDB.exec(p.a ?? '')
+  return m ? `https://r2.thesportsdb.com/images/media/player/${m[1]}` : null
+}
+
 /** `a` is "<xy>/<File_name.jpg>" — the file's storage path on Commons. */
 function commonsPath(p: Player): { dir: string; file: string } | null {
-  if (!p.a) return null
+  if (!p.a || p.a.startsWith('tsdb:')) return null
   const slash = p.a.indexOf('/')
   const hash = p.a.slice(0, slash)
   return {

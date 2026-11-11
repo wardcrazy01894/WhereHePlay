@@ -1,6 +1,12 @@
 // @vitest-environment jsdom
 import { describe, it, expect, afterEach, beforeEach, vi } from 'vitest'
-import { cleanup, render, screen, waitFor } from '@testing-library/react'
+import {
+  cleanup,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+} from '@testing-library/react'
 import type { Player } from '../types'
 import { PlayerPhoto } from './PlayerPhoto'
 
@@ -104,5 +110,24 @@ describe('PlayerPhoto', () => {
     expect(container.querySelector('img')!.getAttribute('src')).toContain(
       'static.www.nfl.com',
     )
+  })
+  it('a TheSportsDB playing photo is shown straight from its opaque URL, with no fetch', () => {
+    const tsdb = { ...player, a: 'tsdb:thumb/abc123.jpg' }
+    render(<PlayerPhoto player={tsdb} kind="action" revealed={false} />)
+    const img = screen.getByAltText('Mystery player') as HTMLImageElement
+    expect(img.src).toBe(
+      'https://r2.thesportsdb.com/images/media/player/thumb/abc123.jpg',
+    )
+    expect(fetched).toEqual([])
+    // Nothing in the page names him before the name hint.
+    expect(document.body.innerHTML).not.toMatch(/Romo/i)
+  })
+  it('…and falls back to the headshot if it fails to load', () => {
+    const tsdb = { ...player, a: 'tsdb:thumb/abc123.jpg' }
+    render(<PlayerPhoto player={tsdb} kind="action" revealed={false} />)
+    fireEvent.error(screen.getByAltText('Mystery player'))
+    expect(
+      (screen.getByAltText('Mystery player') as HTMLImageElement).src,
+    ).toBe('https://static.www.nfl.com/image/private/f_auto/league/opaque123')
   })
 })
