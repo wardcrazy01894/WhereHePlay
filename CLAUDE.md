@@ -37,6 +37,7 @@ migrations. Never mock the unit under test.
 | `src/lib/storage.ts`, `share.ts`, `freeplay.ts`                   | PLAN §Modes and storage                            |
 | `src/lib/version.ts`, the version-json plugin in `vite.config.ts` | PLAN §Auto-update                                  |
 | `worker/*`, `src/lib/api.ts`, Leaderboard, AccountDialog          | PLAN §API + `worker/README.md` + OPERATIONS        |
+| `worker/bug-lib.mjs`, `src/lib/report.ts`, BugReport              | PLAN §Bug reports + OPERATIONS §Bug reports        |
 | `worker/migrations/*`                                             | OPERATIONS §API worker (run the migration!)        |
 | `scripts/*`, `data/schools.psv`, `public/*.json`                  | `docs/DATA.md`; player counts in README            |
 | `src/lib/images.ts`, photo sources                                | DATA §Photos + `docs/APP.md` §Photos               |
@@ -84,8 +85,9 @@ PostToolUse hook formats/lints TS files on edit, but not Markdown, JSON or
 ## Secrets
 
 None in the repo. `VITE_API_ENDPOINT` and `VITE_CF_BEACON_TOKEN` are public by
-design (repo Variables in CI, `.env.local` locally). The worker has no secrets
-today; if one is added it goes in Cloudflare via `wrangler secret put`.
+design (repo Variables in CI, `.env.local` locally). The worker's one secret, `GH_TOKEN` (fine-grained PAT, Issues read/write, this
+repo only), lives in Cloudflare via `wrangler secret put` — never here, nor in
+`worker/.dev.vars` (gitignored).
 
 ## Git identity
 

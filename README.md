@@ -52,6 +52,7 @@ WhereHePlay #1 · NFL
 | 🏆  | **Daily leaderboard**        | See where your score lands today, with everyone's squares and streaks.                                                                             |
 | 👤  | **Names, accounts optional** | Play instantly and pick a display name. A username + password account (no email) carries your name, scores and streaks across devices.             |
 | 🔥  | **Streaks & share card**     | Wordle-style squares with the puzzle number.                                                                                                       |
+| 🐛  | **In-app bug reports**       | Type what went wrong and send; it lands as a GitHub issue without leaving the site.                                                                |
 | 📱  | **Phone-first**              | Built to be wrapped as an iPhone / Android app later — see [docs/APP.md](docs/APP.md).                                                             |
 | 💸  | **$0 hosting**               | GitHub Pages + Cloudflare free tiers; photos are hotlinked, not stored.                                                                            |
 

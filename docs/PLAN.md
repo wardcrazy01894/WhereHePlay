@@ -172,7 +172,8 @@ they played; streak history is not kept); the caller's own row is appended
 if outside the top. No ids, usernames or tokens are ever returned.
 
 **Abuse controls:** fails closed without the rate-limit binding; 60
-requests/min per IP; 5 login attempts/min per IP + username; server-side
+requests/min per IP; 5 login attempts/min per IP + username; 5 bug reports/min
+per IP; server-side
 Origin allowlist; 2 KB body cap; identical error and work for unknown
 username vs wrong password. The Origin check stops other websites from using
 the API from a browser; it is advisory against scripts (a request with no
@@ -186,6 +187,30 @@ once per UTC day, from a `/score` request — the Cloudflare account has no
 free cron slots). The same pass removes anonymous players older than 30 days
 that never finished a daily. Streaks, accounts and anyone with a score are
 kept.
+
+## Bug reports
+
+"🐛 Report a bug" in the footer (every screen) opens a dialog: a text box, a
+checkbox to include the session's activity log, and Send
+(`src/components/BugReport.tsx`, `src/lib/report.ts`).
+
+- **Automatic path:** the worker's `/bug` route turns the report into a
+  GitHub issue in this repo, labelled `bug` + `from-app`, using a token that
+  only the worker holds (`worker/bug-lib.mjs`). The player needs no GitHub
+  account and gets a link to the issue.
+- **Fallback:** if that can't happen — token not configured (503), rate
+  limited, offline, API unset — the dialog keeps the text and offers a
+  prefilled GitHub "new issue" link. A report is never silently dropped.
+- The issue carries the message, the screen, the puzzle day, the build id,
+  the page URL (only if it is from our own site) and the browser, plus the
+  optional log.
+- **Issues are public and the text is untrusted**, so everything is
+  defanged first: @mentions, code fences, Markdown links/images, raw HTML and
+  `#123` references are neutralised; lengths are capped (2,000 chars of
+  message, 6,000 of logs, 20 KB body).
+- Abuse: 5 reports per minute per IP (its own limiter; the route refuses to
+  run without it), on top of the general limit and the Origin allowlist. The
+  token is a fine-grained PAT limited to Issues on this one repo.
 
 ## Not built yet
 

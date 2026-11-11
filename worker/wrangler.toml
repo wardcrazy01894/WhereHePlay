@@ -7,6 +7,8 @@ main = "api.mjs"
 compatibility_date = "2025-11-01"
 
 [vars]
+# Repo that in-app bug reports are filed in.
+GH_REPO = "wardcrazy01894/WhereHePlay"
 # Comma-separated allowed browser origins (the worker rejects others).
 # localhost entries are for `npm run dev` against `npm run worker:dev`;
 # capacitor://localhost + https://localhost are the native app shells
@@ -39,6 +41,20 @@ namespace_id = "4002"
   [ratelimits.simple]
   limit = 5
   period = 60
+
+# Per IP on /bug: 5 reports a minute (each one becomes a public GitHub issue).
+[[ratelimits]]
+name = "BUG_LIMITER"
+namespace_id = "4003"
+
+  [ratelimits.simple]
+  limit = 5
+  period = 60
+
+# --- Secret (set once: `npx wrangler secret put GH_TOKEN -c worker/wrangler.toml`)
+# GH_TOKEN  fine-grained GitHub PAT, "Issues: read and write" on this repo
+#           only. Unset → /bug answers 503 and the site falls back to a
+#           prefilled GitHub issue link.
 
 # No [triggers]: the account's Workers Free cron slots are all in use, so the
 # retention prune runs lazily from /score (pruneIfDue).

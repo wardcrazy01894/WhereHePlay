@@ -60,6 +60,13 @@ describe('App', () => {
     expect(screen.getAllByRole('button', { name: 'Free play' })).toHaveLength(3)
   })
 
+  it('the footer opens the bug-report dialog', async () => {
+    render(<App />)
+    await screen.findByRole('heading', { name: 'NFL' })
+    fireEvent.click(screen.getByRole('button', { name: /Report a bug/ }))
+    expect(screen.getByRole('dialog', { name: 'Report a bug' })).toBeTruthy()
+  })
+
   it('the last line of the footer is the Spicy Al credit', async () => {
     const { container } = render(<App />)
     await screen.findByRole('heading', { name: 'NFL' })
@@ -218,7 +225,7 @@ describe('auto-update', () => {
     deploy('some-newer-build')
     document.dispatchEvent(new Event('visibilitychange'))
     expect(
-      await screen.findByText(/loads when you close your profile/),
+      await screen.findByText(/loads when you close this dialog/),
     ).toBeTruthy()
     expect(reload).not.toHaveBeenCalled()
     fireEvent.click(screen.getByRole('button', { name: 'Close' }))

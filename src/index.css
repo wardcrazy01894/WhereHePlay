@@ -559,3 +559,36 @@ input[type='password'] {
   color: var(--muted);
   margin: 8px 0 0;
 }
+
+/* ---- Bug report ---- */
+button.link {
+  background: none;
+  border: 0;
+  padding: 0;
+  min-height: 32px;
+  color: var(--muted);
+  font-size: inherit;
+  text-decoration: underline;
+}
+textarea {
+  font: inherit;
+  font-size: 16px;
+  color: var(--text);
+  background: var(--panel-2);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 10px 12px;
+  width: 100%;
+  resize: vertical;
+}
+.check {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  font-size: 0.85rem;
+  color: var(--muted);
+  margin-bottom: 12px;
+}
+.check input {
+  margin-top: 3px;
+}

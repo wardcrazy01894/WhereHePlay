@@ -11,13 +11,18 @@
  *   /register  { token, username, pass }            → { name, username }
  *   /login     { username, pass }                   → { token, name, username }
  *   /logout    { token }                            → {}
+ *   /bug       { message, context, logs }           → { url }  (files a
+ *              GitHub issue; needs the GH_TOKEN secret, else 503 and the
+ *              site falls back to a prefilled issue link)
  *
  * SECURITY: public endpoint. Fails CLOSED without a rate limiter; per-IP rate
- * limit on everything plus a much tighter per-IP+username limit on /login;
- * server-side Origin allowlist; small body cap; strict validation.
+ * limit on everything plus a much tighter per-IP+username limit on /login
+ * and per-IP limit on /bug; server-side Origin allowlist; small body cap;
+ * strict validation; report text is defanged before it becomes an issue.
  *
  * Bindings (worker/wrangler.toml): DB (D1), ALLOWED_ORIGIN, RATE_LIMITER,
- * LOGIN_LIMITER.
+ * LOGIN_LIMITER, BUG_LIMITER, GH_REPO, and the secret GH_TOKEN (fine-grained
+ * PAT: Issues read & write on this repo only).
  */
 
 import {
@@ -39,7 +44,9 @@ import {
   updateStreak,
   readBoard,
   pruneIfDue,
+  allowedOrigins,
 } from './api-lib.mjs'
+import { MAX_BUG_BODY_BYTES, buildIssue, createIssue } from './bug-lib.mjs'
 
 const MAX_BODY_BYTES = 2_000
 
@@ -72,10 +79,14 @@ export default {
     const { success } = await env.RATE_LIMITER.limit({ key: ip })
     if (!success) return reply({ error: 'rate limited, try later' }, 429)
 
+    const route = new URL(request.url).pathname.replace(/\/+$/, '')
+    // A bug report carries a message and session logs; everything else is tiny.
+    const maxBytes = route === '/bug' ? MAX_BUG_BODY_BYTES : MAX_BODY_BYTES
+
     let body
     try {
       const raw = await request.text()
-      if (new TextEncoder().encode(raw).byteLength > MAX_BODY_BYTES)
+      if (new TextEncoder().encode(raw).byteLength > maxBytes)
         return reply({ error: 'payload too large' }, 413)
       body = JSON.parse(raw)
     } catch {
@@ -84,7 +95,6 @@ export default {
     if (!body || typeof body !== 'object')
       return reply({ error: 'invalid json' }, 400)
 
-    const route = new URL(request.url).pathname.replace(/\/+$/, '')
     const now = new Date()
     const db = env.DB
 
@@ -187,6 +197,27 @@ export default {
             return reply({ error: 'invalid token' }, 400)
           await logoutToken(db, body.token)
           return reply({ ok: true })
+        }
+        case '/bug': {
+          // No token configured → say so; the site then offers a prefilled
+          // GitHub issue link instead.
+          if (!env.GH_TOKEN || !env.GH_REPO)
+            return reply({ error: 'reporting disabled' }, 503)
+          // Each report becomes a public issue: fail closed without its limiter.
+          if (!env.BUG_LIMITER)
+            return reply({ error: 'reporting disabled' }, 503)
+          const gate = await env.BUG_LIMITER.limit({ key: ip })
+          if (!gate.success)
+            return reply(
+              { error: 'too many reports, try again in a minute' },
+              429,
+            )
+          const issue = buildIssue(body, allowedOrigins(env))
+          if (!issue.ok) return bad(issue)
+          const filed = await createIssue(env, issue.value)
+          if (!filed.ok)
+            return reply({ error: 'could not file the report' }, 502)
+          return reply({ ok: true, url: filed.url })
         }
         default:
           return reply({ error: 'not found' }, 404)
