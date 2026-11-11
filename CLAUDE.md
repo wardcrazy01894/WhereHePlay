@@ -57,10 +57,18 @@ requirement, pinned by `src/App.render.test.tsx`.
   game under people mid-play. Golden-value tests pin them. A plan change goes
   through `tierPlanFor`: a new plan with a start date in the future, never an
   edit to a plan already played. (The one exception was launch day,
-  2026-11-11: the plan went from 2-2-1 to 3-1-1 before the link was shared,
-  and the test scores were wiped.)
+  2026-11-11, before the link was shared: the plan went from 2-2-1 to 3-1-1
+  and the test scores were wiped; that evening the game was restarted once
+  more onto players with both photos — `localStorage` prefix `whp:v2:`, the
+  leaderboard database emptied.)
 - **Rebuilding the dataset can change upcoming lineups.** Fine for future
   days; avoid merging a rebuild in the middle of a US evening.
+- **Photos never decide who is in the dataset, only who is drawn.** A player
+  is drawn only with both a real headshot and a real playing photo (`e` in
+  `players.json`, dated by `data/eligible-since.json`). Never drop a player
+  over photos, and never edit an eligible-since date into the past — that
+  re-rolls days already played. New photos take effect the next day by
+  design. (docs/DATA.md §Photos — The rules.)
 - **Points live in two places**: `STAGE_POINTS` (client) and `MARK_POINTS`
   (worker). The worker rejects a score that doesn't match its marks.
 - Never set a lint rule to `off` to make an upgrade land; a downgrade needs a

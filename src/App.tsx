@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import type { Mode, Player, School, Variant } from './types'
 import { MODES, MODE_LABEL, boardId } from './types'
-import { getDateKey, puzzleNumber } from './lib/daily'
+import { eligibleOn, getDateKey, puzzleNumber } from './lib/daily'
 import { resolveDay } from './lib/day'
 import { totalPoints } from './lib/game'
 import { apiEnabled, fetchMe } from './lib/api'
@@ -384,7 +384,8 @@ export function App() {
         {ready && view.screen === 'free' && (
           <FreePlay
             key={view.mode}
-            players={players}
+            // Only players with both photos are dealt (the rest wait).
+            players={eligibleOn(players, getDateKey())}
             schools={schools}
             mode={view.mode}
             photoStyle={photoStyle}

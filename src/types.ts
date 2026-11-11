@@ -26,6 +26,14 @@ export interface Player {
   p?: string
   /** Wikimedia Commons storage path of an in-uniform photo, when one exists. */
   a?: string
+  /**
+   * Eligible since: days after puzzle #1 from which he may be drawn. Present
+   * only for a player with BOTH a real headshot and a real playing photo;
+   * everyone else waits in the dataset (and is still found by the search).
+   * Set by the build and never moved into the past, so new photos cannot
+   * change a lineup that is already being played.
+   */
+  e?: number
   /** The high school of a player who skipped college (his answer is the
    *  pseudo-school HIGH_SCHOOL_ID); shown in the reveal. */
   hs?: string
