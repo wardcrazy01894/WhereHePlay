@@ -166,10 +166,18 @@ export function AccountDialog({ identity, onChange, onClose }: Props) {
                   type="text"
                   value={username}
                   maxLength={20}
+                  placeholder={form === 'register' ? 'anything you like' : ''}
                   autoComplete="username"
                   autoCapitalize="none"
                   onChange={(e) => setUsername(e.target.value)}
                 />
+                {form === 'register' && (
+                  <span className="field-note">
+                    <strong>Not an email.</strong> Make up any username (3–20
+                    letters, numbers or _). We never ask for or use an email
+                    address.
+                  </span>
+                )}
               </label>
               <label className="field">
                 <span>Password</span>

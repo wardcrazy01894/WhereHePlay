@@ -317,6 +317,7 @@
 {"id":"ut-rio-grande","name":"UT Rio Grande Valley","aliases":["Texas-Pan American","UTRGV"]},
 {"id":"houston-christian","name":"Houston Christian","aliases":["Houston Baptist"]},
 {"id":"hartford","name":"Hartford"},
+{"id":"high-school","name":"High School (no college)","aliases":["High School","HS","Prep","Preps to pros","No college","None","Straight to the NBA"]},
 {"id":"grand-valley","name":"Grand Valley State","aliases":["GVSU"]},
 {"id":"saginaw-valley","name":"Saginaw Valley State","aliases":["SVSU"]},
 {"id":"ferris-state","name":"Ferris State"},

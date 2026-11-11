@@ -163,7 +163,25 @@ export function nflCandidates(
 }
 
 /** @returns candidate records for the NBA from the Wikidata tables. */
-export function nbaCandidates(baseRows, teamRows, match, nowYear) {
+/** The pseudo-school that is the answer for a preps-to-pros player. */
+export const HIGH_SCHOOL_ID = 'high-school'
+
+/** Name key for matching the preps-to-pros list: letters only, lowercased. */
+export const nameKey = (name) =>
+  String(name)
+    .normalize('NFKD')
+    .toLowerCase()
+    .replace(/[^a-z]/g, '')
+
+/**
+ * @param preps  data/preps-to-pros.json `players` — NBA players who skipped
+ *   college. They have no college stint, so they are admitted by this list:
+ *   their answer is HIGH_SCHOOL_ID and the real high school rides along for
+ *   the reveal. Returns `missingPreps`: listed names not found in the source.
+ */
+export function nbaCandidates(baseRows, teamRows, match, nowYear, preps = []) {
+  const prepByName = new Map(preps.map((p) => [nameKey(p.name), p]))
+  const foundPreps = new Set()
   const base = new Map()
   for (const b of baseRows) if (!base.has(b.bbref)) base.set(b.bbref, b)
   const teams = new Map()
@@ -185,7 +203,8 @@ export function nbaCandidates(baseRows, teamRows, match, nowYear) {
         /basketball$/.test(t.teamLabel) &&
         !/national/.test(t.teamLabel),
     )
-    if (!college.length) continue
+    const prep = prepByName.get(nameKey(b.name))
+    if (!college.length && !prep) continue
     const dob = year(b.dob)
     // Last attended first: order by the stint's end (then start) year, desc.
     const stints = college
@@ -203,11 +222,18 @@ export function nbaCandidates(baseRows, teamRows, match, nowYear) {
           unmapped.set(t.teamLabel, (unmapped.get(t.teamLabel) ?? 0) + 1)
       }
     })
-    if (!schools.length || !firstMapped) continue
+    if (!prep && (!schools.length || !firstMapped)) continue
+    if (prep) {
+      // Straight from high school: that is the one accepted answer, whatever
+      // stray college rows the source may carry.
+      schools.length = 0
+      schools.push(HIGH_SCHOOL_ID)
+      foundPreps.add(nameKey(prep.name))
+    }
     const nbaStarts = nba.map((t) => year(t.start)).filter(Boolean)
-    const lastCollege = stints[0].when
+    const lastCollege = prep ? prep.draft : (stints[0]?.when ?? 0)
     // Fall year of the final college season: a stint "ending 2009" was the
-    // 2008-09 season. Fallbacks: the year before the NBA debut, then age 21.
+    // 2008-09 season (for a prep: his senior year, the fall before the draft). Fallbacks: the year before the NBA debut, then age 21.
     const yr = lastCollege
       ? lastCollege - 1
       : nbaStarts.length
@@ -220,7 +246,9 @@ export function nbaCandidates(baseRows, teamRows, match, nowYear) {
     const ends = nba.map((t) => year(t.end) ?? year(t.start)).filter(Boolean)
     // Unknown career dates: assume a career of ~8 seasons after college.
     const lastPro = open ? nowYear : ends.length ? Math.max(...ends) : yr + 9
-    if (!passesEra(fame, lastPro, 'nba')) continue
+    // The preps list is hand-picked, so it is not second-guessed by the
+    // fame / era filter.
+    if (!prep && !passesEra(fame, lastPro, 'nba')) continue
     const key = `${b.name}|${schools[0]}`
     if (seen.has(key)) continue
     seen.add(key)
@@ -236,9 +264,13 @@ export function nbaCandidates(baseRows, teamRows, match, nowYear) {
       head: b.nbaid,
       action: commonsFile(b.img),
       lastPro,
+      ...(prep ? { hs: prep.hs } : {}),
     })
   }
-  return { records, unmapped }
+  const missingPreps = preps
+    .filter((p) => !foundPreps.has(nameKey(p.name)))
+    .map((p) => p.name)
+  return { records, unmapped, missingPreps }
 }
 
 /**
@@ -273,7 +305,17 @@ export function assignTiers(records) {
  * in this league's pool. Deterministic per player. Tops up from other pool
  * schools when the conference is too small (independents).
  */
-export function pickDecoys(rec, schools, poolSchoolIds) {
+export function pickDecoys(rec, schools, poolSchoolIds, topPrograms = []) {
+  // A player who skipped college has no conference mates. His wrong answers
+  // are the programs that produce the most pros — where you'd guess a star
+  // went — not three random schools.
+  if (rec.schools[0] === HIGH_SCHOOL_ID) {
+    const rankTop = (id) => hash(`${rec.id}|${id}`)
+    return [...topPrograms]
+      .filter((id) => !rec.schools.includes(id))
+      .sort((a, b) => rankTop(a) - rankTop(b))
+      .slice(0, 3)
+  }
   const conf = rec.conf
   const mine = new Set(rec.schools)
   const rank = (s) => hash(`${rec.id}|${s.id}`)
