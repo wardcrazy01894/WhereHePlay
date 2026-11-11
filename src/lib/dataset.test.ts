@@ -114,6 +114,19 @@ describe('players.json', () => {
     ])
     for (const p of players) if (p.h) expect(not.has(p.h), p.id).toBe(false)
   })
+  it('no two players share a playing photo, and every key has a known shape', () => {
+    // A shared photo means one of them is shown someone else (it happened:
+    // Jason Smith was once given a photo of Alan Williams).
+    const seen = new Map<string, string>()
+    for (const p of players) {
+      if (!p.a) continue
+      expect(seen.get(p.a), `${p.id} and ${seen.get(p.a)}`).toBeUndefined()
+      seen.set(p.a, p.id)
+      expect(p.a, p.id).toMatch(
+        /^([0-9a-f]{2}\/[^/]+\.(jpe?g|png)|tsdb:(thumb|cutout|render|fanart)\/[a-z0-9]+\.(jpg|png))$/i,
+      )
+    }
+  })
   it('a playing photo is a playing photo: nothing from the blocklist', () => {
     const lists = data('photo-blocklist.json')
     const allowed = new Set<string>(lists.allow)

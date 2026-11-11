@@ -16,6 +16,7 @@ import {
   assignTiers,
   pickDecoys,
   applyOverrides,
+  actionKeyFor,
   commonsPath,
   NBA_LEAGUE,
 } from './players.mjs'
@@ -236,6 +237,22 @@ describe('players', () => {
     expect(run({})[0].head).toBe('')
   })
 
+  it('actionKeyFor: a Commons file name, or a TheSportsDB image key', () => {
+    expect(actionKeyFor('Tom Brady 2021.png')).toBe(
+      commonsPath('Tom Brady 2021.png'),
+    )
+    expect(actionKeyFor('tsdb:thumb/0lob5a1593879029.jpg')).toBe(
+      'tsdb:thumb/0lob5a1593879029.jpg',
+    )
+    expect(actionKeyFor('tsdb:cutout/abc.png')).toBe('tsdb:cutout/abc.png')
+    for (const bad of [
+      'tsdb:thumb/../x.jpg',
+      'tsdb:other/abc.jpg',
+      'tsdb:thumb/abc.gif',
+      'x.svg',
+    ])
+      expect(actionKeyFor(bad)).toBe('')
+  })
   it('commonsPath turns a file name into its storage path', () => {
     expect(commonsPath('Tom Brady 2021.png')).toBe('cb/Tom_Brady_2021.png')
     expect(commonsPath('Logo.svg')).toBe('')

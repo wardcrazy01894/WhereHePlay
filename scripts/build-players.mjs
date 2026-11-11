@@ -20,7 +20,7 @@ import {
   assignTiers,
   pickDecoys,
   applyOverrides,
-  commonsPath,
+  actionKeyFor,
   HIGH_SCHOOL_ID,
 } from './lib/players.mjs'
 
@@ -84,7 +84,7 @@ for (const r of [...nfl.records, ...nba.records]) {
     r.head = file
     continue
   }
-  const path = commonsPath(file)
+  const path = actionKeyFor(file)
   if (!path)
     throw new Error(`photo-overrides.json: bad file "${file}" for ${r.id}`)
   r.action = path
@@ -99,7 +99,7 @@ await writeFile(
   new URL('data/raw/photo-candidates.json', root),
   JSON.stringify(
     [...nfl.records, ...nba.records]
-      .filter((r) => r.action)
+      .filter((r) => r.action && !r.action.startsWith('tsdb:'))
       .map((r) => ({ n: r.name, y: r.year, s: r.schools, a: r.action })),
   ),
 )

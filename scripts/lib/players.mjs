@@ -69,6 +69,20 @@ export function commonsPath(fileName) {
   return `${md5.slice(0, 2)}/${name}`
 }
 
+/**
+ * A hand-picked playing photo (data/photo-overrides.json) → the `a` key: the
+ * Commons storage path for a file name, or a TheSportsDB image key
+ * ("tsdb:<thumb|cutout|render|fanart>/<file>") as it is. '' if neither.
+ */
+export function actionKeyFor(value) {
+  const v = String(value).trim()
+  if (v.startsWith('tsdb:'))
+    return /^tsdb:(thumb|cutout|render|fanart)\/[a-z0-9]+\.(jpg|png)$/.test(v)
+      ? v
+      : ''
+  return commonsPath(v)
+}
+
 /** nflverse headshot URL → the path after ".../image/" ('' if unexpected). */
 export function nflHeadKey(url) {
   const m = /^https:\/\/static\.www\.nfl\.com\/image\/(.+)$/.exec(url ?? '')
