@@ -160,3 +160,14 @@ describe('lone surrogates (pasted junk)', () => {
     expect((await submitBugReport(junk, ctx, false, f as never)).ok).toBe(false)
   })
 })
+
+describe('wellFormed', () => {
+  it('keeps valid pairs and ZWJ sequences, replaces only lone surrogates', async () => {
+    const { wellFormed } = await import('./report')
+    expect(wellFormed('a🏈b')).toBe('a🏈b')
+    expect(wellFormed('👨‍👩‍👧')).toBe('👨‍👩‍👧')
+    expect(wellFormed('x\uD83Cy')).toBe('x\uFFFDy')
+    expect(wellFormed('x\uDFC8y')).toBe('x\uFFFDy')
+    expect(wellFormed('\uD83C\uD83C\uDFC8\uDFC8')).toBe('\uFFFD🏈\uFFFD')
+  })
+})

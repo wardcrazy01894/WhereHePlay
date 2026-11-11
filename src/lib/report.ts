@@ -44,9 +44,12 @@ export function clip(s: string, n: number): string {
 /** Replace lone surrogates (pasted junk) with U+FFFD: encodeURIComponent
  *  throws on them, and the fallback link must never throw. */
 export function wellFormed(s: string): string {
+  // Match a valid pair first and keep it; any other surrogate is alone.
+  // (No lookbehind: Safari before 16.4 cannot even parse one, and a regex
+  // literal it cannot parse stops the whole bundle from loading.)
   return s.replace(
-    /[\uD800-\uDBFF](?![\uDC00-\uDFFF])|(?<![\uD800-\uDBFF])[\uDC00-\uDFFF]/g,
-    '\uFFFD',
+    /([\uD800-\uDBFF][\uDC00-\uDFFF])|[\uD800-\uDFFF]/g,
+    (m, pair) => (pair ? m : '\uFFFD'),
   )
 }
 
