@@ -235,7 +235,6 @@ export function DailyGame(props: Props) {
         <span>
           {MODE_LABEL[mode]} daily · {index + 1} of {QUESTIONS_PER_DAY}
         </span>
-        <span className="tier">{lineup[index].t}</span>
         <span>{total} pts</span>
       </div>
       <QuestionCard

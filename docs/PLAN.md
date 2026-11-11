@@ -52,6 +52,10 @@ Three modes — `nfl`, `nba`, `mixed` (Grab Bag) — each with:
 - **free play**: endless random players from that mode's pool, no repeat
   within the last 150, with a running correct-answer streak (best is kept).
 
+A player's tier is internal: it shapes the lineup but is never shown in the
+UI (no tier label on a question, no tier mix in the tagline) — pinned by
+`src/App.render.test.tsx`.
+
 `?date=YYYY-MM-DD` plays another day as practice: nothing is saved or sent.
 Only puzzle #1 through a week ahead is accepted (`src/lib/day.ts`) — a day's
 lineup is computed by walking forward from the epoch, so an arbitrary

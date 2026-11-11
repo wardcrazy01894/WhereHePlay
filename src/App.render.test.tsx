@@ -60,6 +60,14 @@ describe('App', () => {
     expect(screen.getAllByRole('button', { name: 'Free play' })).toHaveLength(3)
   })
 
+  it('the tagline does not give away the difficulty mix', async () => {
+    const { container } = render(<App />)
+    await screen.findByRole('heading', { name: 'NFL' })
+    const tagline = container.querySelector('.tagline')!.textContent!
+    expect(tagline).toContain('Five players a day')
+    expect(tagline).not.toMatch(/easy|medium|hard/i)
+  })
+
   it('"Report a bug" is reachable from the header on every screen, and from the footer', async () => {
     render(<App />)
     await screen.findByRole('heading', { name: 'NFL' })
@@ -119,6 +127,11 @@ describe('App', () => {
     fireEvent.click(screen.getAllByRole('button', { name: 'Play daily' })[1])
     for (let i = 0; i < 5; i++) {
       expect(screen.getByText(new RegExp(`${i + 1} of 5`))).toBeTruthy()
+      // The player's tier is internal: the progress bar never names it.
+      expect(document.querySelector('.tier')).toBeNull()
+      expect(document.querySelector('.progress')!.textContent).not.toMatch(
+        /easy|medium|hard/i,
+      )
       fireEvent.click(screen.getByRole('button', { name: 'I don’t know' }))
       fireEvent.click(
         screen.getByRole('button', {
