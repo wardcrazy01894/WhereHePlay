@@ -1,0 +1,32 @@
+node_modules/
+dist/
+.env
+.env.local
+.DS_Store
+*.log
+
+# Transient git worktrees created for isolated subagent/reviewer runs.
+.claude/worktrees/
+
+# Per-machine Claude Code permission grants (the shared config is
+# .claude/settings.json, committed).
+.claude/settings.local.json
+
+# JSON reporter output written by `rtk vitest`. Local-only, never committed.
+.vitest/
+
+# Raw source tables for scripts/build-players.mjs (downloaded by
+# `npm run fetch-raw`). The committed artifacts are public/players.json and
+# public/schools.json, not these.
+data/raw/
+
+# Local Wrangler state — local D1 SQLite + caches for `npm run worker:dev`.
+.wrangler/
+
+# Wrangler local secrets for `wrangler dev`. Never commit.
+worker/.dev.vars
+.dev.vars
+
+# Native app shells, if/when Capacitor is added (docs/APP.md).
+ios/
+android/
