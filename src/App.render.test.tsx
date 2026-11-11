@@ -60,6 +60,14 @@ describe('App', () => {
     expect(screen.getAllByRole('button', { name: 'Free play' })).toHaveLength(3)
   })
 
+  it('the tagline does not give away the difficulty mix', async () => {
+    const { container } = render(<App />)
+    await screen.findByRole('heading', { name: 'NFL' })
+    const tagline = container.querySelector('.tagline')!.textContent!
+    expect(tagline).toContain('Five players a day')
+    expect(tagline).not.toMatch(/easy|medium|hard/i)
+  })
+
   it('"Report a bug" is reachable from the header on every screen, and from the footer', async () => {
     render(<App />)
     await screen.findByRole('heading', { name: 'NFL' })
