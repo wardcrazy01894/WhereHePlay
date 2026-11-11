@@ -47,8 +47,7 @@ worth the stage it was given at (`src/lib/game.ts`):
 
 Three modes — `nfl`, `nba`, `mixed` (Grab Bag) — each with:
 
-- a **daily**: 5 questions (easy, easy, easy, medium, hard — puzzle #1 was
-  2-2-1; the switch took effect with puzzle #2 so no played day changed), max 500, one
+- a **daily**: 5 questions (easy, easy, easy, medium, hard), max 500, one
   shot, same for everyone, rolling over at the player's local midnight;
 - **free play**: endless random players from that mode's pool, no repeat
   within the last 150, with a running correct-answer streak (best is kept).

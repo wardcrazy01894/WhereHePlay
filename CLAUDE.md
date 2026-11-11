@@ -52,11 +52,13 @@ requirement, pinned by `src/App.render.test.tsx`.
 
 ## Rules that are easy to break
 
-- **Never change `hashString`, `dateSeed`, `TIER_PLAN`, `LEGACY_TIER_PLAN`,
-  `TIER_PLAN_FROM` or `EPOCH_DATE_KEY` casually** — they decide every day's puzzle; changing them re-rolls today's
+- **Never change `hashString`, `dateSeed`, `TIER_PLAN` or `EPOCH_DATE_KEY`
+  casually** — they decide every day's puzzle; changing them re-rolls today's
   game under people mid-play. Golden-value tests pin them. A plan change goes
-  in the way the 3-1-1 one did: a new plan with a start date in the future
-  (`tierPlanFor`), never an edit to a plan already played.
+  through `tierPlanFor`: a new plan with a start date in the future, never an
+  edit to a plan already played. (The one exception was launch day,
+  2026-11-11: the plan went from 2-2-1 to 3-1-1 before the link was shared,
+  and the test scores were wiped.)
 - **Rebuilding the dataset can change upcoming lineups.** Fine for future
   days; avoid merging a rebuild in the middle of a US evening.
 - **Points live in two places**: `STAGE_POINTS` (client) and `MARK_POINTS`

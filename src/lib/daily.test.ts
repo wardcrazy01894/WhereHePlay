@@ -4,8 +4,6 @@ import {
   COOLDOWN_DAYS,
   EPOCH_DATE_KEY,
   TIER_PLAN,
-  LEGACY_TIER_PLAN,
-  TIER_PLAN_FROM,
   tierPlanFor,
   addDays,
   dailyLineup,
@@ -155,34 +153,15 @@ describe('dailyLineup (cooldown)', () => {
   it('day one has no history and equals a plain draw', () => {
     const all = fixture()
     expect(dailyLineup(all, 'nfl', EPOCH_DATE_KEY)).toEqual(
-      selectDaily(
-        all,
-        'nfl',
-        dateSeed('nfl', EPOCH_DATE_KEY),
-        undefined,
-        LEGACY_TIER_PLAN,
-      ),
+      selectDaily(all, 'nfl', dateSeed('nfl', EPOCH_DATE_KEY)),
     )
   })
-  it('puzzle #1 keeps 2-2-1; every later day is 3 easy, 1 medium, 1 hard', () => {
+  it('every day, from puzzle #1 on, is 3 easy, 1 medium, 1 hard', () => {
     const all = fixture(240)
-    const tiers = (d: string) => dailyLineup(all, 'mixed', d).map((p) => p.t)
-    expect(tiers(EPOCH_DATE_KEY)).toEqual([
-      'easy',
-      'easy',
-      'medium',
-      'medium',
-      'hard',
-    ])
-    expect(tiers(TIER_PLAN_FROM)).toEqual([
-      'easy',
-      'easy',
-      'easy',
-      'medium',
-      'hard',
-    ])
-    expect(tiers(addDays(TIER_PLAN_FROM, 40))).toEqual(TIER_PLAN)
-    expect(tierPlanFor('2026-11-11')).toBe(LEGACY_TIER_PLAN)
-    expect(tierPlanFor('2026-11-12')).toBe(TIER_PLAN)
+    for (const i of [0, 1, 40])
+      expect(
+        dailyLineup(all, 'mixed', addDays(EPOCH_DATE_KEY, i)).map((p) => p.t),
+      ).toEqual(['easy', 'easy', 'easy', 'medium', 'hard'])
+    expect(tierPlanFor(EPOCH_DATE_KEY)).toBe(TIER_PLAN)
   })
 })
