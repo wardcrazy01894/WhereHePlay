@@ -160,9 +160,11 @@ export function DailyGame(props: Props) {
     return () => {
       live = false
     }
-    // Only when the day completes or the identity changes (sign-in).
+    // Only when the day completes or the identity changes: a sign-in (new
+    // token) or creating an account (same token, new username — the day
+    // must be stamped as that account's).
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [finished, identity.token])
+  }, [finished, identity.token, identity.username])
 
   const stats = loadStats(board)
   const streak = Math.max(

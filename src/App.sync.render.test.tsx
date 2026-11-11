@@ -72,9 +72,11 @@ beforeEach(() => {
           ? me
           : path === '/score'
             ? { rank: 1, total: 1, streak: { current: 6, best: 6 } }
-            : path === '/login'
-              ? { token: BO_TOKEN, name: 'Bo', username: 'bo' }
-              : { total: 0, entries: [] }
+            : path === '/register'
+              ? { name: 'reg', username: 'reg' }
+              : path === '/login'
+                ? { token: BO_TOKEN, name: 'Bo', username: 'bo' }
+                : { total: 0, entries: [] }
       if (path === '/score' && !scoreOk)
         return {
           ok: false,
@@ -224,6 +226,46 @@ describe('cross-device sync', () => {
     expect(
       posted.filter((p) => p.path === '/score').map((p) => p.body.token),
     ).toEqual([TOKEN, BO_TOKEN])
+  })
+
+  it('with the results on screen: creating an account claims the day (same token), so signing out cannot repost it', async () => {
+    localStorage.setItem(
+      'whp:v1:identity',
+      JSON.stringify({ token: TOKEN, name: '' }),
+    )
+    me = { name: '', username: null, scores: [], streaks: [] }
+    render(<App />)
+    await screen.findByRole('heading', { name: 'NFL' })
+    playNfl()
+    await vi.waitFor(() => expect(scorePosts()).toBe(1))
+    const key = `whp:v1:daily:nfl:${today}`
+    fireEvent.click(screen.getByRole('button', { name: /Set name/ }))
+    const dialog = screen.getByRole('dialog', { name: 'Your profile' })
+    fireEvent.click(
+      within(dialog).getByRole('button', { name: /Create (an )?account/ }),
+    )
+    fireEvent.change(within(dialog).getByLabelText(/Username/), {
+      target: { value: 'reg' },
+    })
+    fireEvent.change(within(dialog).getByLabelText('Password'), {
+      target: { value: 'correct horse' },
+    })
+    fireEvent.click(
+      within(dialog).getByRole('button', { name: 'Create account' }),
+    )
+    // Registering keeps the device's token; the day must still become reg's.
+    await vi.waitFor(
+      () => expect(JSON.parse(localStorage.getItem(key)!).owner).toBe('reg'),
+      { timeout: 5000 },
+    )
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Sign out' }))
+    await within(dialog).findByText('Signed out.')
+    await new Promise((r) => setTimeout(r, 20))
+    expect(
+      posted
+        .filter((p) => p.path === '/score')
+        .every((p) => p.body.token === TOKEN),
+    ).toBe(true)
   })
 
   it('a hand-over that failed in transit (no answer, 5xx) is tried again', async () => {
