@@ -88,11 +88,14 @@ describe('players.json', () => {
     )
   })
 
-  it('headshot keys are one of the three known shapes', () => {
+  it('headshot keys are one of the known shapes', () => {
     for (const p of players) {
       if (!p.h) continue
       if (p.l === 'nba') expect(p.h, p.id).toMatch(/^\d+$/)
-      else expect(p.h, p.id).toMatch(/^(espn:\d+|(private|upload)\/.+)$/)
+      else
+        expect(p.h, p.id).toMatch(
+          /^(espn:\d+|clubs:[\w,/.-]+|(private|upload)\/.+)$/,
+        )
     }
   })
 

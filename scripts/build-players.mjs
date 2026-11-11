@@ -56,11 +56,20 @@ const blocked = new Set(
   ),
 )
 // Hand-picked replacement photos (data/photo-overrides.json): player id →
-// Commons file name, for players whose only listed photo is a college one.
+// Commons file name (or a "clubs:" headshot, below), for players whose only
+// listed photo is a college one.
 const photoOverrides = JSON.parse(await read('data/photo-overrides.json'))
 for (const r of [...nfl.records, ...nba.records]) {
   const file = photoOverrides[r.id]
   if (!file) continue
+  // "clubs:<path>": an image on the NFL clubs' own image server, used as his
+  // headshot (for a player with no league, ESPN or free photo at all).
+  if (file.startsWith('clubs:')) {
+    if (!/^clubs:[\w,/.-]+\.(jpg|png)$/.test(file))
+      throw new Error(`photo-overrides.json: bad clubs path for ${r.id}`)
+    r.head = file
+    continue
+  }
   const path = commonsPath(file)
   if (!path)
     throw new Error(`photo-overrides.json: bad file "${file}" for ${r.id}`)

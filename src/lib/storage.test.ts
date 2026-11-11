@@ -112,6 +112,13 @@ describe('images', () => {
       'https://a.espncdn.com/i/headshots/nfl/players/full/5209.png',
     )
   })
+  it('a "clubs:" key points at the NFL clubs image server', () => {
+    expect(
+      headshotUrl({ ...p, h: 'clubs:private/w_480/buccaneers/abc.jpg' }),
+    ).toBe(
+      'https://static.clubs.nfl.com/image/private/w_480/buccaneers/abc.jpg',
+    )
+  })
   it('no headshot key → null', () => {
     expect(headshotUrl({ ...p, h: undefined })).toBeNull()
   })
