@@ -97,6 +97,23 @@ export function applyBlocklist(records, lists) {
   return cleared
 }
 
+/**
+ * Nobody leaves the game for want of a photo. A record left with no headshot
+ * and no usable photo falls back to the league's own placeholder image
+ * (`placeholderHead`) — a poor question, but his, until a real photo is found
+ * for data/photo-overrides.json. Returns the names it had to do that for, so
+ * the build can say who still needs one.
+ */
+export function keepEveryone(records) {
+  const names = []
+  for (const r of records) {
+    if (r.head || r.action || !r.placeholderHead) continue
+    r.head = r.placeholderHead
+    names.push(r.name)
+  }
+  return names
+}
+
 /** School names that are also NFL/NBA cities or states used in team names. */
 export const PRO_PLACES = new Set([
   'Miami',

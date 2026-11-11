@@ -1,5 +1,10 @@
 import { describe, it, expect } from 'vitest'
-import { applyBlocklist, photoFlag, photoYear } from './photos.mjs'
+import {
+  applyBlocklist,
+  keepEveryone,
+  photoFlag,
+  photoYear,
+} from './photos.mjs'
 
 const iowaState = {
   name: 'Iowa State',
@@ -195,5 +200,22 @@ describe('applyBlocklist', () => {
   it('tolerates a list file without the newer keys', () => {
     const r = rec('h', 'Suit.jpg')
     expect(applyBlocklist([r], { manual: [], auto: [] })).toBe(0)
+  })
+})
+
+describe('keepEveryone', () => {
+  it('a player with no photo at all keeps the league placeholder rather than leave the game', () => {
+    const fine = { name: 'A', head: 'espn:1', action: '', placeholderHead: '9' }
+    const photoOnly = {
+      name: 'B',
+      head: '',
+      action: 'ab/B.jpg',
+      placeholderHead: '8',
+    }
+    const nothing = { name: 'C', head: '', action: '', placeholderHead: '7' }
+    expect(keepEveryone([fine, photoOnly, nothing])).toEqual(['C'])
+    expect(fine.head).toBe('espn:1')
+    expect(photoOnly.head).toBe('')
+    expect(nothing.head).toBe('7')
   })
 })

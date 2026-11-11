@@ -347,8 +347,13 @@ describe('players', () => {
       head: '',
       action: expect.stringContaining('Kevin_Durant.jpg'),
     })
-    // …and with neither there is nothing to show: he cannot be asked.
-    expect(heads({})).toEqual([])
+    // …and with neither he is still a candidate (nobody is dropped for a
+    // missing photo): the build falls back to the placeholder itself.
+    expect(heads({})[0]).toMatchObject({
+      head: '',
+      action: '',
+      placeholderHead: '201142',
+    })
   })
 
   it('NBA: a listed preps-to-pros player is admitted with the High School answer', () => {

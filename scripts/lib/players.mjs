@@ -197,7 +197,9 @@ export const nameKey = (name) =>
  * @param heads  `placeholders`: NBA.com ids whose headshot is the generic
  *   grey silhouette (data/nba-placeholder-heads.json); `espn`: NBA.com id →
  *   ESPN id for those ESPN has a real headshot of (data/nba-espn-heads.json).
- *   A player left with no headshot and no Wikimedia photo cannot be asked.
+ *   A player left with no headshot and no Wikimedia photo is still returned
+ *   (`placeholderHead` carries his NBA.com id): nobody is dropped for a
+ *   missing photo — see keepEveryone in ./photos.mjs.
  */
 export function nbaCandidates(
   baseRows,
@@ -282,7 +284,6 @@ export function nbaCandidates(
         ? `espn:${heads.espn[b.nbaid]}`
         : ''
     const action = commonsFile(b.img)
-    if (!head && !action) continue
     const key = `${b.name}|${schools[0]}`
     if (seen.has(key)) continue
     seen.add(key)
@@ -297,6 +298,7 @@ export function nbaCandidates(
       team: '',
       head,
       action,
+      ...(heads.placeholders.has(b.nbaid) ? { placeholderHead: b.nbaid } : {}),
       lastPro,
       ...(prep ? { hs: prep.hs } : {}),
     })

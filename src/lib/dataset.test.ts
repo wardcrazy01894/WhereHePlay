@@ -100,6 +100,27 @@ describe('players.json', () => {
     }
   })
 
+  it('every player has something to show, and a league placeholder is only ever a last resort', () => {
+    const data = (f: string) =>
+      JSON.parse(
+        readFileSync(new URL(`../../data/${f}`, import.meta.url), 'utf8'),
+      )
+    const nbaPlaceholders = new Set<string>(data('nba-placeholder-heads.json'))
+    const nflPlaceholders = new Set<string>(data('nfl-placeholder-heads.json'))
+    const stuck: string[] = []
+    for (const p of players) {
+      expect(p.h || p.a, p.id).toBeTruthy()
+      const placeholder =
+        !!p.h && (p.l === 'nba' ? nbaPlaceholders : nflPlaceholders).has(p.h)
+      if (!placeholder) continue
+      // Shown only when there is no ESPN headshot and no photo of him at all.
+      expect(p.a, p.id).toBeUndefined()
+      stuck.push(p.n)
+    }
+    // The players still waiting for a real photo. This number only goes down.
+    expect(stuck.length).toBeLessThanOrEqual(14)
+  })
+
   it('every tier is deep enough that the cooldown never runs dry', () => {
     for (const l of ['nfl', 'nba'] as const)
       for (const t of ['easy', 'medium', 'hard'] as const) {

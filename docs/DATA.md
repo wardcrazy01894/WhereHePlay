@@ -2,7 +2,7 @@
 
 Two committed artifacts drive the game:
 
-- `public/players.json` — 1,995 players (1,096 NFL, 899 NBA)
+- `public/players.json` — 2,009 players (1,096 NFL, 913 NBA)
 - `public/schools.json` — 375 colleges plus the "High School (no college)"
   answer (id, name, search aliases)
 
@@ -187,8 +187,8 @@ Nothing is stored in the repo; `src/lib/images.ts` builds URLs.
   `scan-espn-heads` finds ESPN's headshot for 169 of them
   (`data/nba-espn-heads.json`; the ESPN id comes from Wikidata P3685,
   `data/raw/wd_nba_espn.csv`). The headshot key is then `espn:<id>`, as for
-  the NFL. The rest show their Wikimedia photo; 14 had no photo of any kind
-  and are not in the game.
+  the NFL. The rest show their Wikimedia photo — or, for the 14 who have no
+  photo of any kind, the silhouette itself (see "Nobody drops out").
 - **A headshot shows the team he last played for.** Each league (and ESPN)
   publishes one headshot per player, and it is the latest: Tom Brady is a
   Buccaneer, Carmelo Anthony a Laker. There is no source of "the headshot
@@ -266,10 +266,15 @@ image server (`clubs:<path>`) as a last resort: Gaines Adams, whose only free
 photos are in a Clemson uniform, uses a Buccaneers team-site photo. No NFL
 player is left out for lack of a photo.
 
-The NBA side is not quite there: 14 retired players have a silhouette on
-NBA.com, nothing on ESPN and no usable Wikimedia photo (Jonathan Bender, Jay
-Williams, Speedy Claxton…), so they are out of the game until someone finds
-a photo for `data/photo-overrides.json`.
+**Nobody is ever dropped for a missing or poor photo** — that is a rule, not
+an outcome. 14 retired NBA players have a silhouette on NBA.com, nothing on
+ESPN and no usable Wikimedia photo (Jonathan Bender, Jay Williams, Speedy
+Claxton…). They stay in the game showing the league placeholder
+(`keepEveryone` in `scripts/lib/photos.mjs`), and `build-players` prints
+their names on every run: each needs a real photo from another source.
+
+The target, not yet met for everyone: **a real headshot** (ideally the
+official one, in uniform) **and a photo of him playing** for every player.
 
 League headshots are the leagues' copyrighted images, hotlinked. That is a
 deliberate, accepted risk for a free hobby website and a blocker for an app

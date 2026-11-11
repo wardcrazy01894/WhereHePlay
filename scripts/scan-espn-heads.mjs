@@ -32,11 +32,17 @@ const nflWanted = new Set([
 ])
 const nbaWanted = new Set(await json('data/nba-placeholder-heads.json', []))
 // bbref id → ESPN id, then NBA.com id → ESPN id through the base table.
-const espnByBbref = new Map(
-  parseCsv(await read('data/raw/wd_nba_espn.csv').catch(() => 'bbref,espn\n'))
-    .filter((r) => /^\d+$/.test(r.espn))
-    .map((r) => [r.bbref, r.espn]),
-)
+// A required input: without it the NBA scan would find nothing and look fine.
+const espnCsv = await read('data/raw/wd_nba_espn.csv').catch(() => {
+  throw new Error(
+    'data/raw/wd_nba_espn.csv is missing — run `npm run fetch-raw` first',
+  )
+})
+// (When Wikidata lists several ESPN ids for a player, the first is kept.)
+const espnByBbref = new Map()
+for (const r of parseCsv(espnCsv))
+  if (/^\d+$/.test(r.espn) && !espnByBbref.has(r.bbref))
+    espnByBbref.set(r.bbref, r.espn)
 
 const LEAGUES = [
   {
@@ -96,7 +102,7 @@ for (const league of LEAGUES) {
     JSON.stringify(sorted, null, 2) + '\n',
   )
   console.log(
-    `${league.name}: ${league.wanted.size} players without a real league headshot: ${Object.keys(found).length} have an ESPN one, ${missing} do not, ${failed} failed`,
+    `${league.name}: ${league.wanted.size} league images that are not real headshots: ${Object.keys(found).length} have an ESPN one, ${missing} do not, ${failed} failed`,
   )
   if (failed) anyFailed = true
 }

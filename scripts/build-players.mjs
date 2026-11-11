@@ -6,7 +6,7 @@
 import { readFile, writeFile } from 'node:fs/promises'
 import { parseCsv } from './lib/csv.mjs'
 import { parseSchools, buildMatchers, conferenceAt } from './lib/schools.mjs'
-import { applyBlocklist } from './lib/photos.mjs'
+import { applyBlocklist, keepEveryone } from './lib/photos.mjs'
 import {
   nflCandidates,
   nbaCandidates,
@@ -98,6 +98,9 @@ await writeFile(
 )
 const candidates = [...nfl.records, ...nba.records]
 const photosDropped = applyBlocklist(candidates, blockedPhotos)
+// Nobody is dropped for a missing photo: those with nothing at all keep the
+// league placeholder until a real one is found (docs/DATA.md §Photos).
+const needPhoto = keepEveryone(candidates)
 const withPhotos = candidates.filter((r) => r.head || r.action)
 const records = applyOverrides(
   assignTiers(withPhotos),
@@ -167,6 +170,10 @@ console.log(`schools: ${schools.length}`)
 console.log(
   `photos: ${photosDropped} Wikimedia photos withheld (college gear, or not playing for a pro team); ${nfl.records.length + nba.records.length - withPhotos.length} players dropped for having no other photo`,
 )
+if (needPhoto.length)
+  console.log(
+    `photos: ${needPhoto.length} players have no real photo and show the league placeholder — find one for data/photo-overrides.json: ${needPhoto.join(', ')}`,
+  )
 const prepsIn = records.filter((r) => r.hs).length
 console.log(`preps to pros: ${prepsIn} in the pool`)
 if (nba.missingPreps.length)
