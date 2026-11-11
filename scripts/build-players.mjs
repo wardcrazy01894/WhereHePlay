@@ -9,6 +9,7 @@ import { parseSchools, buildMatchers, conferenceAt } from './lib/schools.mjs'
 import {
   EPOCH_DATE_KEY,
   applyBlocklist,
+  applyHeadOverrides,
   eligibleSince,
   firstNewDay,
   newDayFor,
@@ -103,6 +104,8 @@ await writeFile(
   ),
 )
 const candidates = [...nfl.records, ...nba.records]
+// Hand-checked headshots for players the leagues and ESPN have none of.
+applyHeadOverrides(candidates, await json('data/head-overrides.json', '{}'))
 const photosDropped = applyBlocklist(candidates, blockedPhotos)
 // Nobody is dropped over photos — membership never depends on them. What
 // photos decide is who may be DRAWN: only a player with both a real headshot

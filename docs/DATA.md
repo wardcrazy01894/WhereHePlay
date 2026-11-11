@@ -216,7 +216,10 @@ Nothing is stored in the repo; `src/lib/images.ts` builds URLs.
   `scan-espn-heads` finds ESPN's headshot for 169 of them
   (`data/nba-espn-heads.json`; the ESPN id comes from Wikidata P3685,
   `data/raw/wd_nba_espn.csv`). The headshot key is then `espn:<id>`, as for
-  the NFL. The other 58 have no headshot yet.
+  the NFL. For 13 more, a hand-checked headshot on Basketball-Reference is
+  used (`data/head-overrides.json`, key `bbr:<id>` — the owner's choice of
+  source, knowing Sports-Reference discourages hotlinking; only posed
+  headshots, each viewed). The other 45 have no headshot yet.
 - **A headshot shows the team he last played for.** Each league (and ESPN)
   publishes one headshot per player, and it is the latest: Tom Brady is a
   Buccaneer, Carmelo Anthony a Laker. There is no source of "the headshot

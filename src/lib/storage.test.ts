@@ -130,6 +130,11 @@ describe('images', () => {
       'https://a.espncdn.com/i/headshots/nba/players/full/3202.png',
     )
   })
+  it('a "bbr:" key points at a Basketball-Reference headshot', () => {
+    expect(headshotUrl({ ...p, l: 'nba', h: 'bbr:almonmo01' })).toBe(
+      'https://www.basketball-reference.com/req/202106291/images/headshots/almonmo01.jpg',
+    )
+  })
   it('a "clubs:" key points at the NFL clubs image server', () => {
     expect(
       headshotUrl({ ...p, h: 'clubs:private/w_480/buccaneers/abc.jpg' }),

@@ -17,6 +17,10 @@ export function headshotUrl(p: Player): string | null {
   // legends, an action cut-out) and ESPN has a real headshot.
   if (p.h.startsWith('espn:'))
     return `https://a.espncdn.com/i/headshots/${p.l}/players/full/${p.h.slice(5)}.png`
+  // "bbr:<id>": a hand-checked headshot on Basketball-Reference, for players
+  // NBA.com shows a silhouette for and ESPN does not have.
+  if (p.h.startsWith('bbr:'))
+    return `https://www.basketball-reference.com/req/202106291/images/headshots/${p.h.slice(4)}.jpg`
   // "clubs:<path>": a hand-picked image on the NFL clubs' image server.
   if (p.h.startsWith('clubs:'))
     return `https://static.clubs.nfl.com/image/${p.h.slice(6)}`

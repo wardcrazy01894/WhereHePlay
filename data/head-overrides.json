@@ -1,0 +1,16 @@
+{
+  "_comment": "Hand-checked headshots from Basketball-Reference for NBA players whose NBA.com image is the grey silhouette and whom ESPN does not have: player id → \"bbr:<Basketball-Reference id>\". Each was viewed (2026-11-11): a posed headshot in uniform, not a game photo. The owner chose this source knowing Sports-Reference discourages hotlinking; if these images stop loading, the players simply wait for another headshot. See docs/DATA.md §Photos.",
+  "nba-almonmo01": "bbr:almonmo01",
+  "nba-collima01": "bbr:collima01",
+  "nba-dentmju01": "bbr:dentmju01",
+  "nba-fortsco01": "bbr:fortsco01",
+  "nba-gordodr01": "bbr:gordodr01",
+  "nba-jackslu02": "bbr:jackslu02",
+  "nba-obryapa01": "bbr:obryapa01",
+  "nba-pruitga01": "bbr:pruitga01",
+  "nba-snower01": "bbr:snower01",
+  "nba-swiftst01": "bbr:swiftst01",
+  "nba-udokaim01": "bbr:udokaim01",
+  "nba-wilksmi01": "bbr:wilksmi01",
+  "nba-willima03": "bbr:willima03"
+}
