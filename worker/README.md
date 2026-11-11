@@ -32,9 +32,9 @@ All routes are `POST` with JSON:
 | `/register` | `token, username, pass`            | `name, username`             |
 | `/login`    | `username, pass`                   | `token, name, username`      |
 | `/logout`   | `token`                            | —                            |
+| `/bug`      | `message, context, logs`           | `url` of the GitHub issue    |
 
 `board` is one of `nfl`, `nba`, `mixed`, `nfl-beginner`, `nba-beginner`,
 `mixed-beginner` (`BOARDS` in `api-lib.mjs`); anything else is a 400.
-| `/bug` | `message, context, logs` | `url` of the GitHub issue |
 
 `pass` is the client-derived key (64 hex chars), never the password.
