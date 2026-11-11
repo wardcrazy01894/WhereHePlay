@@ -142,6 +142,22 @@ input[type='password'] {
 }
 
 /* ---- Home ---- */
+.home {
+  display: flex;
+  flex-direction: column;
+}
+/* A desktop browser (wide, with a mouse): the photo choice and the rules sit
+   above the games instead of below the fold. Phones — also in landscape — and
+   tablets keep the games first. */
+@media (min-width: 720px) and (hover: hover) and (pointer: fine) {
+  .home-intro {
+    order: -2;
+  }
+  .home-setup {
+    order: -1;
+    margin-bottom: 18px;
+  }
+}
 .modes {
   display: grid;
   gap: 12px;
