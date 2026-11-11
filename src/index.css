@@ -598,6 +598,13 @@ textarea {
   display: flex;
   gap: 8px;
   min-width: 0;
+  /* The name button truncates with an ellipsis; give the pair most of the
+     header so a short name ("Set name") is never cut. */
+  max-width: 70%;
+}
+.top-actions .me {
+  max-width: 100%;
+  min-width: 0;
 }
 .icon-button {
   padding: 10px 12px;
