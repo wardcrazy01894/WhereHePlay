@@ -3,7 +3,7 @@
  * call resolves to `{ ok: true, … }` or `{ ok: false, error }` — never throws,
  * so the game is fully playable when the API is unset, down or blocked.
  */
-import type { Mode } from '../types'
+import type { BoardId } from '../types'
 
 export const API_BASE = (import.meta.env.VITE_API_ENDPOINT ?? '').replace(
   /\/+$/,
@@ -46,7 +46,7 @@ export interface Standing {
 }
 export function submitScore(b: {
   token: string
-  board: Mode
+  board: BoardId
   date: string
   score: number
   marks: string
@@ -65,7 +65,7 @@ export interface Board {
   total: number
   entries: BoardEntry[]
 }
-export function fetchBoard(board: Mode, date: string, token?: string) {
+export function fetchBoard(board: BoardId, date: string, token?: string) {
   // The token rides in a POST body, never a URL (URLs end up in logs).
   return post<Board>('/board', { board, date, token })
 }

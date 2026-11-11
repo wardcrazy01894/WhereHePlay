@@ -437,6 +437,9 @@ input[type='password'] {
   display: flex;
   gap: 6px;
 }
+.tabs + .tabs {
+  margin-top: 6px;
+}
 .tab.on {
   border-color: var(--accent);
   color: var(--accent);

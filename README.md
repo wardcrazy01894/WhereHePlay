@@ -46,6 +46,7 @@ WhereHePlay #1 · NFL (headshot)
 |     |                               |                                                                                                                                                                     |
 | --- | ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | 📅  | **Daily five**                | Three easy, one medium, one hard. Same five for everyone, new at your local midnight, one shot. Nobody repeats within 45 days.                                      |
+| 🌱  | **Beginner daily**            | New to it? Five household names a day in each mode, with its own streak and leaderboard.                                                                            |
 | ♾️  | **Free play**                 | Keep going as long as you like, with a running streak of correct answers.                                                                                           |
 | 🏈  | **Three modes**               | **NFL**, **NBA**, or the **Grab Bag** of both — each with its own daily, streak and leaderboard.                                                                    |
 | 🕰️  | **Conference at the time**    | The conference hint is the one he actually played in: Carmelo Anthony's Syracuse is Big East, a 2023 Oregon Duck is Pac-12, a 2025 one is Big Ten.                  |

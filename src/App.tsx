@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
-import type { Mode, Player, School } from './types'
-import { MODES, MODE_LABEL } from './types'
+import type { Mode, Player, School, Variant } from './types'
+import { MODES, MODE_LABEL, boardId } from './types'
 import { puzzleNumber } from './lib/daily'
 import { resolveDay } from './lib/day'
 import { totalPoints } from './lib/game'
@@ -33,9 +33,9 @@ import { PlayerSearch } from './components/PlayerSearch'
 
 type View =
   | { screen: 'home' }
-  | { screen: 'daily'; mode: Mode }
+  | { screen: 'daily'; mode: Mode; variant: Variant }
   | { screen: 'free'; mode: Mode }
-  | { screen: 'board'; mode: Mode }
+  | { screen: 'board'; mode: Mode; variant: Variant }
 
 const MODE_BLURB: Record<Mode, string> = {
   mixed: 'NFL and NBA players, shuffled together',
@@ -225,6 +225,11 @@ export function App() {
                 const done = saved?.questions.every((q) => q.done)
                 const started = saved?.questions.some((q) => q.done)
                 const streak = liveStreak(loadStats(mode), dateKey)
+                const beginner = official
+                  ? loadDaily(mode, dateKey, 'beginner')
+                  : undefined
+                const beginnerDone = beginner?.questions.every((q) => q.done)
+                const beginnerStarted = beginner?.questions.some((q) => q.done)
                 return (
                   <section key={mode} className={`mode mode-${mode}`}>
                     <h2>{MODE_LABEL[mode]}</h2>
@@ -235,13 +240,27 @@ export function App() {
                     <button
                       type="button"
                       className="primary"
-                      onClick={() => setView({ screen: 'daily', mode })}
+                      onClick={() =>
+                        setView({ screen: 'daily', mode, variant: 'standard' })
+                      }
                     >
                       {done
                         ? `Daily done · ${totalPoints(saved!.questions)}`
                         : started
                           ? 'Continue daily'
                           : 'Play daily'}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setView({ screen: 'daily', mode, variant: 'beginner' })
+                      }
+                    >
+                      {beginnerDone
+                        ? `Beginner done · ${totalPoints(beginner!.questions)}`
+                        : beginnerStarted
+                          ? 'Continue beginner'
+                          : 'Beginner daily'}
                     </button>
                     <button
                       type="button"
@@ -257,7 +276,13 @@ export function App() {
               {apiEnabled && (
                 <button
                   type="button"
-                  onClick={() => setView({ screen: 'board', mode: 'mixed' })}
+                  onClick={() =>
+                    setView({
+                      screen: 'board',
+                      mode: 'mixed',
+                      variant: 'standard',
+                    })
+                  }
                 >
                   🏆 Leaderboards
                 </button>
@@ -301,6 +326,10 @@ export function App() {
                   0.
                 </li>
                 <li>Transfers count: any college he played for is right.</li>
+                <li>
+                  New here? The beginner daily is five household names a day,
+                  scored the same way.
+                </li>
               </ul>
             </details>
           </>
@@ -308,10 +337,11 @@ export function App() {
 
         {ready && view.screen === 'daily' && (
           <DailyGame
-            key={`${view.mode}:${dateKey}`}
+            key={`${boardId(view.mode, view.variant)}:${dateKey}`}
             players={players}
             schools={schools}
             mode={view.mode}
+            variant={view.variant}
             dateKey={dateKey}
             official={official}
             identity={identity}
@@ -331,10 +361,13 @@ export function App() {
         {view.screen === 'board' && (
           <Leaderboard
             mode={view.mode}
+            variant={view.variant}
             dateKey={dateKey}
             token={identity.token}
             refreshKey={identity.name.length}
-            onModeChange={(mode) => setView({ screen: 'board', mode })}
+            onModeChange={(mode, variant) =>
+              setView({ screen: 'board', mode, variant })
+            }
           />
         )}
 
@@ -367,7 +400,11 @@ export function App() {
         <BugReport
           context={{
             screen:
-              view.screen === 'home' ? 'home' : `${view.screen} ${view.mode}`,
+              view.screen === 'home'
+                ? 'home'
+                : view.screen === 'free'
+                  ? `free ${view.mode}`
+                  : `${view.screen} ${boardId(view.mode, view.variant)}`,
             date: dateKey,
           }}
           onClose={() => setBugOpen(false)}

@@ -14,7 +14,8 @@
  *
  * The day rolls over at the PLAYER'S local midnight (Wordle-style).
  */
-import type { League, Mode, Player, Tier } from '../types'
+import type { League, Mode, Player, Tier, Variant } from '../types'
+import { boardId } from '../types'
 
 export const QUESTIONS_PER_DAY = 5
 /** Three easy, one medium, one hard — warm-ups first, the stumper last. */
@@ -31,6 +32,13 @@ export function tierPlanFor(_dateKey: string): Tier[] {
 /** Puzzle #1. */
 export const EPOCH_DATE_KEY = '2026-11-11'
 export const COOLDOWN_DAYS = 45
+/**
+ * The beginner daily: five easy players. Its window is shorter than the
+ * standard one because it draws five a day from the easy tier alone (the
+ * smallest, ~200 NBA players) — a dataset guard test checks the depth.
+ */
+export const BEGINNER_PLAN: Tier[] = ['easy', 'easy', 'easy', 'easy', 'easy']
+export const BEGINNER_COOLDOWN_DAYS = 30
 
 export function addDays(dateKey: string, n: number): string {
   return new Date(Date.parse(dateKey + 'T00:00:00Z') + n * 86_400_000)
@@ -152,45 +160,68 @@ export function selectDaily(
   return chosen
 }
 
-export function dateSeed(mode: Mode, dateKey: string): string {
-  return `${mode}:${dateKey}`
+/** A standard daily's seed is `<mode>:<date>` — unchanged since launch. */
+export function dateSeed(
+  mode: Mode,
+  dateKey: string,
+  variant: Variant = 'standard',
+): string {
+  return `${boardId(mode, variant)}:${dateKey}`
 }
 
 interface Walk {
   mode: Mode
+  variant: Variant
   history: Player[][]
+  /** Beginner only: the easy tier, the only players it may ever draw. */
+  easy?: Player[]
 }
-/** One walk per dataset array (identity) and mode. */
+/** One walk per dataset array (identity), mode and variant. */
 const walks = new WeakMap<Player[], Walk[]>()
 
-/** The official lineup for (mode, dateKey), with the recency cooldown. */
+/**
+ * The official lineup for (mode, dateKey), with the recency cooldown.
+ *
+ * The standard daily depends on nothing but itself. The beginner daily is
+ * drawn from the easy tier only (so every fallback in selectDaily stays easy)
+ * and also skips that day's standard lineup of the same mode, so playing both
+ * never shows a player twice in a day.
+ */
 export function dailyLineup(
   all: Player[],
   mode: Mode,
   dateKey: string,
+  variant: Variant = 'standard',
 ): Player[] {
-  // Days before the epoch (only reachable via ?date=) get a plain draw.
-  if (dateKey < EPOCH_DATE_KEY)
-    return selectDaily(
-      all,
-      mode,
-      dateSeed(mode, dateKey),
-      undefined,
-      tierPlanFor(dateKey),
-    )
   let list = walks.get(all)
   if (!list) walks.set(all, (list = []))
-  let walk = list.find((w) => w.mode === mode)
-  if (!walk) list.push((walk = { mode, history: [] }))
+  let walk = list.find((w) => w.mode === mode && w.variant === variant)
+  if (!walk) {
+    walk = { mode, variant, history: [] }
+    if (variant === 'beginner') walk.easy = all.filter((p) => p.t === 'easy')
+    list.push(walk)
+  }
+  const { easy } = walk
+  const draw = (d: string, recent: Player[][]): Player[] => {
+    const exclude = new Set(recent.flatMap((day) => day.map((p) => p.id)))
+    if (!easy)
+      return selectDaily(all, mode, dateSeed(mode, d), exclude, tierPlanFor(d))
+    for (const p of dailyLineup(all, mode, d)) exclude.add(p.id)
+    return selectDaily(
+      easy,
+      mode,
+      dateSeed(mode, d, 'beginner'),
+      exclude,
+      BEGINNER_PLAN,
+    )
+  }
+  // Days before the epoch (only reachable via ?date=) get a plain draw.
+  if (dateKey < EPOCH_DATE_KEY) return draw(dateKey, [])
+  const window = easy ? BEGINNER_COOLDOWN_DAYS : COOLDOWN_DAYS
   const index = puzzleNumber(dateKey) - 1
   while (walk.history.length <= index) {
     const d = addDays(EPOCH_DATE_KEY, walk.history.length)
-    const exclude = new Set(
-      walk.history.slice(-COOLDOWN_DAYS).flatMap((day) => day.map((p) => p.id)),
-    )
-    walk.history.push(
-      selectDaily(all, mode, dateSeed(mode, d), exclude, tierPlanFor(d)),
-    )
+    walk.history.push(draw(d, walk.history.slice(-window)))
   }
   return walk.history[index]
 }

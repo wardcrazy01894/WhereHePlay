@@ -49,6 +49,12 @@ Three modes — `nfl`, `nba`, `mixed` (Grab Bag) — each with:
 
 - a **daily**: 5 questions (easy, easy, easy, medium, hard), max 500, one
   shot, same for everyone, rolling over at the player's local midnight;
+- a **beginner daily** (`variant: 'beginner'`): 5 questions, all from the
+  easy tier, scored the same way (max 500). It is its own game — own save,
+  streak, share-card label ("NFL Beginner") and leaderboard — identified
+  everywhere by `boardId(mode, variant)`: `nfl-beginner`, `nba-beginner`,
+  `mixed-beginner` (a standard daily keeps the bare mode). There is no
+  beginner free play;
 - **free play**: endless random players from that mode's pool, no repeat
   within the last 150, with a running correct-answer streak (best is kept).
 
@@ -62,15 +68,18 @@ lineup is computed by walking forward from the epoch, so an arbitrary
 far-future date in a shared link would otherwise freeze the tab.
 
 Everything client-side is in `localStorage` under `whp:v1:`
-(`src/lib/storage.ts`): `daily:<mode>:<date>` (the game, including the lineup
+(`src/lib/storage.ts`; `<board>` is the mode, or `<mode>-beginner`):
+`daily:<board>:<date>` (the game, including the lineup
 it was started on, so a dataset update can't change a game in progress),
-`stats:<mode>` (streak, best, played, points), `free:<mode>`, `identity`
+`stats:<board>` (streak, best, played, points), `free:<mode>`, `identity`
 (API token, display name, username), `photo`.
 
-**Streaks** count consecutive days a daily was finished in that mode. The
+**Streaks** count consecutive days that daily was finished (the beginner
+daily keeps its own; the home screen shows the standard one). The
 shown streak is the larger of the device's and the server's.
 
-**Share card:** `WhereHePlay #N · NFL (headshot)` — or `(in action)` — five squares (🟩 photo, 🟨 name,
+**Share card:** `WhereHePlay #N · NFL (headshot)` — or `(in action)`, and
+`NFL Beginner` for a beginner daily — five squares (🟩 photo, 🟨 name,
 🟧 conference, 🟥 multiple choice, ⬛ missed), the score and the link.
 
 ## Daily selection
@@ -89,6 +98,15 @@ walk costs one hash per player per day (no sorting); if it ever becomes
 noticeable years out, checkpoint it — without changing its output. A
 dataset guard test simulates a year of all three modes and checks the tier
 plan and the no-repeat window on the real data.
+
+**Beginner daily:** the same draw with the seed `<mode>-beginner:<date>`, a
+plan of five easy slots and a pool of the easy tier only — so even the
+fallbacks can only ever pick an easy player. It skips its own previous 30
+lineups (`BEGINNER_COOLDOWN_DAYS`; shorter than 45 because five a day from the
+~200 easy NBA players would run dry) and that day's standard lineup of the
+same mode, so playing both never shows a player twice in a day. The standard
+daily does not depend on it: its seed and walk are exactly what they were.
+The dataset guard simulates a year of it too.
 
 ## Auto-update (no stale tabs)
 
@@ -169,6 +187,9 @@ salt). The plaintext never leaves the device and the expensive half runs
 client-side, which is what makes this fit in Workers Free's CPU budget.
 There is **no password reset** (no email on file) — an operator can clear an
 account by hand (docs/OPERATIONS.md).
+
+**Boards:** one per daily game — `nfl`, `nba`, `mixed` and their
+`-beginner` twins (`BOARDS` in `worker/api-lib.mjs`, `boardId` in the client).
 
 **Scores** (`/score`): `{board, date, marks, score}` where `marks` is five
 characters `0`–`4` and `score` must equal what the marks add up to. The date

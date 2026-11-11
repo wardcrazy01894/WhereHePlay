@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
-import type { Mode, Player, School } from '../types'
-import { MODE_LABEL } from '../types'
+import type { Mode, Player, School, Variant } from '../types'
+import { boardId, gameLabel } from '../types'
 import { QUESTIONS_PER_DAY, dailyLineup, puzzleNumber } from '../lib/daily'
 import {
   type QuestionState,
@@ -28,6 +28,8 @@ interface Props {
   players: Player[]
   schools: School[]
   mode: Mode
+  /** Standard daily, or the beginner one (its own save, streak and board). */
+  variant: Variant
   dateKey: string
   /** False for ?date= playtest days: nothing is recorded or submitted. */
   official: boolean
@@ -42,8 +44,9 @@ function startGame(
   mode: Mode,
   dateKey: string,
   photo: PhotoStyle,
+  variant: Variant,
 ): Saved {
-  const saved = loadDaily(mode, dateKey)
+  const saved = loadDaily(mode, dateKey, variant)
   const byId = new Map(players.map((p) => [p.id, p]))
   // A dataset update may have changed today's lineup after this player
   // started: keep THEIR lineup as long as every player in it still exists.
@@ -56,11 +59,13 @@ function startGame(
     return saved
   return {
     mode,
+    // Left off a standard game, so its saved shape is what it always was.
+    ...(variant === 'beginner' ? { variant } : {}),
     dateKey,
     // The first-photo choice is fixed when the day starts, so the share card
     // can say truthfully which way it was played.
     photo,
-    lineup: dailyLineup(players, mode, dateKey).map((p) => p.id),
+    lineup: dailyLineup(players, mode, dateKey, variant).map((p) => p.id),
     questions: Array.from({ length: QUESTIONS_PER_DAY }, newQuestion),
   }
 }
@@ -68,8 +73,11 @@ function startGame(
 export function DailyGame(props: Props) {
   const { players, schools, mode, dateKey, official, identity, photoStyle } =
     props
+  const { variant } = props
+  const board = boardId(mode, variant)
+  const label = gameLabel(mode, variant)
   const [game, setGame] = useState<Saved>(() =>
-    startGame(players, mode, dateKey, photoStyle),
+    startGame(players, mode, dateKey, photoStyle, variant),
   )
   // Which question is on screen. Starts at the first unanswered one.
   const [index, setIndex] = useState(() => {
@@ -101,8 +109,8 @@ export function DailyGame(props: Props) {
     if (official && next.questions.every((x) => x.done)) {
       // Finishing records the day once (bumpStats ignores a repeat).
       saveStats(
-        mode,
-        bumpStats(loadStats(mode), dateKey, totalPoints(next.questions)),
+        board,
+        bumpStats(loadStats(board), dateKey, totalPoints(next.questions)),
       )
     }
   }
@@ -114,7 +122,7 @@ export function DailyGame(props: Props) {
     let live = true
     submitScore({
       token: identity.token,
-      board: mode,
+      board,
       date: dateKey,
       score: total,
       marks: marks(game.questions),
@@ -135,7 +143,7 @@ export function DailyGame(props: Props) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [finished, identity.token])
 
-  const stats = loadStats(mode)
+  const stats = loadStats(board)
   const streak = Math.max(
     liveStreak(stats, dateKey),
     standing?.streak?.current ?? 0,
@@ -143,7 +151,7 @@ export function DailyGame(props: Props) {
 
   const share = async () => {
     const url = window.location.origin + import.meta.env.BASE_URL
-    const text = shareText(mode, dateKey, game.questions, url, played)
+    const text = shareText(mode, dateKey, game.questions, url, played, variant)
     try {
       if (navigator.share && /Mobi|Android/i.test(navigator.userAgent))
         await navigator.share({ text })
@@ -161,7 +169,7 @@ export function DailyGame(props: Props) {
     return (
       <div className="results">
         <h2>
-          {MODE_LABEL[mode]} #{puzzleNumber(dateKey)}
+          {label} #{puzzleNumber(dateKey)}
         </h2>
         <div className="big-score">
           {total}
@@ -219,6 +227,7 @@ export function DailyGame(props: Props) {
         {apiEnabled && official && (
           <Leaderboard
             mode={mode}
+            variant={variant}
             dateKey={dateKey}
             token={identity.token}
             refreshKey={boardKey + (identity.name ? 1000 : 0)}
@@ -233,7 +242,7 @@ export function DailyGame(props: Props) {
     <div className="daily">
       <div className="progress">
         <span>
-          {MODE_LABEL[mode]} daily · {index + 1} of {QUESTIONS_PER_DAY}
+          {label} daily · {index + 1} of {QUESTIONS_PER_DAY}
         </span>
         <span>{total} pts</span>
       </div>
