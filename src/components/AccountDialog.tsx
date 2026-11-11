@@ -66,7 +66,7 @@ export function AccountDialog({ identity, onChange, onClose }: Props) {
         })
         setName(r.name)
       } else {
-        const r = await login(username, pass)
+        const r = await login(username, pass, identity.token)
         if (!r.ok) return r.error
         onChange({
           token: r.token,

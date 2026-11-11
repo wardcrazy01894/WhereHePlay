@@ -6,6 +6,7 @@ import worker from './api.mjs'
 import {
   validateScore,
   validateBoardQuery,
+  mergeStreaks,
   validateName,
   validateUsername,
   scoreForMarks,
@@ -24,7 +25,8 @@ import {
 /** Minimal D1-shaped adapter over node:sqlite running the REAL migrations. */
 function d1(db) {
   const wrap = (sql, args) => ({
-    all: () => db.prepare(sql).all(...args),
+    // Like D1: `.all()` resolves to `{ results }`, not a bare array.
+    all: () => ({ results: db.prepare(sql).all(...args) }),
     run: () => {
       const info = db.prepare(sql).run(...args)
       return { meta: { changes: Number(info.changes) } }
@@ -36,7 +38,7 @@ function d1(db) {
       ...wrap(sql, []),
       bind: (...args) => wrap(sql, args),
     }),
-    batch: async (stmts) => stmts.map((s) => ({ results: s.all() })),
+    batch: async (stmts) => stmts.map((s) => s.all()),
   }
 }
 function freshDb() {
@@ -76,6 +78,35 @@ async function post(path, body, e = env, origin = 'https://example.test') {
   )
   return { status: res.status, body: await res.json() }
 }
+
+describe('mergeStreaks', () => {
+  const s = (current, best, last_played_date) => ({
+    current,
+    best,
+    last_played_date,
+  })
+  it('one side missing: the other', () => {
+    const a = s(2, 4, '2026-11-11')
+    expect(mergeStreaks(undefined, a)).toBe(a)
+    expect(mergeStreaks(a, undefined)).toBe(a)
+  })
+  it('same day: the larger count', () => {
+    expect(mergeStreaks(s(2, 2, '2026-11-11'), s(5, 6, '2026-11-11'))).toEqual(
+      s(5, 6, '2026-11-11'),
+    )
+  })
+  it('consecutive days chain, in either argument order', () => {
+    const through10 = s(3, 3, '2026-11-10')
+    const on11 = s(1, 1, '2026-11-11')
+    expect(mergeStreaks(through10, on11)).toEqual(s(4, 4, '2026-11-11'))
+    expect(mergeStreaks(on11, through10)).toEqual(s(4, 4, '2026-11-11'))
+  })
+  it('a gap: the newer run stands, but best is never lost', () => {
+    expect(mergeStreaks(s(9, 9, '2026-11-01'), s(2, 2, '2026-11-11'))).toEqual(
+      s(2, 9, '2026-11-11'),
+    )
+  })
+})
 
 describe('validation', () => {
   const now = new Date('2026-11-11T12:00:00Z')
@@ -415,6 +446,100 @@ describe('worker routes', () => {
       scores: [],
       streaks: [],
     })
+  })
+  it("signing in folds the device's anonymous player into the account: one row on the board, not two", async () => {
+    const date = today()
+    const yesterday = new Date(Date.now() - 86_400_000)
+      .toISOString()
+      .slice(0, 10)
+    // The account exists (made on a computer) and has a 3-day NFL streak
+    // through yesterday; it also already played today's NBA daily.
+    await post('/register', { token: tok('a'), username: 'merged', pass: PASS })
+    await post('/score', {
+      token: tok('a'),
+      board: 'nba',
+      date,
+      score: 500,
+      marks: '44444',
+    })
+    await db
+      .prepare(
+        `INSERT INTO streaks (board, player_id, current, best, last_played_date, updated_at)
+         SELECT 'nfl', id, 3, 3, ?1, 1 FROM players WHERE username = 'merged'`,
+      )
+      .bind(yesterday)
+      .run()
+    // On the phone, not signed in: today's NFL and NBA dailies, as "Anonymous".
+    for (const [board, score, marks] of [
+      ['nfl', 250, '43210'],
+      ['nba', 0, '00000'],
+    ])
+      await post('/score', { token: tok('b'), board, date, score, marks })
+    expect(
+      (await post('/board', { board: 'nfl', date })).body.entries,
+    ).toHaveLength(1)
+
+    // Sign in on the phone, handing over the phone's own token.
+    const login = await post('/login', {
+      username: 'merged',
+      pass: PASS,
+      token: tok('b'),
+    })
+    expect(login.body.ok).toBe(true)
+    const phone = login.body.token
+
+    // NFL: the anonymous result is now the account's — still ONE row.
+    const nfl = (await post('/board', { board: 'nfl', date, token: phone }))
+      .body
+    expect(nfl.total).toBe(1)
+    expect(nfl.entries).toEqual([
+      { name: 'merged', score: 250, marks: '43210', streak: 4, you: true },
+    ])
+    // NBA: the account's own earlier result stands; the anonymous one is gone.
+    const nba = (await post('/board', { board: 'nba', date, token: phone }))
+      .body
+    expect(nba.total).toBe(1)
+    expect(nba.entries[0]).toMatchObject({ score: 500, you: true })
+    // The anonymous player no longer exists, and its token is dead.
+    expect(db.prepare('SELECT COUNT(*) AS n FROM players').first().n).toBe(1)
+    expect((await post('/me', { token: tok('b') })).body.username).toBeNull()
+    expect((await post('/me', { token: tok('b') })).body.scores).toEqual([])
+  })
+  it('signing in never folds one ACCOUNT into another, and ignores a bad or unknown token', async () => {
+    const date = today()
+    await post('/register', { token: tok('a'), username: 'first', pass: PASS })
+    await post('/register', { token: tok('b'), username: 'second', pass: PASS })
+    await post('/score', {
+      token: tok('b'),
+      board: 'nfl',
+      date,
+      score: 250,
+      marks: '43210',
+    })
+    for (const token of [tok('b'), tok('c'), 'nope', undefined])
+      expect(
+        (await post('/login', { username: 'first', pass: PASS, token })).body
+          .ok,
+      ).toBe(true)
+    // second's result is still second's.
+    const b = await post('/board', { board: 'nfl', date, token: tok('b') })
+    expect(b.body.entries).toEqual([
+      { name: 'second', score: 250, marks: '43210', streak: 1, you: true },
+    ])
+    // A wrong password merges nothing.
+    await post('/score', {
+      token: tok('d'),
+      board: 'nba',
+      date,
+      score: 0,
+      marks: '00000',
+    })
+    await post('/login', {
+      username: 'first',
+      pass: 'cd'.repeat(32),
+      token: tok('d'),
+    })
+    expect((await post('/me', { token: tok('d') })).body.scores).toHaveLength(1)
   })
   it('caps device sessions per account', async () => {
     await post('/register', { token: tok('a'), username: 'capped', pass: PASS })

@@ -213,6 +213,9 @@ describe('cross-device sync', () => {
     })
     fireEvent.click(within(dialog).getByRole('button', { name: 'Sign in' }))
     await vi.waitFor(() => expect(scorePosts()).toBe(2), { timeout: 5000 })
+    // The sign-in hands over the device's anonymous token, so the server can
+    // fold that player into the account (no "Anonymous" twin on the board).
+    expect(posted.find((p) => p.path === '/login')!.body.token).toBe(TOKEN)
     await vi.waitFor(() =>
       expect(JSON.parse(localStorage.getItem(key)!).owner).toBe('bo'),
     )
