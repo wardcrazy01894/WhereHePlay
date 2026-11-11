@@ -29,7 +29,11 @@ export function BugReport({ context, onClose }: Props) {
   }
 
   return (
-    <div className="dialog-backdrop" onClick={onClose}>
+    <div
+      className="dialog-backdrop"
+      onClick={onClose}
+      onKeyDown={(e) => e.key === 'Escape' && onClose()}
+    >
       <div
         className="dialog"
         role="dialog"
@@ -56,6 +60,7 @@ export function BugReport({ context, onClose }: Props) {
               <textarea
                 value={message}
                 rows={5}
+                autoFocus
                 maxLength={MAX_REPORT_CHARS}
                 onChange={(e) => {
                   setMessage(e.target.value)
@@ -70,8 +75,9 @@ export function BugReport({ context, onClose }: Props) {
                 onChange={(e) => setIncludeLogs(e.target.checked)}
               />
               <span>
-                Include this session’s activity log (what you tapped, no
-                personal details). Reports are posted publicly on GitHub.
+                Include this session’s app log (errors and app events — no names
+                or passwords). Reports are posted publicly on GitHub, with the
+                page address and your browser type.
               </span>
             </label>
             {result && !result.ok && (

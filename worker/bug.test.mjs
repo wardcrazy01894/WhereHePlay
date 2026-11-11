@@ -1,4 +1,6 @@
 import { describe, it, expect, vi, afterEach } from 'vitest'
+import { readFileSync, readdirSync } from 'node:fs'
+import { DatabaseSync } from 'node:sqlite'
 import worker from './api.mjs'
 import {
   buildIssue,
@@ -6,7 +8,25 @@ import {
   defang,
   issueTitle,
   urlFromAllowedOrigin,
+  takeDailySlot,
 } from './bug-lib.mjs'
+
+/** D1-shaped adapter over node:sqlite with the real migrations (meta table). */
+function freshDb() {
+  const raw = new DatabaseSync(':memory:')
+  const dir = new URL('./migrations/', import.meta.url)
+  for (const f of readdirSync(dir).sort())
+    raw.exec(readFileSync(new URL(f, dir), 'utf8'))
+  const wrap = (sql, args) => ({
+    first: () => raw.prepare(sql).all(...args)[0] ?? null,
+  })
+  return {
+    prepare: (sql) => ({
+      ...wrap(sql, []),
+      bind: (...args) => wrap(sql, args),
+    }),
+  }
+}
 
 const ORIGINS = ['https://wardcrazy01894.github.io']
 
@@ -22,6 +42,24 @@ describe('defang', () => {
     expect(out).not.toContain('#12')
     expect(out).not.toContain('GH-3')
     expect(out).toContain('&lt;img')
+  })
+  it('breaks a reference definition wherever it sits (list item, quote)', () => {
+    for (const p of [
+      '- [a]: http://evil.com\n\nclick [a]',
+      '1. [a]: http://evil',
+      '> [a]: http://evil',
+    ])
+      expect(defang(p)).not.toContain(']:')
+  })
+  it('titles cannot cross-reference, mention or carry markup', () => {
+    const t = issueTitle(
+      'crash #1 org/repo#2 <b>x</b> GH-4 gh-5 [x](http://e) @bob `c`',
+    )
+    expect(t).not.toMatch(/#\d/)
+    expect(t).not.toMatch(/GH-\d/i)
+    // (after the fixed "[bug] " prefix)
+    expect(t.slice(6)).not.toMatch(/[<>[\]@`]/)
+    expect(t.startsWith('[bug] crash')).toBe(true)
   })
   it('leaves a bare URL readable', () => {
     expect(defang('see https://example.com/x')).toBe(
@@ -141,11 +179,41 @@ describe('createIssue', () => {
   })
 })
 
+describe('player requests', () => {
+  it('get their own title prefix and label', () => {
+    const r = buildIssue(
+      { kind: 'player', message: 'Please add "Kurt Warner" to the game.' },
+      ORIGINS,
+    )
+    expect(r.value.title).toBe(
+      '[player request] Please add "Kurt Warner" to the game.',
+    )
+    expect(r.value.labels).toEqual(['player-request', 'from-app'])
+    // Anything else is a plain bug report.
+    expect(
+      buildIssue({ kind: 'nonsense', message: 'x' }, ORIGINS).value.labels,
+    ).toEqual(['bug', 'from-app'])
+  })
+})
+
+describe('takeDailySlot', () => {
+  it('allows `max` reports per UTC day, then refuses; a new day starts over', async () => {
+    const db = freshDb()
+    const day1 = new Date('2026-11-11T10:00:00Z')
+    expect(await takeDailySlot(db, day1, 2)).toBe(true)
+    expect(await takeDailySlot(db, day1, 2)).toBe(true)
+    expect(await takeDailySlot(db, day1, 2)).toBe(false)
+    expect(await takeDailySlot(db, new Date('2026-11-12T00:00:01Z'), 2)).toBe(
+      true,
+    )
+  })
+})
+
 describe('/bug route', () => {
   afterEach(() => vi.unstubAllGlobals())
   const allow = { limit: async () => ({ success: true }) }
   const env = {
-    DB: {},
+    DB: freshDb(),
     ALLOWED_ORIGIN: ORIGINS[0],
     RATE_LIMITER: allow,
     LOGIN_LIMITER: allow,
@@ -219,6 +287,18 @@ describe('/bug route', () => {
       {},
     )
     expect(res.status).toBe(413)
+  })
+  it('stops at the global daily cap without calling GitHub', async () => {
+    const gh = vi.fn(async () => ({
+      ok: true,
+      json: async () => ({ html_url: '' }),
+    }))
+    vi.stubGlobal('fetch', gh)
+    const e = { ...env, DB: freshDb() }
+    let last
+    for (let i = 0; i < 101; i++) last = await post({ message: 'x' }, e)
+    expect(last.status).toBe(429)
+    expect(gh).toHaveBeenCalledTimes(100)
   })
   it('a GitHub failure is a 502, not a crash', async () => {
     vi.spyOn(console, 'error').mockImplementation(() => {})

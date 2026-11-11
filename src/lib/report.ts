@@ -1,5 +1,6 @@
 /**
- * Bug reports. Two paths, chosen automatically:
+ * Reports to the maintainer: bug reports and "please add this player"
+ * requests. Two paths, chosen automatically:
  *  1. The API worker's /bug route files a GitHub issue with a token kept
  *     server-side — the player types and hits send; no GitHub account needed.
  *  2. If that is unavailable (API unset, token not configured, rate limited,
@@ -10,6 +11,15 @@ import { dumpLogs } from './log'
 
 export const REPO_URL = 'https://github.com/wardcrazy01894/WhereHePlay'
 export const MAX_REPORT_CHARS = 2000
+/** Longest prefilled-issue URL we will build (GitHub rejects very long ones). */
+export const MAX_ISSUE_URL = 6000
+
+/** A free-text bug report, or a one-click "please add this player" request. */
+export type ReportKind = 'bug' | 'player'
+const TITLE_PREFIX: Record<ReportKind, string> = {
+  bug: '[bug] ',
+  player: '[player request] ',
+}
 
 export interface ReportContext {
   /** What was on screen, e.g. "daily nfl". */
@@ -18,10 +28,24 @@ export interface ReportContext {
   date: string
 }
 
+/** The message a player request is filed with. Quotes are stripped so the
+ *  name can't nest inside the wrapping quotes. */
+export function playerRequestMessage(name: string): string {
+  const clean = name.replace(/"/g, '').replace(/\s+/g, ' ').trim()
+  return `Please add "${clean}" to the game.`
+}
+
+/** First `n` characters by code point — a plain slice can cut an emoji in
+ *  half, and encodeURIComponent throws on the stray half. */
+export function clip(s: string, n: number): string {
+  return Array.from(s).slice(0, n).join('')
+}
+
 const env = () => ({
   build: import.meta.env.VITE_BUILD_HASH ?? 'dev',
-  url: typeof location !== 'undefined' ? location.href : '',
-  userAgent: typeof navigator !== 'undefined' ? navigator.userAgent : '',
+  url: typeof location !== 'undefined' ? location.href.slice(0, 300) : '',
+  userAgent:
+    typeof navigator !== 'undefined' ? navigator.userAgent.slice(0, 300) : '',
 })
 
 /** The JSON body POSTed to /bug. Pure given the environment. */
@@ -29,22 +53,27 @@ export function buildReportPayload(
   message: string,
   ctx: ReportContext,
   includeLogs: boolean,
+  kind: ReportKind = 'bug',
 ) {
   return {
-    message: message.trim().slice(0, MAX_REPORT_CHARS),
+    kind,
+    message: clip(message.trim(), MAX_REPORT_CHARS),
     context: { ...ctx, ...env() },
     logs: includeLogs ? dumpLogs().slice(-4000) : '',
   }
 }
 
-/** Prefilled GitHub new-issue URL (the fallback path). */
-export function bugReportUrl(message: string, ctx: ReportContext): string {
+function issueUrl(
+  message: string,
+  ctx: ReportContext,
+  kind: ReportKind,
+): string {
   const e = env()
-  const title = '[bug] ' + (message.trim().split('\n')[0] || '').slice(0, 80)
+  const title = TITLE_PREFIX[kind] + clip(message.split('\n')[0] || '', 80)
   const body = [
     '**What happened?**',
     '',
-    message.trim(),
+    message,
     '',
     '---',
     `Screen: ${ctx.screen}`,
@@ -56,11 +85,31 @@ export function bugReportUrl(message: string, ctx: ReportContext): string {
   return `${REPO_URL}/issues/new?title=${encodeURIComponent(title)}&body=${encodeURIComponent(body)}`
 }
 
+/**
+ * Prefilled GitHub new-issue URL (the fallback path). A long or heavily
+ * encoded message is shortened until the URL fits MAX_ISSUE_URL — this is the
+ * path used when the worker is down, so it has to open.
+ */
+export function bugReportUrl(
+  message: string,
+  ctx: ReportContext,
+  kind: ReportKind = 'bug',
+): string {
+  let text = message.trim()
+  let url = issueUrl(text, ctx, kind)
+  while (url.length > MAX_ISSUE_URL && text.length > 0) {
+    text = clip(text, Math.floor(Array.from(text).length * 0.8))
+    url = issueUrl(text + '…', ctx, kind)
+  }
+  return url
+}
+
 export type SubmitResult =
-  | { ok: true; /** The created issue. */ url: string }
+  | { ok: true; /** The created issue ('' if unknown). */ url: string }
   | {
       ok: false
-      /** Prefilled issue page to open instead. */ fallbackUrl: string
+      /** Prefilled issue page to open instead. */
+      fallbackUrl: string
     }
 
 /** Send a report. Never throws: any failure resolves to the fallback link. */
@@ -69,17 +118,18 @@ export async function submitBugReport(
   ctx: ReportContext,
   includeLogs: boolean,
   fetchImpl: typeof fetch = fetch,
+  kind: ReportKind = 'bug',
 ): Promise<SubmitResult> {
   const fallback: SubmitResult = {
     ok: false,
-    fallbackUrl: bugReportUrl(message, ctx),
+    fallbackUrl: bugReportUrl(message, ctx, kind),
   }
   if (!apiEnabled) return fallback
   try {
     const res = await fetchImpl(API_BASE + '/bug', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(buildReportPayload(message, ctx, includeLogs)),
+      body: JSON.stringify(buildReportPayload(message, ctx, includeLogs, kind)),
     })
     const data = (await res.json().catch(() => ({}))) as {
       ok?: boolean

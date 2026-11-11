@@ -592,3 +592,35 @@ textarea {
 .check input {
   margin-top: 3px;
 }
+
+/* ---- Header actions + player search ---- */
+.top-actions {
+  display: flex;
+  gap: 8px;
+  min-width: 0;
+}
+.icon-button {
+  padding: 10px 12px;
+}
+.player-matches {
+  list-style: none;
+  margin: 0 0 12px;
+  padding: 0;
+  display: grid;
+  gap: 4px;
+}
+.player-matches li {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  background: var(--panel-2);
+  border-radius: 8px;
+  padding: 8px 12px;
+}
+.request {
+  border-top: 1px solid var(--line);
+  padding-top: 8px;
+}
+.request p {
+  margin: 0 0 8px;
+}

@@ -11,7 +11,7 @@
  *   /register  { token, username, pass }            → { name, username }
  *   /login     { username, pass }                   → { token, name, username }
  *   /logout    { token }                            → {}
- *   /bug       { message, context, logs }           → { url }  (files a
+ *   /bug       { kind?, message, context, logs }    → { url }  (files a
  *              GitHub issue; needs the GH_TOKEN secret, else 503 and the
  *              site falls back to a prefilled issue link)
  *
@@ -46,7 +46,12 @@ import {
   pruneIfDue,
   allowedOrigins,
 } from './api-lib.mjs'
-import { MAX_BUG_BODY_BYTES, buildIssue, createIssue } from './bug-lib.mjs'
+import {
+  MAX_BUG_BODY_BYTES,
+  buildIssue,
+  createIssue,
+  takeDailySlot,
+} from './bug-lib.mjs'
 
 const MAX_BODY_BYTES = 2_000
 
@@ -82,6 +87,10 @@ export default {
     const route = new URL(request.url).pathname.replace(/\/+$/, '')
     // A bug report carries a message and session logs; everything else is tiny.
     const maxBytes = route === '/bug' ? MAX_BUG_BODY_BYTES : MAX_BODY_BYTES
+
+    // Cheap early reject on the declared size; the real check is on the bytes read.
+    if (parseInt(request.headers.get('Content-Length') || '0', 10) > maxBytes)
+      return reply({ error: 'payload too large' }, 413)
 
     let body
     try {
@@ -214,6 +223,10 @@ export default {
             )
           const issue = buildIssue(body, allowedOrigins(env))
           if (!issue.ok) return bad(issue)
+          // Global daily cap. (A DB error lands in the catch → 503 → the site
+          // offers the prefilled link, which is the safe direction.)
+          if (!(await takeDailySlot(db, now)))
+            return reply({ error: 'report limit reached for today' }, 429)
           const filed = await createIssue(env, issue.value)
           if (!filed.ok)
             return reply({ error: 'could not file the report' }, 502)

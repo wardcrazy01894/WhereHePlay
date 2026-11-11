@@ -2,8 +2,14 @@ import { describe, it, expect, vi } from 'vitest'
 
 // The API must be "configured" for the send path; set before the module loads.
 vi.stubEnv('VITE_API_ENDPOINT', 'https://api.test')
-const { REPO_URL, bugReportUrl, buildReportPayload, submitBugReport } =
-  await import('./report')
+const {
+  MAX_ISSUE_URL,
+  REPO_URL,
+  bugReportUrl,
+  buildReportPayload,
+  playerRequestMessage,
+  submitBugReport,
+} = await import('./report')
 
 const ctx = { screen: 'daily nfl', date: '2026-11-11' }
 
@@ -30,6 +36,52 @@ describe('bugReportUrl', () => {
     expect(url.searchParams.get('body')).toContain(
       'Wrong school for Romo\nmore',
     )
+  })
+})
+
+describe('bugReportUrl length', () => {
+  it('shortens a long or heavily-encoded message so the link still opens', () => {
+    for (const msg of [
+      'a'.repeat(2000),
+      'é\n'.repeat(1000),
+      '🏈'.repeat(1000),
+    ]) {
+      const url = bugReportUrl(msg, ctx)
+      expect(url.length).toBeLessThanOrEqual(MAX_ISSUE_URL)
+      expect(new URL(url).searchParams.get('body')).toContain(
+        'Screen: daily nfl',
+      )
+    }
+    expect(
+      new URL(bugReportUrl('short', ctx)).searchParams.get('body'),
+    ).toContain('short\n')
+  })
+})
+
+describe('player requests', () => {
+  it('build a quoted, tidy message and are sent as kind "player"', async () => {
+    expect(playerRequestMessage('  Kurt   "The Man" Warner ')).toBe(
+      'Please add "Kurt The Man Warner" to the game.',
+    )
+    const f = vi.fn(async () => ({
+      ok: true,
+      status: 200,
+      json: async () => ({ ok: true, url: '' }),
+    }))
+    await submitBugReport(
+      playerRequestMessage('Kurt Warner'),
+      ctx,
+      false,
+      f as never,
+      'player',
+    )
+    const body = JSON.parse(
+      String((f.mock.calls[0] as unknown as [string, RequestInit])[1].body),
+    )
+    expect(body).toMatchObject({ kind: 'player', logs: '' })
+    expect(
+      new URL(bugReportUrl('x', ctx, 'player')).searchParams.get('title'),
+    ).toBe('[player request] x')
   })
 })
 
@@ -83,5 +135,12 @@ describe('submitBugReport', () => {
       if (!r.ok)
         expect(r.fallbackUrl).toContain(REPO_URL + '/issues/new?title=')
     }
+  })
+})
+
+describe('emoji at a cut point', () => {
+  it('never throws (a plain slice would leave half an emoji, which cannot be URL-encoded)', () => {
+    expect(() => bugReportUrl('x'.repeat(79) + '🏈🏈', ctx)).not.toThrow()
+    expect(() => bugReportUrl('🏈'.repeat(3000), ctx)).not.toThrow()
   })
 })

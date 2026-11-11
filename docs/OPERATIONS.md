@@ -77,7 +77,8 @@ offers a prefilled issue link instead.
 2. `npx wrangler secret put GH_TOKEN -c worker/wrangler.toml` and paste it.
    No redeploy needed.
 3. Send a test report from the site; it should appear under Issues with the
-   labels `bug` and `from-app`.
+   labels `bug` and `from-app`. (Player requests from "Is he in the game?"
+   use the same route and arrive labelled `player-request`.)
 
 When the token expires reports quietly fall back to the prefilled link;
 `npx wrangler tail -c worker/wrangler.toml` shows `bug: github issue create

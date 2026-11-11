@@ -30,22 +30,22 @@ migrations. Never mock the unit under test.
 
 ## Docs stay current in the same PR
 
-| Change touches…                                                   | Update / verify                                    |
-| ----------------------------------------------------------------- | -------------------------------------------------- |
-| `src/lib/game.ts` (ladder, points)                                | PLAN §Game rules, README table, worker MARK_POINTS |
-| `src/lib/daily.ts`                                                | PLAN §Daily selection                              |
-| `src/lib/storage.ts`, `share.ts`, `freeplay.ts`                   | PLAN §Modes and storage                            |
-| `src/lib/version.ts`, the version-json plugin in `vite.config.ts` | PLAN §Auto-update                                  |
-| `worker/*`, `src/lib/api.ts`, Leaderboard, AccountDialog          | PLAN §API + `worker/README.md` + OPERATIONS        |
-| `worker/bug-lib.mjs`, `src/lib/report.ts`, BugReport              | PLAN §Bug reports + OPERATIONS §Bug reports        |
-| `worker/migrations/*`                                             | OPERATIONS §API worker (run the migration!)        |
-| `scripts/*`, `data/schools.psv`, `public/*.json`                  | `docs/DATA.md`; player counts in README            |
-| `src/lib/images.ts`, photo sources                                | DATA §Photos + `docs/APP.md` §Photos               |
-| `.github/workflows/*`, `scripts/protect-main.sh`                  | OPERATIONS + this file's CI list                   |
-| `vite.config.ts` (`base`), `index.html`, `public/manifest.*`      | OPERATIONS §Custom domain + `docs/APP.md`          |
-| `.github/dependabot.yml`                                          | OPERATIONS §Dependency updates                     |
-| `eslint.config.js`                                                | A comment in the config saying why                 |
-| `package.json` scripts / engines                                  | README + this file's command list                  |
+| Change touches…                                                                       | Update / verify                                                 |
+| ------------------------------------------------------------------------------------- | --------------------------------------------------------------- |
+| `src/lib/game.ts` (ladder, points)                                                    | PLAN §Game rules, README table, worker MARK_POINTS              |
+| `src/lib/daily.ts`                                                                    | PLAN §Daily selection                                           |
+| `src/lib/storage.ts`, `share.ts`, `freeplay.ts`                                       | PLAN §Modes and storage                                         |
+| `src/lib/version.ts`, the version-json plugin in `vite.config.ts`                     | PLAN §Auto-update                                               |
+| `worker/*`, `src/lib/api.ts`, Leaderboard, AccountDialog                              | PLAN §API + `worker/README.md` + OPERATIONS                     |
+| `worker/bug-lib.mjs`, `src/lib/report.ts`, `playerSearch.ts`, BugReport, PlayerSearch | PLAN §Bug reports and player requests + OPERATIONS §Bug reports |
+| `worker/migrations/*`                                                                 | OPERATIONS §API worker (run the migration!)                     |
+| `scripts/*`, `data/schools.psv`, `public/*.json`                                      | `docs/DATA.md`; player counts in README                         |
+| `src/lib/images.ts`, photo sources                                                    | DATA §Photos + `docs/APP.md` §Photos                            |
+| `.github/workflows/*`, `scripts/protect-main.sh`                                      | OPERATIONS + this file's CI list                                |
+| `vite.config.ts` (`base`), `index.html`, `public/manifest.*`                          | OPERATIONS §Custom domain + `docs/APP.md`                       |
+| `.github/dependabot.yml`                                                              | OPERATIONS §Dependency updates                                  |
+| `eslint.config.js`                                                                    | A comment in the config saying why                              |
+| `package.json` scripts / engines                                                      | README + this file's command list                               |
 
 The footer's last line is **"A Spicy Al Software Solution"** — a hard
 requirement, pinned by `src/App.render.test.tsx`.

@@ -18,18 +18,22 @@ export const MAX_CONTEXT = 120
  * report can't spray backlinks. A bare https://… URL stays readable.
  */
 export function defang(s) {
-  return String(s)
-    .replace(/```/g, '`​`​`')
-    .replace(/@/g, '@​')
-    .replace(/!\[/g, '!​[')
-    .replace(/\]\(/g, ']​(')
-    .replace(/\]\[/g, ']​[')
-    .replace(/^(\s*\[[^\]]+\]):/gm, '$1​:')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/#(\d)/g, '#​$1')
-    .replace(/\bGH-(\d)/g, 'GH-​$1')
-    .replace(/\r/g, '')
+  return (
+    String(s)
+      .replace(/```/g, '`​`​`')
+      .replace(/@/g, '@​')
+      .replace(/!\[/g, '!​[')
+      .replace(/\]\(/g, ']​(')
+      .replace(/\]\[/g, ']​[')
+      // `]:` anywhere, not only at line start: a reference definition is also
+      // valid at the start of a list item or block quote ("- [a]: http://…").
+      .replace(/\]:/g, ']\u200B:')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/#(\d)/g, '#​$1')
+      .replace(/\bGH-(\d)/gi, 'GH-\u200B$1')
+      .replace(/\r/g, '')
+  )
 }
 
 /** True if `url` parses and its origin is EXACTLY one of `origins`. */
@@ -41,12 +45,29 @@ export function urlFromAllowedOrigin(url, origins) {
   }
 }
 
-/** "[bug] <first line>", ≤ 80 chars, with backticks, @ and newlines flattened. */
-export function issueTitle(message) {
+/**
+ * What a report is. `bug` is the free-text form; `player` is the one-click
+ * "please add this player" request from the player search.
+ */
+export const KINDS = {
+  bug: { prefix: '[bug] ', labels: ['bug', 'from-app'] },
+  player: {
+    prefix: '[player request] ',
+    labels: ['player-request', 'from-app'],
+  },
+}
+
+/** The kind's prefix + the first line, ≤ 80 chars: backticks, at-signs,
+ *  brackets, angle brackets and newlines flattened, issue references broken. */
+export function issueTitle(message, kind = 'bug') {
   return (
-    '[bug] ' +
+    KINDS[kind].prefix +
     (String(message).split('\n')[0] || '')
-      .replace(/[`@\r\n]/g, ' ')
+      .replace(/[`@\r\n<>[\]]/g, ' ')
+      // Titles autolink #123, owner/repo#123 and GH-123 too — each would drop
+      // a backlink on some other issue.
+      .replace(/#(\d)/g, '#\u200B$1')
+      .replace(/\bGH-(\d)/gi, 'GH-\u200B$1')
       .slice(0, 80)
       .trim()
   )
@@ -58,6 +79,7 @@ export function issueTitle(message) {
  * reported page URL is kept only if it is from our own site.
  */
 export function buildIssue(input, origins) {
+  const kind = input?.kind === 'player' ? 'player' : 'bug'
   const message = String(input?.message ?? '')
     .slice(0, MAX_MESSAGE)
     .trim()
@@ -89,7 +111,36 @@ export function buildIssue(input, origins) {
     '```',
     '</details>',
   ].join('\n')
-  return { ok: true, value: { title: issueTitle(message), body } }
+  return {
+    ok: true,
+    value: {
+      title: issueTitle(message, kind),
+      body,
+      labels: KINDS[kind].labels,
+    },
+  }
+}
+
+/** Most reports accepted per UTC day, across everyone. */
+export const MAX_REPORTS_PER_DAY = 100
+
+/**
+ * Global daily cap, counted in D1 (`meta` key `bugs:<date>`): the per-IP
+ * limiter alone would let one address file ~7,000 public issues a day, and a
+ * botnet far more. Returns true if this report may be filed. Atomic.
+ */
+export async function takeDailySlot(db, now, max = MAX_REPORTS_PER_DAY) {
+  const key = `bugs:${now.toISOString().slice(0, 10)}`
+  const row = await db
+    .prepare(
+      `INSERT INTO meta (key, value, updated_at) VALUES (?1, '1', ?2)
+       ON CONFLICT(key) DO UPDATE SET
+         value = CAST(CAST(value AS INTEGER) + 1 AS TEXT), updated_at = excluded.updated_at
+       RETURNING value`,
+    )
+    .bind(key, now.getTime())
+    .first()
+  return Number(row?.value) <= max
 }
 
 /**
@@ -109,7 +160,11 @@ export async function createIssue(env, issue, fetchImpl = fetch) {
           'User-Agent': 'WhereHePlay-bug-bot',
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ ...issue, labels: ['bug', 'from-app'] }),
+        body: JSON.stringify({
+          title: issue.title,
+          body: issue.body,
+          labels: issue.labels ?? KINDS.bug.labels,
+        }),
       },
     )
   } catch (e) {
