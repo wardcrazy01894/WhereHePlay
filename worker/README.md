@@ -23,16 +23,16 @@ npm run worker:dev        # http://localhost:8787
 
 All routes are `POST` with JSON:
 
-| Route       | Body                               | Returns                      |
-| ----------- | ---------------------------------- | ---------------------------- |
-| `/score`    | `token, board, date, score, marks` | `rank, total, score, streak` |
-| `/board`    | `board, date, token?`              | `total, entries[]`           |
-| `/me`       | `token`                            | `name, username`             |
-| `/name`     | `token, name`                      | `name, username`             |
-| `/register` | `token, username, pass`            | `name, username`             |
-| `/login`    | `username, pass`                   | `token, name, username`      |
-| `/logout`   | `token`                            | —                            |
-| `/bug`      | `message, context, logs`           | `url` of the GitHub issue    |
+| Route       | Body                               | Returns                               |
+| ----------- | ---------------------------------- | ------------------------------------- |
+| `/score`    | `token, board, date, score, marks` | `rank, total, score, streak`          |
+| `/board`    | `board, date, token?`              | `total, entries[]`                    |
+| `/me`       | `token`                            | `name, username, streaks[], scores[]` |
+| `/name`     | `token, name`                      | `name, username`                      |
+| `/register` | `token, username, pass`            | `name, username`                      |
+| `/login`    | `username, pass`                   | `token, name, username`               |
+| `/logout`   | `token`                            | —                                     |
+| `/bug`      | `message, context, logs`           | `url` of the GitHub issue             |
 
 `board` is one of `nfl`, `nba`, `mixed`, `nfl-beginner`, `nba-beginner`,
 `mixed-beginner` (`BOARDS` in `api-lib.mjs`); anything else is a 400.

@@ -177,8 +177,28 @@ unique. Empty shows as "Anonymous".
 words that the username is not an email and that no email is ever asked for. Registering upgrades the current anonymous
 player in place, so existing scores and streaks are kept. Signing in on
 another device issues a new token for the same player (newest 10 kept).
-Signing out returns the device to a fresh anonymous identity. Scores made
-anonymously on a second device before signing in are not merged.
+Signing out returns the device to a fresh anonymous identity.
+
+**Cross-device sync** (`src/lib/sync.ts`, `/me`). `/me` returns, besides the
+name, the caller's own streaks (every board) and results inside the
+submission window. On load, on each return to the home screen and when the
+tab comes back, the client folds that into `localStorage`:
+
+- a daily finished on another device is stored as finished here (rebuilt
+  from its marks: real score and squares, flagged `synced`, shown with
+  "Played on another device."). The server keeps the first result, so it
+  also replaces a game only in progress here;
+- each streak takes the newer last-played day's count (same day: the larger);
+  best only grows — so a streak continues whichever device plays;
+- when signed in, today's dailies finished on this device that the account
+  has no result for are submitted (played before signing in). Never for an
+  anonymous device: signing out must not repost the day as a second player.
+  Earlier days played anonymously are still not merged.
+
+It only runs from the home screen, never under a question. Not synced: a
+daily still in progress (only finished results reach the server), free play,
+and the first-photo setting. A worker that predates this simply returns no
+`streaks`/`scores` and the client does nothing.
 
 Passwords use a **split KDF**: the browser runs PBKDF2-SHA256 (150,000
 iterations, salted with the username) and sends only the derived key; the

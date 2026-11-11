@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import type { Mode, Player, School, Variant } from './types'
 import { MODES, MODE_LABEL, boardId } from './types'
-import { puzzleNumber } from './lib/daily'
+import { getDateKey, puzzleNumber } from './lib/daily'
 import { resolveDay } from './lib/day'
 import { totalPoints } from './lib/game'
 import { apiEnabled, fetchMe } from './lib/api'
@@ -17,6 +17,7 @@ import {
   savePhotoStyle,
 } from './lib/storage'
 import { log } from './lib/log'
+import { syncProgress } from './lib/sync'
 import {
   VERSION_CHECK_MS,
   fetchDeployedHash,
@@ -85,11 +86,20 @@ export function App() {
       })
   }, [])
 
-  // Pick up a name changed on another device (accounts only matter here).
+  const onHome = view.screen === 'home'
+  // Cross-device sync (src/lib/sync.ts): ask the server who this is and what
+  // they have done — a name changed, a daily finished or a streak extended
+  // on another device — and fold it into this one. On load, on every return
+  // to the home screen and when the tab comes back; only ever from the home
+  // screen, so a game on screen is never swapped out from under the player.
+  const [syncAsk, setSyncAsk] = useState(0)
+  const [, setSynced] = useState(0)
   useEffect(() => {
-    if (!apiEnabled) return
-    fetchMe(identity.token).then((r) => {
-      if (!r.ok) return
+    if (!apiEnabled || !players || !onHome) return
+    let live = true
+    const { token } = identity
+    fetchMe(token).then(async (r) => {
+      if (!live || !r.ok) return
       const next = {
         ...identity,
         name: r.name || identity.name,
@@ -97,19 +107,25 @@ export function App() {
       }
       if (next.name !== identity.name || next.username !== identity.username)
         changeIdentity(next)
+      // The real local day, never a ?date= practice day.
+      const changed = await syncProgress(players, r, token, getDateKey())
+      if (live && changed) setSynced((n) => n + 1)
     })
-    // Once per token.
+    return () => {
+      live = false
+    }
+    // Per token, per visit to the home screen — not per identity edit.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [identity.token])
+  }, [identity.token, players, onHome, syncAsk])
 
   // Roll over to the new day when the tab comes back after midnight — but
   // only on the home screen, never under a game in progress.
-  const onHome = view.screen === 'home'
   useEffect(() => {
     if (!onHome) return
     const onVisible = () => {
-      if (document.visibilityState === 'visible')
-        setDay(resolveDay(window.location.search, new Date()))
+      if (document.visibilityState !== 'visible') return
+      setDay(resolveDay(window.location.search, new Date()))
+      setSyncAsk((n) => n + 1)
     }
     document.addEventListener('visibilitychange', onVisible)
     return () => document.removeEventListener('visibilitychange', onVisible)

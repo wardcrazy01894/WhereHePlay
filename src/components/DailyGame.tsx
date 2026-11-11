@@ -182,6 +182,9 @@ export function DailyGame(props: Props) {
           {squares(marks(game.questions))}
         </div>
         {!official && <p className="muted">Practice day — not recorded.</p>}
+        {game.synced && (
+          <p className="muted small">Played on another device.</p>
+        )}
         {official && (
           <p className="streak-line">
             🔥 {streak}-day streak · best{' '}

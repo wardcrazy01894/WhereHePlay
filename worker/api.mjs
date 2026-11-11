@@ -43,6 +43,7 @@ import {
   submitAndRank,
   updateStreak,
   readBoard,
+  readProgress,
   pruneIfDue,
   allowedOrigins,
 } from './api-lib.mjs'
@@ -155,6 +156,8 @@ export default {
             ok: true,
             name: me?.name ?? '',
             username: me?.username ?? null,
+            // Cross-device sync: this player's streaks and recent results.
+            ...(await readProgress(db, me?.id ?? null, now)),
           })
         }
         case '/name': {

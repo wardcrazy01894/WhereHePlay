@@ -40,6 +40,10 @@ export interface DailyGame {
   photo?: PhotoStyle
   /** True once the result was accepted by the leaderboard. */
   submitted?: boolean
+  /** True when this day was played on another device and rebuilt here from
+   *  the account's result (src/lib/sync.ts): the score and squares are real,
+   *  the per-question detail (wrong guesses) is not known. */
+  synced?: boolean
 }
 
 export function loadDaily(
