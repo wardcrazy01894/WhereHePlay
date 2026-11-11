@@ -259,3 +259,24 @@ export const PRO_PLACES = new Set([
   'Syracuse',
   'Purdue',
 ])
+
+/**
+ * The day newly eligible players start, given the safe day (firstNewDay) and
+ * the build's optional `--first-day=<n>`. That flag is an owner override for
+ * one case only: the day before the safe day — a day that has started in
+ * the far-east time zones but that nobody is playing yet. Anything earlier
+ * could re-roll a day in progress and is refused; anything later is pointless.
+ */
+export function newDayFor(safeDay, requested) {
+  if (requested === undefined) return safeDay
+  const n = Number(requested)
+  if (!Number.isInteger(n) || n > safeDay)
+    throw new Error(
+      `--first-day=${requested}: expected ${safeDay - 1} or ${safeDay}`,
+    )
+  if (n < safeDay - 1)
+    throw new Error(
+      `--first-day=${requested} would re-roll a day already being played (the safe day is ${safeDay}; at most one day earlier is allowed)`,
+    )
+  return n
+}

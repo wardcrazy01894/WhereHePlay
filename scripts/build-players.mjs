@@ -11,6 +11,7 @@ import {
   applyBlocklist,
   eligibleSince,
   firstNewDay,
+  newDayFor,
 } from './lib/photos.mjs'
 import {
   nflCandidates,
@@ -131,7 +132,13 @@ const prevSince = Object.fromEntries(
 const since = eligibleSince(
   prevSince,
   candidates,
-  init ? 0 : firstNewDay(new Date(), EPOCH_DATE_KEY),
+  init
+    ? 0
+    : newDayFor(
+        firstNewDay(new Date(), EPOCH_DATE_KEY),
+        // Owner override, e.g. `-- --first-day=1` (see newDayFor).
+        process.argv.find((a) => a.startsWith('--first-day='))?.split('=')[1],
+      ),
 )
 await writeFile(
   sinceUrl,

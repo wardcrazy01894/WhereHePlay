@@ -197,7 +197,10 @@ Nothing is stored in the repo; `src/lib/images.ts` builds URLs.
    a day already played. (A player whose photo is pulled is therefore still
    in today's lineup if he was drawn — with the other photo, or a silhouette —
    until midnight. That is the price of not re-rolling a day in progress.) **Never edit or delete that file** — it is the
-   history of every lineup; `build-players` refuses to run without it. The build
+   history of every lineup; `build-players` refuses to run without it.
+   (`npm run build-players -- --first-day=<n>` lets the owner start new
+   players one day earlier than the safe day — used once, on 2026-11-11,
+   before the site was public; it refuses anything earlier.) The build
    prints, per league, how many can be drawn and how many still need each
    kind of photo.
 

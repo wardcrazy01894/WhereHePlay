@@ -3,6 +3,7 @@ import {
   applyBlocklist,
   eligibleSince,
   firstNewDay,
+  newDayFor,
   photoFlag,
   photoYear,
 } from './photos.mjs'
@@ -261,5 +262,20 @@ describe('eligibleSince', () => {
     expect(firstNewDay(new Date('2026-11-11T23:30:00Z'), '2026-11-11')).toBe(2)
     expect(firstNewDay(new Date('2026-11-11T05:00:00Z'), '2026-11-11')).toBe(1)
     expect(firstNewDay(new Date('2026-11-20T12:00:00Z'), '2026-11-11')).toBe(11)
+  })
+})
+
+describe('newDayFor (--first-day, an owner override)', () => {
+  it('without the flag: the safe day', () => {
+    expect(newDayFor(2, undefined)).toBe(2)
+  })
+  it('one day earlier than the safe day is allowed — nothing else', () => {
+    // 2026-11-11, before the site was public: photos merged that US evening
+    // start on the 12th although the 12th had begun in Europe and Asia.
+    expect(newDayFor(2, '1')).toBe(1)
+    expect(newDayFor(2, '2')).toBe(2)
+    expect(() => newDayFor(2, '0')).toThrow(/re-roll/)
+    expect(() => newDayFor(2, '3')).toThrow()
+    expect(() => newDayFor(2, 'soon')).toThrow()
   })
 })
