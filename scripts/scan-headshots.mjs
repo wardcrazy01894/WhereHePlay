@@ -27,7 +27,7 @@ const players = JSON.parse(
 /** A league's own image keys: not ESPN's, not a hand-picked one. */
 const own = (league) =>
   players
-    .filter((p) => p.l === league && p.h && !/^(espn|clubs):/.test(p.h))
+    .filter((p) => p.l === league && p.h && !/^(espn|clubs|bbr):/.test(p.h))
     .map((p) => p.h)
 
 const LEAGUES = [

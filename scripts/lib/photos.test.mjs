@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import {
   applyBlocklist,
+  applyHeadOverrides,
   eligibleSince,
   firstNewDay,
   newDayFor,
@@ -277,5 +278,25 @@ describe('newDayFor (--first-day, an owner override)', () => {
     expect(() => newDayFor(2, '0')).toThrow(/re-roll/)
     expect(() => newDayFor(2, '3')).toThrow()
     expect(() => newDayFor(2, 'soon')).toThrow()
+  })
+})
+
+describe('applyHeadOverrides (data/head-overrides.json)', () => {
+  const recs = () => [
+    { id: 'nba-a', head: '', action: '' },
+    { id: 'nba-b', head: '123', action: '' },
+  ]
+  it('gives a player a hand-checked headshot from Basketball-Reference', () => {
+    const r = recs()
+    applyHeadOverrides(r, { _comment: 'x', 'nba-a': 'bbr:almonmo01' })
+    expect(r[0].head).toBe('bbr:almonmo01')
+    expect(r[1].head).toBe('123')
+  })
+  it('refuses an unknown player or a malformed key', () => {
+    expect(() => applyHeadOverrides(recs(), { 'nba-zzz': 'bbr:x01' })).toThrow(
+      /no candidate player/,
+    )
+    for (const bad of ['bbr:', 'bbr:../x', 'http://x/y.jpg', 'espn:12'])
+      expect(() => applyHeadOverrides(recs(), { 'nba-a': bad })).toThrow(/bad/)
   })
 })
