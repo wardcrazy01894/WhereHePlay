@@ -194,7 +194,9 @@ Nothing is stored in the repo; `src/lib/images.ts` builds URLs.
    `[from, until, …]`); a new photo opens another window. The game draws a
    day only from players eligible that day (docs/PLAN.md §Daily selection),
    so shipping or pulling photos takes effect the next day and never changes
-   a day already played. **Never edit or delete that file** — it is the
+   a day already played. (A player whose photo is pulled is therefore still
+   in today's lineup if he was drawn — with the other photo, or a silhouette —
+   until midnight. That is the price of not re-rolling a day in progress.) **Never edit or delete that file** — it is the
    history of every lineup; `build-players` refuses to run without it. The build
    prints, per league, how many can be drawn and how many still need each
    kind of photo.

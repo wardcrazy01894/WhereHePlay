@@ -127,8 +127,10 @@ export function eligibleSince(prev, records, newDay) {
     const open = edges.length % 2 === 1
     if (both.has(id) !== open) {
       // Opened and closed (or closed and reopened) before that day began:
-      // the edge never took effect, so it is simply taken back.
-      if (edges.at(-1) === newDay) edges.pop()
+      // the edge never took effect, so it is simply taken back. (`>=`: an
+      // edge dated after `newDay` has not started either, and pushing an
+      // earlier day after it would write a window that runs backwards.)
+      if (edges.at(-1) >= newDay) edges.pop()
       else edges.push(newDay)
     }
     if (edges.length) next[id] = edges.length === 1 ? edges[0] : edges

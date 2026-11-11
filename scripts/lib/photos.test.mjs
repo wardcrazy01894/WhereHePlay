@@ -237,6 +237,16 @@ describe('eligibleSince', () => {
     const opened = eligibleSince({}, [rec('nfl-a', 'h', 'x/a.jpg')], 7)
     expect(eligibleSince(opened, [rec('nfl-a', 'h', '')], 7)).toEqual({})
   })
+  it('an edge that has not started yet is taken back, never followed by an earlier one', () => {
+    // His window opens on day 9; a build whose "new day" is 8 (an earlier
+    // build the same evening, or a clock that is behind) pulls his photo.
+    expect(eligibleSince({ 'nfl-a': 9 }, [rec('nfl-a', 'h', '')], 8)).toEqual(
+      {},
+    )
+    expect(
+      eligibleSince({ 'nfl-a': [0, 9] }, [rec('nfl-a', 'h', 'x/a.jpg')], 8),
+    ).toEqual({ 'nfl-a': 0 })
+  })
   it('a player who leaves the dataset keeps his history (he may come back)', () => {
     expect(eligibleSince({ 'nfl-gone': [0, 5] }, [], 9)).toEqual({
       'nfl-gone': [0, 5],

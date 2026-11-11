@@ -115,6 +115,10 @@ const sinceUrl = new URL('data/eligible-since.json', root)
 // a broken one) unless `--init-eligibility` says this really is a new game.
 const init = process.argv.includes('--init-eligibility')
 const sinceText = await read('data/eligible-since.json').catch(() => null)
+if (sinceText !== null && init)
+  throw new Error(
+    'data/eligible-since.json exists: --init-eligibility would date every new player to puzzle #1 and re-roll days already played. Drop the flag.',
+  )
 if (sinceText === null && !init)
   throw new Error(
     'data/eligible-since.json is missing. Restore it from git — rebuilding without it re-rolls every day already played. (A brand-new game: pass --init-eligibility.)',
