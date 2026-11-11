@@ -1,6 +1,6 @@
 /** Wordle-style share text — pure. */
-import type { Mode } from '../types'
-import { MODE_LABEL } from '../types'
+import type { Mode, Variant } from '../types'
+import { gameLabel } from '../types'
 import { type QuestionState, mark, totalPoints } from './game'
 import { QUESTIONS_PER_DAY, puzzleNumber } from './daily'
 import { MAX_QUESTION_POINTS } from './game'
@@ -35,10 +35,11 @@ export function shareText(
   qs: QuestionState[],
   url: string,
   photo: PhotoStyle = 'headshot',
+  variant: Variant = 'standard',
 ): string {
   const max = QUESTIONS_PER_DAY * MAX_QUESTION_POINTS
   return [
-    `WhereHePlay #${puzzleNumber(dateKey)} · ${MODE_LABEL[mode]} (${PHOTO_LABEL[photo]})`,
+    `WhereHePlay #${puzzleNumber(dateKey)} · ${gameLabel(mode, variant)} (${PHOTO_LABEL[photo]})`,
     `${squares(marks(qs))} ${totalPoints(qs)}/${max}`,
     url,
   ].join('\n')

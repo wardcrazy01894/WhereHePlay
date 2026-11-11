@@ -1,21 +1,24 @@
 import { useEffect, useState } from 'react'
-import type { Mode } from '../types'
-import { MODES, MODE_LABEL } from '../types'
+import type { Mode, Variant } from '../types'
+import { MODES, MODE_LABEL, boardId, gameLabel } from '../types'
 import { type Board, fetchBoard } from '../lib/api'
 import { squares } from '../lib/share'
 
 interface Props {
   mode: Mode
+  variant?: Variant
   dateKey: string
   token: string
   /** Bumped by the parent when a score or name changed, to refetch. */
   refreshKey?: number
-  onModeChange?: (m: Mode) => void
+  /** Given on the standalone screen: shows the mode and variant tabs. */
+  onModeChange?: (m: Mode, v: Variant) => void
 }
 
 /** The day's board for a mode: rank, name, squares, score, streak. */
 export function Leaderboard({
   mode,
+  variant = 'standard',
   dateKey,
   token,
   refreshKey,
@@ -26,7 +29,7 @@ export function Leaderboard({
 
   useEffect(() => {
     let live = true
-    fetchBoard(mode, dateKey, token).then((r) => {
+    fetchBoard(boardId(mode, variant), dateKey, token).then((r) => {
       if (!live) return
       if (r.ok) {
         setBoard({ total: r.total, entries: r.entries })
@@ -39,7 +42,7 @@ export function Leaderboard({
     return () => {
       live = false
     }
-  }, [mode, dateKey, token, refreshKey])
+  }, [mode, variant, dateKey, token, refreshKey])
 
   // Rank = 1 + number of strictly better scores (ties share a rank).
   const rankOf = (score: number) =>
@@ -55,15 +58,31 @@ export function Leaderboard({
               role="tab"
               aria-selected={m === mode}
               className={m === mode ? 'tab on' : 'tab'}
-              onClick={() => onModeChange(m)}
+              onClick={() => onModeChange(m, variant)}
             >
               {MODE_LABEL[m]}
             </button>
           ))}
         </div>
       )}
+      {onModeChange && (
+        <div className="tabs" role="tablist" aria-label="Daily">
+          {(['standard', 'beginner'] as const).map((v) => (
+            <button
+              key={v}
+              role="tab"
+              aria-selected={v === variant}
+              className={v === variant ? 'tab on' : 'tab'}
+              onClick={() => onModeChange(mode, v)}
+            >
+              {v === 'standard' ? 'Daily' : 'Beginner'}
+            </button>
+          ))}
+        </div>
+      )}
       <h2>
-        {MODE_LABEL[mode]} leaderboard <span className="muted">{dateKey}</span>
+        {gameLabel(mode, variant)} leaderboard{' '}
+        <span className="muted">{dateKey}</span>
       </h2>
       {error && <p className="muted">{error}</p>}
       {board && board.entries.length === 0 && (

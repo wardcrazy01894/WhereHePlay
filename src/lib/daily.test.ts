@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import type { League, Player, Tier } from '../types'
 import {
+  BEGINNER_COOLDOWN_DAYS,
   COOLDOWN_DAYS,
   EPOCH_DATE_KEY,
   TIER_PLAN,
@@ -163,5 +164,82 @@ describe('dailyLineup (cooldown)', () => {
         dailyLineup(all, 'mixed', addDays(EPOCH_DATE_KEY, i)).map((p) => p.t),
       ).toEqual(['easy', 'easy', 'easy', 'medium', 'hard'])
     expect(tierPlanFor(EPOCH_DATE_KEY)).toBe(TIER_PLAN)
+  })
+})
+
+describe('beginner daily (easy players only)', () => {
+  const day = (i: number) => addDays(EPOCH_DATE_KEY, i)
+  it('adding the variant leaves the standard seed and lineup untouched', () => {
+    expect(dateSeed('nfl', '2026-11-11')).toBe('nfl:2026-11-11')
+    expect(dateSeed('nfl', '2026-11-11', 'standard')).toBe('nfl:2026-11-11')
+    expect(dateSeed('mixed', '2026-11-11', 'beginner')).toBe(
+      'mixed-beginner:2026-11-11',
+    )
+    const a = fixture(240)
+    const b = fixture(240)
+    // Asking for beginner days first must not disturb the standard walk.
+    for (let i = 0; i < 10; i++) dailyLineup(a, 'nfl', day(i), 'beginner')
+    for (let i = 0; i < 10; i++)
+      expect(dailyLineup(a, 'nfl', day(i)).map((p) => p.id)).toEqual(
+        dailyLineup(b, 'nfl', day(i), 'standard').map((p) => p.id),
+      )
+  })
+  it('is five different easy players, in every mode', () => {
+    const all = fixture(240)
+    for (const mode of ['nfl', 'nba', 'mixed'] as const)
+      for (const i of [0, 1, 50]) {
+        const picks = dailyLineup(all, mode, day(i), 'beginner')
+        expect(picks.map((p) => p.t)).toEqual(Array(5).fill('easy'))
+        expect(new Set(picks.map((p) => p.id)).size).toBe(5)
+        if (mode !== 'mixed')
+          expect(picks.every((p) => p.l === mode)).toBe(true)
+        else expect([2, 3]).toContain(picks.filter((p) => p.l === 'nfl').length)
+      }
+  })
+  it("never shares a player with the same day's standard daily", () => {
+    const all = fixture(240)
+    for (const mode of ['nfl', 'mixed'] as const)
+      for (let i = 0; i < 60; i++) {
+        const standard = new Set(
+          dailyLineup(all, mode, day(i)).map((p) => p.id),
+        )
+        expect(
+          dailyLineup(all, mode, day(i), 'beginner').some((p) =>
+            standard.has(p.id),
+          ),
+        ).toBe(false)
+      }
+  })
+  it('never repeats a player within its own cooldown window', () => {
+    const all = fixture(240)
+    const days = Array.from({ length: 90 }, (_, i) =>
+      dailyLineup(all, 'nba', day(i), 'beginner').map((p) => p.id),
+    )
+    days.forEach((ids, i) => {
+      const window = new Set(
+        days.slice(Math.max(0, i - BEGINNER_COOLDOWN_DAYS), i).flat(),
+      )
+      expect(ids.some((id) => window.has(id))).toBe(false)
+    })
+  })
+  it('stays easy-only even when the easy pool is too small for the cooldown', () => {
+    // 12 easy NFL players: the window (and the standard daily) exhaust them,
+    // so it must reuse an easy player rather than reach for a harder one.
+    const all = fixture(12)
+    for (let i = 0; i < 20; i++)
+      expect(
+        dailyLineup(all, 'nfl', day(i), 'beginner').every(
+          (p) => p.t === 'easy',
+        ),
+      ).toBe(true)
+  })
+  it('is the same no matter which day is asked for first', () => {
+    const a = fixture(240)
+    const b = fixture(240)
+    const direct = dailyLineup(a, 'mixed', day(40), 'beginner').map((p) => p.id)
+    for (let i = 0; i <= 40; i++) dailyLineup(b, 'mixed', day(i), 'beginner')
+    expect(
+      dailyLineup(b, 'mixed', day(40), 'beginner').map((p) => p.id),
+    ).toEqual(direct)
   })
 })

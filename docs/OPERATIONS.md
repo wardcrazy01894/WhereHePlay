@@ -58,6 +58,11 @@ gh workflow run deploy
 Afterwards: `npm run worker:deploy` for code changes; `npm run worker:migrate`
 **before** deploying code that needs a new migration.
 
+A new leaderboard board (e.g. the `-beginner` boards) is a worker code
+change: until `npm run worker:deploy` is run, the deployed worker answers
+`unknown board`, and that daily plays normally but shows "The leaderboard is
+unavailable right now." No migration is involved (`board` is free text).
+
 - `ALLOWED_ORIGIN` in `worker/wrangler.toml` must list every origin the site
   is served from (add a custom domain here before cutting over).
 - The two `[[ratelimits]]` bindings need no account resource. The worker

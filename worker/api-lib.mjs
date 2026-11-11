@@ -10,7 +10,16 @@
  * controls here stop accidents, drive-by abuse and account takeover.
  */
 
-export const BOARDS = new Set(['nfl', 'nba', 'mixed'])
+// One per daily game: the three modes, and each mode's beginner daily
+// (`boardId` in src/types.ts).
+export const BOARDS = new Set([
+  'nfl',
+  'nba',
+  'mixed',
+  'nfl-beginner',
+  'nba-beginner',
+  'mixed-beginner',
+])
 export const QUESTIONS = 5
 /** Points per mark character ('4' = photo only … '1' = multiple choice). */
 export const MARK_POINTS = { 4: 100, 3: 75, 2: 50, 1: 25, 0: 0 }

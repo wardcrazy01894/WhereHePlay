@@ -41,9 +41,30 @@ export interface School {
 /** The "school" that is the right answer for a preps-to-pros player. */
 export const HIGH_SCHOOL_ID = 'high-school'
 
+/**
+ * Which daily of a mode: the standard one, or the beginner one — five players
+ * from the easy tier only (never described to players in those words).
+ */
+export type Variant = 'standard' | 'beginner'
+/**
+ * Identifies one daily game everywhere it is keyed: the seed, the saved game,
+ * the streak and the leaderboard (the worker's BOARDS). A standard daily keeps
+ * the bare mode, so nothing that existed before beginner mode moved.
+ */
+export type BoardId = Mode | `${Mode}-beginner`
+export function boardId(mode: Mode, variant: Variant = 'standard'): BoardId {
+  return variant === 'beginner' ? `${mode}-beginner` : mode
+}
+
 export const MODES: Mode[] = ['mixed', 'nfl', 'nba']
 export const MODE_LABEL: Record<Mode, string> = {
   mixed: 'Grab Bag',
   nfl: 'NFL',
   nba: 'NBA',
+}
+/** A daily's display name: "NFL", "NFL Beginner". */
+export function gameLabel(mode: Mode, variant: Variant = 'standard'): string {
+  return variant === 'beginner'
+    ? `${MODE_LABEL[mode]} Beginner`
+    : MODE_LABEL[mode]
 }
