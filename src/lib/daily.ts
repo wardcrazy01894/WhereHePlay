@@ -19,19 +19,14 @@ import type { League, Mode, Player, Tier } from '../types'
 export const QUESTIONS_PER_DAY = 5
 /** Three easy, one medium, one hard — warm-ups first, the stumper last. */
 export const TIER_PLAN: Tier[] = ['easy', 'easy', 'easy', 'medium', 'hard']
-/** Puzzle #1 was played as two easy, two medium, one hard. */
-export const LEGACY_TIER_PLAN: Tier[] = [
-  'easy',
-  'easy',
-  'medium',
-  'medium',
-  'hard',
-]
-/** First day of TIER_PLAN. Earlier days keep the plan they were played
- *  with, so the switch never re-rolled a puzzle anyone had already seen. */
-export const TIER_PLAN_FROM = '2026-11-12'
-export function tierPlanFor(dateKey: string): Tier[] {
-  return dateKey < TIER_PLAN_FROM ? LEGACY_TIER_PLAN : TIER_PLAN
+/**
+ * The plan for a given day. One plan so far (the game launched with it); if
+ * it ever changes, add the new plan here with a START DATE IN THE FUTURE and
+ * keep returning the old one for earlier days — never edit a plan that has
+ * been played, or past and in-progress puzzles re-roll.
+ */
+export function tierPlanFor(_dateKey: string): Tier[] {
+  return TIER_PLAN
 }
 /** Puzzle #1. */
 export const EPOCH_DATE_KEY = '2026-11-11'
