@@ -122,6 +122,13 @@ describe('PlayerPhoto', () => {
     // Nothing in the page names him before the name hint.
     expect(document.body.innerHTML).not.toMatch(/Romo/i)
   })
+  it('…and if the headshot fails too, a placeholder — a dead link never blocks a question', () => {
+    const tsdb = { ...player, a: 'tsdb:thumb/abc123.jpg' }
+    render(<PlayerPhoto player={tsdb} kind="action" revealed={false} />)
+    fireEvent.error(screen.getByAltText('Mystery player'))
+    fireEvent.error(screen.getByAltText('Mystery player'))
+    expect(screen.getByRole('img', { name: 'No photo available' })).toBeTruthy()
+  })
   it('…and falls back to the headshot if it fails to load', () => {
     const tsdb = { ...player, a: 'tsdb:thumb/abc123.jpg' }
     render(<PlayerPhoto player={tsdb} kind="action" revealed={false} />)
