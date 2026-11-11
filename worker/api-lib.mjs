@@ -454,9 +454,15 @@ export async function adoptAnonymous(db, deviceToken, accountId, now) {
       )
       .run()
   }
+  // Still-anonymous only: if the same device registered this player as an
+  // account in the meantime, nothing of it is deleted. (A score posted with
+  // the old token in this instant would be lost — acceptable for a game.)
   for (const table of ['scores', 'streaks', 'tokens'])
     await db
-      .prepare(`DELETE FROM ${table} WHERE player_id = ?1`)
+      .prepare(
+        `DELETE FROM ${table} WHERE player_id = ?1
+           AND player_id IN (SELECT id FROM players WHERE username IS NULL)`,
+      )
       .bind(from.id)
       .run()
   await db

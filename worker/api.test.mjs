@@ -6,6 +6,7 @@ import worker from './api.mjs'
 import {
   validateScore,
   validateBoardQuery,
+  mergeStreaks,
   validateName,
   validateUsername,
   scoreForMarks,
@@ -77,6 +78,35 @@ async function post(path, body, e = env, origin = 'https://example.test') {
   )
   return { status: res.status, body: await res.json() }
 }
+
+describe('mergeStreaks', () => {
+  const s = (current, best, last_played_date) => ({
+    current,
+    best,
+    last_played_date,
+  })
+  it('one side missing: the other', () => {
+    const a = s(2, 4, '2026-11-11')
+    expect(mergeStreaks(undefined, a)).toBe(a)
+    expect(mergeStreaks(a, undefined)).toBe(a)
+  })
+  it('same day: the larger count', () => {
+    expect(mergeStreaks(s(2, 2, '2026-11-11'), s(5, 6, '2026-11-11'))).toEqual(
+      s(5, 6, '2026-11-11'),
+    )
+  })
+  it('consecutive days chain, in either argument order', () => {
+    const through10 = s(3, 3, '2026-11-10')
+    const on11 = s(1, 1, '2026-11-11')
+    expect(mergeStreaks(through10, on11)).toEqual(s(4, 4, '2026-11-11'))
+    expect(mergeStreaks(on11, through10)).toEqual(s(4, 4, '2026-11-11'))
+  })
+  it('a gap: the newer run stands, but best is never lost', () => {
+    expect(mergeStreaks(s(9, 9, '2026-11-01'), s(2, 2, '2026-11-11'))).toEqual(
+      s(2, 9, '2026-11-11'),
+    )
+  })
+})
 
 describe('validation', () => {
   const now = new Date('2026-11-11T12:00:00Z')
