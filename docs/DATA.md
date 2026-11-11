@@ -84,15 +84,17 @@ Hand corrections applied after the automatic pass, keyed by player id:
 
 ```json
 {
-  "nba-pricero01": { "s": ["utah-valley", "nicholls"] },
+  "nba-pricero01": { "s": ["utah-valley", "nicholls"], "y": 2004 },
   "nfl-AlleJo02": { "t": "easy" }
 }
 ```
 
 `s` replaces the accepted schools (finishing school first — use it when the
-source misses a transfer or has the order wrong); `t` sets the tier (use it
-when the fame formula is plainly off: Josh Allen is not a "medium"). The
-build fails on an unknown player, school or tier.
+source misses a transfer or has the order wrong). `y` replaces the fall year
+of his final college season, which the conference hint and the decoys are
+looked up for — set it whenever `s` changes where he finished. `t` sets the
+tier (use it when the fame formula is plainly off: Josh Allen is not a
+"medium"). The build fails on an unknown player, school, year or tier.
 
 ## The schools table (`data/schools.psv`)
 
