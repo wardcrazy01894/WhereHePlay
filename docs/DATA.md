@@ -273,7 +273,9 @@ The value can also be `web:<host>/<path>`, a game photo hotlinked from ESPN
 from their URL like TheSportsDB's. The build refuses one whose URL contains
 part of his name (`webKeyNamesPlayer`), and a dataset test checks it again.
 These were found by hand, one player at a time, for players Commons and
-TheSportsDB do not cover; each was viewed. To act on a "that's not him playing" report: add the file
+TheSportsDB do not cover; each was viewed. To drop a bad `web:` (or `tsdb:`) photo,
+remove its line from `data/photo-overrides.json` — `notPlaying` only applies to
+Commons file names. To act on a "that's not him playing" report: add the file
 name to `notPlaying`, find a good photo in his Commons category and add it to
 the overrides; rebuild; close the issue.
 

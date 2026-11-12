@@ -14,6 +14,7 @@ import {
   dailyLineup,
 } from './daily'
 import { choices } from './game'
+import { actionDirectUrl } from './images'
 
 /** Guards over the COMMITTED dataset (public/*.json) — the build's contract. */
 const load = <T>(f: string): T =>
@@ -127,6 +128,8 @@ describe('players.json', () => {
       )
       // A hotlinked game photo's URL is in the page: it never names him.
       if (p.a.startsWith('web:')) {
+        // The client's own pattern (allowed hosts, no '..' or '//').
+        expect(actionDirectUrl(p), p.id).not.toBeNull()
         const fold = (s: string) =>
           s
             .normalize('NFKD')
