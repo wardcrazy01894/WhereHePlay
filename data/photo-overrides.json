@@ -979,7 +979,7 @@
   "nfl-WashMa99": "web:cdn.bleacherreport.net/images_root/slides/photos/000/823/892/72709394_original.jpg",
   "nba-alexaky01": "web:cdn.nba.com/teams/legacy/www.nba.com/heat/sites/heat/files/getty-images-1154991513.jpg",
   "nba-collima01": "local:nba-collima01-a.jpg",
-  "nba-elamikh01": "web:live.staticflickr.com/65535/53296183730_103439f6f2_b.jpg",
+  "nba-elamikh01": "local:nba-elamikh01-a.jpg",
   "nba-fazekni01": "web:live.staticflickr.com/65535/55522936724_82fe40e530_b.jpg",
   "nba-jacobca01": "web:live.staticflickr.com/65535/51680707356_13884aab63_b.jpg",
   "nba-lambdo01": "web:i0.wp.com/www.orlandoweekly.com/wp-content/uploads/2014/01/kjw_1014.webp?ssl=1",
@@ -1006,5 +1006,10 @@
   "nba-johnsch03": "local:nba-johnsch03-a.jpg",
   "nba-augusja01": "local:nba-augusja01-a.jpg",
   "nba-landrma01": "local:nba-landrma01-a.jpg",
-  "nba-bensoke02": "web:platform.goldenstateofmind.com/wp-content/uploads/sites/89/chorus/uploads/chorus_asset/file/19925696/142329423.jpg.jpg?quality=90&strip=all&w=1200"
+  "nba-bensoke02": "web:platform.goldenstateofmind.com/wp-content/uploads/sites/89/chorus/uploads/chorus_asset/file/19925696/142329423.jpg.jpg?quality=90&strip=all&w=1200",
+  "nba-cookom01": "local:nba-cookom01-a.jpg",
+  "nba-hunteot01": "local:nba-hunteot01-a.jpg",
+  "nba-nichode01": "local:nba-nichode01-a.jpg",
+  "nba-fordsh02": "local:nba-fordsh02-a.jpg",
+  "nba-clarkco01": "local:nba-clarkco01-a.jpg"
 }
