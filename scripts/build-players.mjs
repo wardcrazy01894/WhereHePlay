@@ -3,6 +3,7 @@
  * scripts/fetch-raw.mjs) and data/schools.psv. `npm run build-players`.
  * `-- --report` also prints the unmapped college names worth adding.
  */
+import { existsSync } from 'node:fs'
 import { readFile, writeFile } from 'node:fs/promises'
 import { parseCsv } from './lib/csv.mjs'
 import { parseSchools, buildMatchers, conferenceAt } from './lib/schools.mjs'
@@ -21,7 +22,6 @@ import {
   pickDecoys,
   applyOverrides,
   actionKeyFor,
-  webKeyNamesPlayer,
   HIGH_SCHOOL_ID,
 } from './lib/players.mjs'
 
@@ -88,9 +88,6 @@ for (const r of [...nfl.records, ...nba.records]) {
   const path = actionKeyFor(file)
   if (!path)
     throw new Error(`photo-overrides.json: bad file "${file}" for ${r.id}`)
-  // A hotlinked game photo's URL is in the page: it must not name him.
-  if (webKeyNamesPlayer(path, r.name))
-    throw new Error(`photo-overrides.json: the URL names ${r.name} (${r.id})`)
   r.action = path
 }
 const knownIds = new Set([...nfl.records, ...nba.records].map((r) => r.id))
@@ -103,13 +100,21 @@ await writeFile(
   new URL('data/raw/photo-candidates.json', root),
   JSON.stringify(
     [...nfl.records, ...nba.records]
-      .filter((r) => r.action && !/^(tsdb|web):/.test(r.action))
+      .filter((r) => r.action && !/^(tsdb|web|local):/.test(r.action))
       .map((r) => ({ n: r.name, y: r.year, s: r.schools, a: r.action })),
   ),
 )
 const candidates = [...nfl.records, ...nba.records]
 // Hand-checked headshots for players the leagues and ESPN have none of.
 applyHeadOverrides(candidates, await json('data/head-overrides.json', '{}'))
+// Our own copies ("local:<file>") must be in public/photos/.
+for (const r of candidates)
+  for (const key of [r.action, r.head])
+    if (
+      key?.startsWith('local:') &&
+      !existsSync(new URL(`public/photos/${key.slice(6)}`, root))
+    )
+      throw new Error(`${r.id}: public/photos/${key.slice(6)} is missing`)
 const photosDropped = applyBlocklist(candidates, blockedPhotos)
 // Nobody is dropped over photos — membership never depends on them. What
 // photos decide is who may be DRAWN: only a player with both a real headshot

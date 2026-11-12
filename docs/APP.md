@@ -82,7 +82,8 @@ them (most projects do).
 The website hotlinks official league headshots (and, for a few players the
 leagues and ESPN lack, portraits on Basketball-Reference and
 Pro-Football-Reference), and for players with no free playing photo, game
-photos from TheSportsDB, ESPN, NFL.com and NBA.com. That is a tolerable risk for
+photos hotlinked from TheSportsDB, ESPN, NFL.com, NBA.com and other sites, plus
+a few copies kept in `public/photos/` where hotlinking was not possible. That is a tolerable risk for
 a free hobby site; it is **not** acceptable for a store submission. Apple's
 guideline 5.2 requires that you own or have licensed the content, and
 athlete photos carry both the photographer's copyright and the player's

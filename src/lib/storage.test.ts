@@ -168,37 +168,53 @@ describe('images', () => {
     // Anything malformed is treated as no photo at all.
     expect(actionDirectUrl({ ...p, a: 'tsdb:../../x.jpg' })).toBeNull()
   })
-  it('a "web:" playing photo is a direct URL on one of the allowed hosts', () => {
+  it('a "web:" photo is a direct https URL on any host (his name may be in it)', () => {
     for (const [key, url] of [
       [
         'web:a.espncdn.com/photo/2019/1104/r621234_1296x729_16-9.jpg',
         'https://a.espncdn.com/photo/2019/1104/r621234_1296x729_16-9.jpg',
       ],
       [
-        'web:static.www.nfl.com/image/upload/f_auto,q_auto/league/h5y74trx',
-        'https://static.www.nfl.com/image/upload/f_auto,q_auto/league/h5y74trx',
-      ],
-      [
-        'web:static.clubs.nfl.com/image/private/w_640/giants/abc123.jpg',
-        'https://static.clubs.nfl.com/image/private/w_640/giants/abc123.jpg',
-      ],
-      [
-        'web:cdn.nba.com/manage/2021/03/GettyImages-123456.jpg',
-        'https://cdn.nba.com/manage/2021/03/GettyImages-123456.jpg',
+        'web:media.gettyimages.com/id/123/photo/chris-paul-dunks.jpg?s=612x612&w=0',
+        'https://media.gettyimages.com/id/123/photo/chris-paul-dunks.jpg?s=612x612&w=0',
       ],
     ]) {
       const w = { ...p, a: key }
       expect(actionDirectUrl(w)).toBe(url)
       expect(actionUrls(w)).toEqual([])
       expect(actionCreditUrl(w)).toBeNull()
+      // The same key works as a headshot.
+      expect(headshotUrl({ ...p, h: key })).toBe(url)
     }
     for (const bad of [
-      'web:evil.example.com/x.jpg',
-      'web:a.espncdn.com/i/headshots/x.png',
-      'web:a.espncdn.com/photo/../../x.jpg',
-      'web:a.espncdn.com/photo/x.jpg?y=1',
-      'web:a.espncdn.com.evil.com/photo/x.jpg',
-      'web:https://a.espncdn.com/photo/x.jpg',
+      'web:',
+      'web:/x.jpg',
+      'web:localhost/x.jpg',
+      'web:https://x.com/a.jpg',
+      'web:javascript:alert(1)',
+      'web:x.com/a b.jpg',
+      'web:x.com/a".jpg',
+      'web:x.com/<x>.jpg',
+      'web:X.COM/a.jpg',
+    ]) {
+      expect(actionDirectUrl({ ...p, a: bad }), bad).toBeNull()
+      expect(headshotUrl({ ...p, h: bad }), bad).toBeNull()
+    }
+  })
+  it('a "local:" photo is our own copy under public/photos/', () => {
+    const base = import.meta.env.BASE_URL
+    expect(actionDirectUrl({ ...p, a: 'local:nfl-barbti00-a.jpg' })).toBe(
+      `${base}photos/nfl-barbti00-a.jpg`,
+    )
+    expect(headshotUrl({ ...p, h: 'local:nfl-barbti00-h.webp' })).toBe(
+      `${base}photos/nfl-barbti00-h.webp`,
+    )
+    expect(actionUrls({ ...p, a: 'local:x.jpg' })).toEqual([])
+    for (const bad of [
+      'local:../x.jpg',
+      'local:a/b.jpg',
+      'local:x.gif',
+      'local:',
     ])
       expect(actionDirectUrl({ ...p, a: bad }), bad).toBeNull()
   })

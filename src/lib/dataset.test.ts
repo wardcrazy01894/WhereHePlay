@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { readFileSync } from 'node:fs'
+import { existsSync, readFileSync } from 'node:fs'
 import type { Player, School } from '../types'
 import {
   BEGINNER_COOLDOWN_DAYS,
@@ -14,7 +14,7 @@ import {
   dailyLineup,
 } from './daily'
 import { choices } from './game'
-import { actionDirectUrl } from './images'
+import { actionDirectUrl, headshotUrl } from './images'
 
 /** Guards over the COMMITTED dataset (public/*.json) — the build's contract. */
 const load = <T>(f: string): T =>
@@ -95,11 +95,15 @@ describe('players.json', () => {
     for (const p of players) {
       if (!p.h) continue
       if (p.l === 'nba')
-        expect(p.h, p.id).toMatch(/^((espn:)?\d+|bbr:[a-z]+\d{2})$/)
+        expect(p.h, p.id).toMatch(
+          /^((espn:)?\d+|bbr:[a-z]+\d{2}|(web|local):.+)$/,
+        )
       else
         expect(p.h, p.id).toMatch(
-          /^(espn:\d+|clubs:[\w,/.-]+|pfr:[A-Za-z]+\d{2}_(USAT_)?\d{4}|(private|upload)\/.+)$/,
+          /^(espn:\d+|clubs:[\w,/.-]+|pfr:[A-Za-z]+\d{2}_(USAT_)?\d{4}|(web|local):.+|(private|upload)\/.+)$/,
         )
+      // A hand-found headshot must be a well-formed key the client can show.
+      if (/^(web|local):/.test(p.h)) expect(headshotUrl(p), p.id).not.toBeNull()
     }
   })
 
@@ -124,22 +128,23 @@ describe('players.json', () => {
       expect(seen.get(p.a), `${p.id} and ${seen.get(p.a)}`).toBeUndefined()
       seen.set(p.a, p.id)
       expect(p.a, p.id).toMatch(
-        /^([0-9a-f]{2}\/[^/]+\.(jpe?g|png)|tsdb:(thumb|cutout|render|fanart)\/[a-z0-9]+\.(jpg|png)|web:[\w,.\-/]+)$/i,
+        /^([0-9a-f]{2}\/[^/]+\.(jpe?g|png)|tsdb:(thumb|cutout|render|fanart)\/[a-z0-9]+\.(jpg|png)|(web|local):.+)$/i,
       )
-      // A hotlinked game photo's URL is in the page: it never names him.
-      if (p.a.startsWith('web:')) {
-        // The client's own pattern (allowed hosts, no '..' or '//').
+      // A hand-found photo must be a well-formed key the client can show.
+      if (/^(web|local):/.test(p.a))
         expect(actionDirectUrl(p), p.id).not.toBeNull()
-        const fold = (s: string) =>
-          s
-            .normalize('NFKD')
-            .replace(/[\u0300-\u036f]/g, '')
-            .toLowerCase()
-            .replace(/[^a-z]/g, '')
-        for (const part of p.n.split(/[\s'.-]+/).map(fold))
-          if (part.length >= 4) expect(fold(p.a), p.id).not.toContain(part)
-      }
     }
+  })
+  it('every "local:" photo is in public/photos/', () => {
+    for (const p of players)
+      for (const key of [p.a, p.h])
+        if (key?.startsWith('local:'))
+          expect(
+            existsSync(
+              new URL(`../../public/photos/${key.slice(6)}`, import.meta.url),
+            ),
+            `${p.id} ${key}`,
+          ).toBe(true)
   })
   it('a playing photo is a playing photo: nothing from the blocklist', () => {
     const lists = data('photo-blocklist.json')

@@ -268,14 +268,16 @@ copyrighted game photo, hotlinked, the owner's accepted risk as for league
 headshots. TheSportsDB names its files with opaque ids, so the client shows
 those straight from their URL (`actionDirectUrl`); a Commons file name
 usually names the player, so those are still fetched into a blob first.
-The value can also be `web:<host>/<path>`, a game photo hotlinked from ESPN
-(`a.espncdn.com/photo`), NFL.com or an NFL club site
-(`static.www.nfl.com/image`, `static.clubs.nfl.com/image`) or NBA.com
-(`cdn.nba.com/manage`) — hosts whose image URLs are opaque ids, shown straight
-from their URL like TheSportsDB's. The build refuses one whose URL contains
-part of his name (`webKeyNamesPlayer`), and a dataset test checks it again.
-These were found by hand, one player at a time, for players Commons and
-TheSportsDB do not cover; each was viewed. To drop a bad `web:` (or `tsdb:`) photo,
+The value can also be `web:<host>/<path>` — an image hotlinked from any https
+host (ESPN, NFL.com, team sites, news photos, card images…), shown straight
+from its URL like TheSportsDB's — or `local:<file>`, our own resized copy in
+`public/photos/` for an image that cannot be hotlinked (the build and a dataset
+test check the file is there). The owner's rules (2026-11-12): the URL may
+contain the player's name (a player who opens the image in a new tab can
+learn it; that is accepted), hotlinking is preferred, and a copy is kept only
+when hotlinking is not possible. `data/head-overrides.json` takes the same two
+forms for headshots. These were found by hand, one player at a time, for
+players Commons and TheSportsDB do not cover; each was viewed. To drop a bad `web:`, `local:` or `tsdb:` photo,
 remove its line from `data/photo-overrides.json` — `notPlaying` only applies to
 Commons file names. To act on a "that's not him playing" report: add the file
 name to `notPlaying`, find a good photo in his Commons category and add it to

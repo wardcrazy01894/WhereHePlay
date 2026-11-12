@@ -1,5 +1,7 @@
 /** Pure rules for scripts/audit-photos.mjs (see its header). */
 
+import { WEB_KEY, LOCAL_KEY } from './players.mjs'
+
 /** College-only vocabulary (any "<Name> Bowl" is a college bowl once the
  *  Super Bowl and Pro Bowl are taken out). */
 const COLLEGE_WORDS =
@@ -299,7 +301,9 @@ export function applyHeadOverrides(records, overrides) {
     if (
       !/^(bbr:[a-z]+[0-9]{2}|pfr:[A-Za-z]+[0-9]{2}_(USAT_)?[0-9]{4}|clubs:(?!.*\.\.)(?!.*\/\/)[\w,/.-]+\.(jpg|png))$/.test(
         key,
-      )
+      ) &&
+      !WEB_KEY.test(key) &&
+      !LOCAL_KEY.test(key)
     )
       throw new Error(`head-overrides.json: bad key "${key}" for ${id}`)
     r.head = key
