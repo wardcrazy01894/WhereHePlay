@@ -50,6 +50,8 @@ export interface School {
 
 /** The "school" that is the right answer for a preps-to-pros player. */
 export const HIGH_SCHOOL_ID = 'high-school'
+/** The answer for an international who turned pro abroad instead of college. */
+export const INTERNATIONAL_ID = 'international'
 
 /**
  * Which daily of a mode: the standard one, or the beginner one — five players
