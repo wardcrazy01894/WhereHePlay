@@ -292,11 +292,30 @@ describe('applyHeadOverrides (data/head-overrides.json)', () => {
     expect(r[0].head).toBe('bbr:almonmo01')
     expect(r[1].head).toBe('123')
   })
+  it('…or from Pro-Football-Reference (the file name carries a year)', () => {
+    const r = recs()
+    applyHeadOverrides(r, {
+      'nba-a': 'pfr:DaviTe00_USAT_1996',
+      'nba-b': 'pfr:AlbeBr20_2017',
+    })
+    expect(r.map((x) => x.head)).toEqual([
+      'pfr:DaviTe00_USAT_1996',
+      'pfr:AlbeBr20_2017',
+    ])
+  })
   it('refuses an unknown player or a malformed key', () => {
     expect(() => applyHeadOverrides(recs(), { 'nba-zzz': 'bbr:x01' })).toThrow(
       /no candidate player/,
     )
-    for (const bad of ['bbr:', 'bbr:../x', 'http://x/y.jpg', 'espn:12'])
+    for (const bad of [
+      'bbr:',
+      'bbr:../x',
+      'http://x/y.jpg',
+      'espn:12',
+      'pfr:',
+      'pfr:../x_1996',
+      'pfr:DaviTe00',
+    ])
       expect(() => applyHeadOverrides(recs(), { 'nba-a': bad })).toThrow(/bad/)
   })
 })

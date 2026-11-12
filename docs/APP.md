@@ -79,7 +79,9 @@ them (most projects do).
 
 ## Photos — the real blocker
 
-The website hotlinks official league headshots. That is a tolerable risk for
+The website hotlinks official league headshots (and, for a few players the
+leagues and ESPN lack, portraits on Basketball-Reference and
+Pro-Football-Reference). That is a tolerable risk for
 a free hobby site; it is **not** acceptable for a store submission. Apple's
 guideline 5.2 requires that you own or have licensed the content, and
 athlete photos carry both the photographer's copyright and the player's
