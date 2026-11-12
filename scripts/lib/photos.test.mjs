@@ -314,6 +314,19 @@ describe('applyHeadOverrides (data/head-overrides.json)', () => {
     for (const bad of ['clubs:../x.jpg', 'clubs:upload/x', 'clubs:a//b.jpg'])
       expect(() => applyHeadOverrides(recs(), { 'nba-a': bad })).toThrow(/bad/)
   })
+  it('…or a web image on any host, or our own copy', () => {
+    const r = recs()
+    applyHeadOverrides(r, {
+      'nba-a': 'web:media.gettyimages.com/id/1/photo/x.jpg?s=612x612',
+      'nba-b': 'local:nba-b-h.jpg',
+    })
+    expect(r.map((x) => x.head)).toEqual([
+      'web:media.gettyimages.com/id/1/photo/x.jpg?s=612x612',
+      'local:nba-b-h.jpg',
+    ])
+    for (const bad of ['web:localhost/x.jpg', 'local:../x.jpg'])
+      expect(() => applyHeadOverrides(recs(), { 'nba-a': bad })).toThrow(/bad/)
+  })
   it('refuses an unknown player or a malformed key', () => {
     expect(() => applyHeadOverrides(recs(), { 'nba-zzz': 'bbr:x01' })).toThrow(
       /no candidate player/,

@@ -18,7 +18,6 @@ import {
   applyOverrides,
   actionKeyFor,
   commonsPath,
-  webKeyNamesPlayer,
   NBA_LEAGUE,
 } from './players.mjs'
 
@@ -251,9 +250,6 @@ describe('players', () => {
       'tsdb:other/abc.jpg',
       'tsdb:thumb/abc.gif',
       'x.svg',
-      'web:evil.example.com/x.jpg',
-      'web:a.espncdn.com/photo/../x.jpg',
-      'web:a.espncdn.com/photo/x.jpg?y=1',
     ])
       expect(actionKeyFor(bad)).toBe('')
     expect(
@@ -267,24 +263,21 @@ describe('players', () => {
       ),
     ).toBe('web:static.www.nfl.com/image/upload/f_auto,q_auto/league/x1')
   })
-  it('webKeyNamesPlayer: a web photo URL must not give his name away', () => {
-    const k = 'web:cdn.nba.com/manage/2021/03/'
-    expect(webKeyNamesPlayer(k + 'chris-paul-dunk.jpg', 'Chris Paul')).toBe(
-      true,
-    )
-    expect(webKeyNamesPlayer(k + 'CP3_PaulDribble.jpg', 'Chris Paul')).toBe(
-      true,
-    )
-    expect(
-      webKeyNamesPlayer(k + 'jasikevicius.jpg', 'Šarūnas Jasikevičius'),
-    ).toBe(true)
-    expect(webKeyNamesPlayer(k + 'GettyImages-1234.jpg', 'Chris Paul')).toBe(
-      false,
-    )
-    // Short name parts ("Jr", "Ja") are too common to count.
-    expect(webKeyNamesPlayer(k + 'jacket.jpg', "Ja'Marr Chase")).toBe(false)
-    // Only web: keys are checked (a Commons file name is hidden another way).
-    expect(webKeyNamesPlayer('cb/Chris_Paul.jpg', 'Chris Paul')).toBe(false)
+  it('actionKeyFor: a web image on any https host, or our own copy', () => {
+    for (const ok of [
+      'web:media.gettyimages.com/id/1/photo/tiki-barber.jpg?s=612x612',
+      'web:www.tradingcarddb.com/Images/Cards/Football/1/1-123Fr.jpg',
+      'local:nfl-barbti00-a.jpg',
+    ])
+      expect(actionKeyFor(ok)).toBe(ok)
+    for (const bad of [
+      'web:localhost/x.jpg',
+      'web:x.com/a b.jpg',
+      'web:https://x.com/a.jpg',
+      'local:../x.jpg',
+      'local:x.gif',
+    ])
+      expect(actionKeyFor(bad), bad).toBe('')
   })
   it('commonsPath turns a file name into its storage path', () => {
     expect(commonsPath('Tom Brady 2021.png')).toBe('cb/Tom_Brady_2021.png')

@@ -122,7 +122,7 @@ describe('PlayerPhoto', () => {
     // Nothing in the page names him before the name hint.
     expect(document.body.innerHTML).not.toMatch(/Romo/i)
   })
-  it('a "web:" playing photo (ESPN, NFL.com, NBA.com) is shown straight from its URL too', () => {
+  it('a "web:" playing photo (any https host) is shown straight from its URL too', () => {
     const web = {
       ...player,
       a: 'web:a.espncdn.com/photo/2019/1104/r621234_1296x729_16-9.jpg',

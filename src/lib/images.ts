@@ -13,6 +13,8 @@ import type { Player } from '../types'
 
 export function headshotUrl(p: Player): string | null {
   if (!p.h) return null
+  if (p.h.startsWith('web:') || p.h.startsWith('local:'))
+    return webOrLocalUrl(p.h)
   // "espn:<id>": the league's own image is a placeholder (or, for a few NFL
   // legends, an action cut-out) and ESPN has a real headshot.
   if (p.h.startsWith('espn:'))
@@ -47,22 +49,32 @@ const TSDB = /^tsdb:((?:thumb|cutout|render|fanart)\/[a-z0-9]+\.(?:jpg|png))$/
 export function actionDirectUrl(p: Player): string | null {
   const m = TSDB.exec(p.a ?? '')
   if (m) return `https://r2.thesportsdb.com/images/media/player/${m[1]}`
-  const w = WEB.exec(p.a ?? '')
-  return w ? `https://${w[1]}` : null
+  return webOrLocalUrl(p.a ?? '')
 }
 
 /**
- * "web:<host>/<path>": a game photo hotlinked from ESPN, NFL.com, an NFL club
- * site or NBA.com — hosts whose image URLs are opaque ids. The build refuses
- * one whose URL contains his name (scripts/lib/players.mjs webKeyNamesPlayer).
- * Same pattern as WEB_KEY there.
+ * "web:<host>/<path>": an image hotlinked from any https host (a game photo or
+ * headshot found by hand). Same pattern as WEB_KEY in scripts/lib/players.mjs.
  */
-const WEB =
-  /^web:((?:a\.espncdn\.com\/photo|static\.www\.nfl\.com\/image\/(?:upload|private)|static\.clubs\.nfl\.com\/image\/(?:upload|private)|cdn\.nba\.com\/manage)\/(?!.*\.\.)(?!.*\/\/)[\w,.\-/]+)$/
+const WEB = /^web:([a-z0-9-]+(?:\.[a-z0-9-]+)+(?:\/[^\s"'<>\\`]*)?)$/
+
+/**
+ * "local:<file>": our own copy, in public/photos/, for an image that could not
+ * be hotlinked. Same pattern as LOCAL_KEY in scripts/lib/players.mjs.
+ */
+const LOCAL = /^local:([a-z0-9][a-z0-9._-]*\.(?:jpe?g|png|webp))$/
+
+/** The URL of a "web:" or "local:" key, or null if it is neither (or bad). */
+function webOrLocalUrl(key: string): string | null {
+  const w = WEB.exec(key)
+  if (w) return `https://${w[1]}`
+  const l = LOCAL.exec(key)
+  return l ? `${import.meta.env.BASE_URL}photos/${l[1]}` : null
+}
 
 /** `a` is "<xy>/<File_name.jpg>" — the file's storage path on Commons. */
 function commonsPath(p: Player): { dir: string; file: string } | null {
-  if (!p.a || p.a.startsWith('tsdb:') || p.a.startsWith('web:')) return null
+  if (!p.a || /^(tsdb|web|local):/.test(p.a)) return null
   const slash = p.a.indexOf('/')
   const hash = p.a.slice(0, slash)
   return {
