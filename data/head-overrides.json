@@ -122,5 +122,8 @@
   "nba-greenta01": "local:nba-greenta01-h.jpg",
   "nba-solomwi01": "web:live.staticflickr.com/3173/2916801843_fed569f8b8_b.jpg",
   "nba-wagneda02": "web:www.cavshistory.com/images/players/Dajuan_Wagner.jpg",
-  "nba-haislma01": "local:nba-haislma01-h.jpg"
+  "nba-haislma01": "local:nba-haislma01-h.jpg",
+  "nba-walshma01": "web:cdn.nba.com/teams/legacy/i.cdn.turner.com/nba/nba/media/heat/254_081001_walsh.jpg",
+  "nba-roberla01": "web:ik.imagekit.io/2kwiz/players/classic-teams/lawrence-roberts-2005-06-memphis-grizzlies.webp",
+  "nba-fazekni01": "local:nba-fazekni01-h.jpg"
 }
