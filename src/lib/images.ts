@@ -46,12 +46,23 @@ const TSDB = /^tsdb:((?:thumb|cutout|render|fanart)\/[a-z0-9]+\.(?:jpg|png))$/
  */
 export function actionDirectUrl(p: Player): string | null {
   const m = TSDB.exec(p.a ?? '')
-  return m ? `https://r2.thesportsdb.com/images/media/player/${m[1]}` : null
+  if (m) return `https://r2.thesportsdb.com/images/media/player/${m[1]}`
+  const w = WEB.exec(p.a ?? '')
+  return w ? `https://${w[1]}` : null
 }
+
+/**
+ * "web:<host>/<path>": a game photo hotlinked from ESPN, NFL.com, an NFL club
+ * site or NBA.com — hosts whose image URLs are opaque ids. The build refuses
+ * one whose URL contains his name (scripts/lib/players.mjs webKeyNamesPlayer).
+ * Same pattern as WEB_KEY there.
+ */
+const WEB =
+  /^web:((?:a\.espncdn\.com\/photo|static\.www\.nfl\.com\/image\/(?:upload|private)|static\.clubs\.nfl\.com\/image\/(?:upload|private)|cdn\.nba\.com\/manage)\/(?!.*\.\.)(?!.*\/\/)[\w,.\-/]+)$/
 
 /** `a` is "<xy>/<File_name.jpg>" — the file's storage path on Commons. */
 function commonsPath(p: Player): { dir: string; file: string } | null {
-  if (!p.a || p.a.startsWith('tsdb:')) return null
+  if (!p.a || p.a.startsWith('tsdb:') || p.a.startsWith('web:')) return null
   const slash = p.a.indexOf('/')
   const hash = p.a.slice(0, slash)
   return {
