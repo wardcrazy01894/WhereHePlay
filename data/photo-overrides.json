@@ -804,7 +804,7 @@
   "nfl-TyreDa00": "web:static.clubs.nfl.com/image/private/f_auto/giants/ja9pyptayjmwjti3siwt.jpg",
   "nba-ahearbl01": "Ahearn.jpg",
   "nfl-TysoJo00": "web:static.clubs.nfl.com/image/upload/f_auto/saints/enzaerfiwm4k55plhzmu",
-  "nfl-WillTr01": "local:nfl-willtr01-a.jpg",
+  "nfl-WillTr01": "web:static.www.nfl.com/image/private/f_auto,q_auto,w_900/league/a0pg51tatvl8qcwpvwhi",
   "nba-adamsha01": "local:nba-adamsha01-a.jpg",
   "nba-culveja01": "web:i0.wp.com/zonecoverage.com/wp-content/uploads/2021/03/USATSI_15471634_168390100_lowres.jpg?fit=1590%2C1061&ssl=1",
   "nba-diawaya01": "web:cdn.nba.com/teams/legacy/www.nba.com/nuggets/sites/nuggets/files/80338372.jpg",
@@ -1011,5 +1011,6 @@
   "nba-hunteot01": "local:nba-hunteot01-a.jpg",
   "nba-nichode01": "local:nba-nichode01-a.jpg",
   "nba-fordsh02": "local:nba-fordsh02-a.jpg",
-  "nba-clarkco01": "local:nba-clarkco01-a.jpg"
+  "nba-clarkco01": "local:nba-clarkco01-a.jpg",
+  "nba-penneki01": "local:nba-penneki01-a.jpg"
 }

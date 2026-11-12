@@ -17,8 +17,9 @@ he played for (preseason OK; Summer League as a fallback); a **headshot** is a
 posed portrait or a close-up of his bare head (no helmet) in pro gear. His
 name may show; his college may not.
 
-| Player      | League | Needs         | Pro teams                                | What we found                                                                                      |
-| ----------- | ------ | ------------- | ---------------------------------------- | -------------------------------------------------------------------------------------------------- |
-| Kirk Penney | NBA    | playing photo | Heat (2 games, 2003), Clippers (4, 2004) | Only Wisconsin, D-League, New Zealand/FIBA and Australian league photos; has a tiny 65×90 headshot |
+**None right now.** As of 2026-11-12 every player in every tier has both
+photos. The last one, Kirk Penney, came from a frame of a highlight video the
+owner spotted (Clippers #22, 2004-05).
 
-Updated 2026-11-12: everyone else in every tier now has both photos.
+When a future data rebuild adds a player we can't find photos for, list him
+here: name, league, what he needs, his pro teams, and what was tried.
