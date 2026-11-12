@@ -64,6 +64,22 @@ describe('players.json', () => {
       ).toEqual([p.s[0]])
     }
   })
+  it('excluded players (data/excluded.json) are not in the game', () => {
+    const ex = Object.keys(
+      JSON.parse(
+        readFileSync(
+          new URL('../../data/excluded.json', import.meta.url),
+          'utf8',
+        ),
+      ),
+    ).filter((k) => !k.startsWith('_'))
+    expect(ex.length).toBeGreaterThan(0)
+    for (const id of ex)
+      expect(
+        players.some((p) => p.id === id),
+        id,
+      ).toBe(false)
+  })
   it('preps-to-pros players are in, answer "High School", and carry their real school', () => {
     const preps = players.filter((p) => p.s[0] === 'high-school')
     expect(preps.length).toBeGreaterThanOrEqual(30)

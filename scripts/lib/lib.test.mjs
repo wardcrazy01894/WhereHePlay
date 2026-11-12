@@ -16,6 +16,7 @@ import {
   assignTiers,
   pickDecoys,
   applyOverrides,
+  applyExclusions,
   actionKeyFor,
   commonsPath,
   NBA_LEAGUE,
@@ -510,6 +511,21 @@ describe('players', () => {
     expect(recs[11].tier).toBe('easy') // famous + 50-player school
     expect(recs[98].tier).toBe('hard') // unknown + one-player school
     expect(recs[40].tier).toBe('medium')
+  })
+
+  it('exclusions remove a player after tiers are set, and reject unknown ids', () => {
+    const recs = [
+      { id: 'nfl-a', tier: 'easy' },
+      { id: 'nfl-b', tier: 'hard' },
+    ]
+    const ex = { _comment: 'x', 'nfl-b': 'never played a game' }
+    expect(applyExclusions(recs, ex, {}).map((r) => r.id)).toEqual(['nfl-a'])
+    expect(() => applyExclusions(recs, { 'nfl-zzz': 'x' }, {})).toThrow(
+      /no player/,
+    )
+    expect(() => applyExclusions(recs, { 'nfl-a': '' }, {})).toThrow(/reason/)
+    // Never one who has been drawn: removing him would re-roll days played.
+    expect(() => applyExclusions(recs, ex, { 'nfl-b': 1 })).toThrow(/drawn/)
   })
 
   it('overrides replace schools and tiers, and reject typos', () => {
