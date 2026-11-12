@@ -284,7 +284,9 @@ export function newDayFor(safeDay, requested) {
 /**
  * Hand-checked headshots from another source (data/head-overrides.json):
  * player id → "bbr:<Basketball-Reference id>" or
- * "pfr:<Pro-Football-Reference headshot file>". For players whose league
+ * "pfr:<Pro-Football-Reference headshot file>" or "clubs:<path>" (an NFL
+ * club-site portrait, here so the same player can also have a hand-picked
+ * playing photo in photo-overrides.json). For players whose league
  * image is a placeholder and whom ESPN does not have. Each was viewed: a
  * posed headshot, not a game photo. Mutates `records`.
  */
@@ -295,7 +297,9 @@ export function applyHeadOverrides(records, overrides) {
     const r = byId.get(id)
     if (!r) throw new Error(`head-overrides.json: no candidate player "${id}"`)
     if (
-      !/^(bbr:[a-z]+[0-9]{2}|pfr:[A-Za-z]+[0-9]{2}_(USAT_)?[0-9]{4})$/.test(key)
+      !/^(bbr:[a-z]+[0-9]{2}|pfr:[A-Za-z]+[0-9]{2}_(USAT_)?[0-9]{4}|clubs:(?!.*\.\.)(?!.*\/\/)[\w,/.-]+\.(jpg|png))$/.test(
+        key,
+      )
     )
       throw new Error(`head-overrides.json: bad key "${key}" for ${id}`)
     r.head = key

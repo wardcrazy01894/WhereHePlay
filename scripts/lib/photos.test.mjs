@@ -303,6 +303,17 @@ describe('applyHeadOverrides (data/head-overrides.json)', () => {
       'pfr:AlbeBr20_2017',
     ])
   })
+  it('…or an NFL club site (so a player can have both a hand-picked headshot and playing photo)', () => {
+    const r = recs()
+    applyHeadOverrides(r, {
+      'nba-a': 'clubs:upload/f_auto,q_auto/jaguars/f6y5navv2xjohzrdabzm.jpg',
+    })
+    expect(r[0].head).toBe(
+      'clubs:upload/f_auto,q_auto/jaguars/f6y5navv2xjohzrdabzm.jpg',
+    )
+    for (const bad of ['clubs:../x.jpg', 'clubs:upload/x', 'clubs:a//b.jpg'])
+      expect(() => applyHeadOverrides(recs(), { 'nba-a': bad })).toThrow(/bad/)
+  })
   it('refuses an unknown player or a malformed key', () => {
     expect(() => applyHeadOverrides(recs(), { 'nba-zzz': 'bbr:x01' })).toThrow(
       /no candidate player/,

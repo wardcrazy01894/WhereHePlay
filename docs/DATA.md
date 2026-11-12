@@ -213,7 +213,9 @@ Nothing is stored in the repo; `src/lib/images.ts` builds URLs.
   Pro-Football-Reference is used (`data/head-overrides.json`, key
   `pfr:<file>`, e.g. `pfr:DaviTe00_USAT_1996` — found by opening each
   player's page in a browser, since the site refuses scripted requests; it
-  has a photo for only 9 of the players who needed one). The other 64 have no
+  has a photo for only 9 of the players who needed one). For 3 more, a posed
+  team portrait from the club's own site (`clubs:<path>` in the same file, so
+  the player can also have a hand-picked playing photo). The other 61 have no
   headshot yet.
 - **NBA headshots:** `cdn.nba.com/headshots/…/<NBA.com id>.png` — which for
   227 retired players is a generic grey silhouette. `scan-headshots` detects
