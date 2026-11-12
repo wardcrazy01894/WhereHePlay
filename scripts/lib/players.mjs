@@ -424,6 +424,31 @@ export function pickDecoys(rec, schools, poolSchoolIds, topPrograms = []) {
  * that year, so a changed finishing school usually needs it), `t` the tier.
  * Throws on an unknown player, school or tier so a typo can't pass silently.
  */
+/**
+ * Remove players listed in data/excluded.json — player id → why (e.g. he never
+ * played a regular-season or playoff game, owner's rule 2026-11-12). Applied
+ * after tiers and decoys are set, so a removal never moves anyone else's tier.
+ * Throws on an unknown id, a missing reason, or a player who has already been
+ * drawn on some day (`history`: the eligible-since entries): removing him
+ * would change the pool for days already played.
+ */
+export function applyExclusions(records, excluded, history = {}) {
+  const ids = new Set(records.map((r) => r.id))
+  const drop = new Set()
+  for (const [id, why] of Object.entries(excluded)) {
+    if (id.startsWith('_')) continue
+    if (!ids.has(id)) throw new Error(`excluded.json: no player "${id}"`)
+    if (!String(why ?? '').trim())
+      throw new Error(`excluded.json: give a reason for ${id}`)
+    if (id in history)
+      throw new Error(
+        `excluded.json: ${id} has been drawn (data/eligible-since.json); removing him would re-roll days already played`,
+      )
+    drop.add(id)
+  }
+  return records.filter((r) => !drop.has(r.id))
+}
+
 export function applyOverrides(records, overrides, schoolIds) {
   const byId = new Map(records.map((r) => [r.id, r]))
   for (const [id, o] of Object.entries(overrides)) {

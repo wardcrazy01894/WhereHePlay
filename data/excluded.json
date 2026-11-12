@@ -1,0 +1,6 @@
+{
+  "_comment": "Players removed from the game: player id \u2192 why. Owner's rule (2026-11-12): a player who never played a regular-season or playoff NFL/NBA game is not in the game (Michael Sam is the owner's one exception). Applied by build-players AFTER tiers and decoys are set (applyExclusions in scripts/lib/players.mjs), so removing one never moves anyone else. Only players never drawn can be listed: the build refuses one in data/eligible-since.json, since removing him would re-roll days already played. See docs/DATA.md.",
+  "nfl-WillBr03": "Brennan Williams: 2013 3rd-round pick (Texans), injured, never played a regular-season game",
+  "nfl-HokiJo00": "Josh Hokit: undrafted 2020 (49ers), practice squad/reserve; no regular-season game on Pro-Football-Reference",
+  "nfl-PestTo00": "Tom Pestock: undrafted 2009 (Cardinals), practice squad; no regular-season game on Pro-Football-Reference"
+}

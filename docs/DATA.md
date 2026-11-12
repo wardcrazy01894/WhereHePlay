@@ -2,7 +2,7 @@
 
 Two committed artifacts drive the game:
 
-- `public/players.json` — 2,073 players (1,108 NFL, 965 NBA); 1,000 of them
+- `public/players.json` — 2,070 players (1,105 NFL, 965 NBA); 1,000 of them
   can be drawn today (see "Who can be drawn")
 - `public/schools.json` — 375 colleges plus the "High School (no college)"
   answer (id, name, search aliases)
@@ -85,6 +85,18 @@ So Tom Brady (Michigan) and Stephen Curry (Davidson, top of the fame list)
 are easy; a mid-career player from a one-pro school is hard. It is a
 heuristic — BACKLOG.md lists known misses. A guard test requires every
 league × tier to be deep enough for the 45-day no-repeat window.
+
+## Never played a game (`data/excluded.json`)
+
+The owner's rule (2026-11-12): a player who never played a regular-season or
+playoff NFL/NBA game is not in the game — he has no game photo and is not a
+real pro for this purpose (Michael Sam is the owner's one exception). Such
+players are listed in `data/excluded.json` (id → reason) and removed by
+`build-players` after tiers and decoys are set (`applyExclusions`), so no
+one else moves. The build refuses to exclude a player who has ever been
+drawn (he is in `data/eligible-since.json`): removing him would re-roll days
+already played. Who qualifies is checked by hand (the draft table's career
+games, Pro-Football-Reference); no script decides it.
 
 ## International (no college) (`data/international.json`)
 

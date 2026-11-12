@@ -21,6 +21,7 @@ import {
   assignTiers,
   pickDecoys,
   applyOverrides,
+  applyExclusions,
   actionKeyFor,
   HIGH_SCHOOL_ID,
   INTERNATIONAL_ID,
@@ -198,7 +199,14 @@ for (const league of ['nfl', 'nba']) {
 }
 
 records.sort((a, b) => (a.id < b.id ? -1 : a.id > b.id ? 1 : 0))
-const out = records.map((r) => ({
+// Players who never played a game (data/excluded.json): removed only now, so
+// tiers and decoys for everyone else are exactly what they were.
+const kept = applyExclusions(
+  records,
+  JSON.parse(await read('data/excluded.json')),
+  prevSince,
+)
+const out = kept.map((r) => ({
   id: r.id,
   n: r.name,
   l: r.league,
@@ -233,7 +241,7 @@ await writeFile(
 )
 
 const count = (l, t) =>
-  records.filter((r) => r.league === l && (!t || r.tier === t)).length
+  kept.filter((r) => r.league === l && (!t || r.tier === t)).length
 for (const l of ['nfl', 'nba'])
   console.log(
     `${l}: ${count(l)} players (easy ${count(l, 'easy')} / medium ${count(l, 'medium')} / hard ${count(l, 'hard')})`,
@@ -243,7 +251,7 @@ console.log(
   `photos: ${photosDropped} Wikimedia photos withheld (college gear, or not a real playing photo)`,
 )
 for (const league of ['nfl', 'nba']) {
-  const rs = records.filter((r) => r.league === league)
+  const rs = kept.filter((r) => r.league === league)
   const n = (f) => rs.filter(f).length
   console.log(
     `${league} photos: ${n((r) => r.id in since)} of ${rs.length} can be drawn (easy ${n((r) => r.id in since && r.tier === 'easy')} / medium ${n((r) => r.id in since && r.tier === 'medium')} / hard ${n((r) => r.id in since && r.tier === 'hard')}); ${n((r) => !r.head)} need a headshot, ${n((r) => !r.action)} need a playing photo`,
