@@ -101,5 +101,10 @@
   "nba-potapvi01": "web:www.basketball-reference.com/req/202106291/images/headshots/potapvi01.jpg",
   "nba-simmoce01": "web:images2.minutemediacdn.com/image/upload/c_crop,x_380,y_120,w_1360,h_1360/c_fill,w_800,f_auto,q_auto/shape/cover/sport/a632fcf0df1bcf7891c1c045ca917d00db9c6d90562c15a8dbfc29293775e54d.jpg",
   "nba-mayse01": "web:playersbio.com/wp-content/uploads/2022/03/May-with-Charlotte-Bobcats-696x522.jpg",
-  "nba-cleavma01": "local:nba-cleavma01-h.jpg"
+  "nba-cleavma01": "local:nba-cleavma01-h.jpg",
+  "nfl-BryaFe20": "web:alchetron.com/cdn/fernando-bryant-f0268608-ff66-4697-9673-e73f3b6772d-resize-750.jpeg",
+  "nfl-KendPe20": "web:alchetron.com/cdn/pete-kendall-36dbfe42-7e02-47cf-a183-b4e2a4c4570-resize-750.jpeg",
+  "nfl-NewbJe00": "web:alchetron.com/cdn/jeremy-newberry-a2431d30-7260-45c5-9438-c0c0821ce71-resize-750.jpeg",
+  "nfl-SimmKe20": "web:alchetron.com/cdn/kendall-simmons-13e0f1da-04e0-442b-990d-44e63040d8d-resize-750.png",
+  "nfl-TyreDa00": "web:alchetron.com/cdn/david-tyree-c55cc576-1270-4237-9fe0-354f6fa5815-resize-750.jpg"
 }
