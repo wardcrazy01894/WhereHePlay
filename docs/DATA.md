@@ -265,7 +265,15 @@ TheSportsDB image key, `tsdb:<thumb|cutout|render|fanart>/<file>` — a
 copyrighted game photo, hotlinked, the owner's accepted risk as for league
 headshots. TheSportsDB names its files with opaque ids, so the client shows
 those straight from their URL (`actionDirectUrl`); a Commons file name
-usually names the player, so those are still fetched into a blob first. To act on a "that's not him playing" report: add the file
+usually names the player, so those are still fetched into a blob first.
+The value can also be `web:<host>/<path>`, a game photo hotlinked from ESPN
+(`a.espncdn.com/photo`), NFL.com or an NFL club site
+(`static.www.nfl.com/image`, `static.clubs.nfl.com/image`) or NBA.com
+(`cdn.nba.com/manage`) — hosts whose image URLs are opaque ids, shown straight
+from their URL like TheSportsDB's. The build refuses one whose URL contains
+part of his name (`webKeyNamesPlayer`), and a dataset test checks it again.
+These were found by hand, one player at a time, for players Commons and
+TheSportsDB do not cover; each was viewed. To act on a "that's not him playing" report: add the file
 name to `notPlaying`, find a good photo in his Commons category and add it to
 the overrides; rebuild; close the issue.
 

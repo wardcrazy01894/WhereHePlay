@@ -168,6 +168,40 @@ describe('images', () => {
     // Anything malformed is treated as no photo at all.
     expect(actionDirectUrl({ ...p, a: 'tsdb:../../x.jpg' })).toBeNull()
   })
+  it('a "web:" playing photo is a direct URL on one of the allowed hosts', () => {
+    for (const [key, url] of [
+      [
+        'web:a.espncdn.com/photo/2019/1104/r621234_1296x729_16-9.jpg',
+        'https://a.espncdn.com/photo/2019/1104/r621234_1296x729_16-9.jpg',
+      ],
+      [
+        'web:static.www.nfl.com/image/upload/f_auto,q_auto/league/h5y74trx',
+        'https://static.www.nfl.com/image/upload/f_auto,q_auto/league/h5y74trx',
+      ],
+      [
+        'web:static.clubs.nfl.com/image/private/w_640/giants/abc123.jpg',
+        'https://static.clubs.nfl.com/image/private/w_640/giants/abc123.jpg',
+      ],
+      [
+        'web:cdn.nba.com/manage/2021/03/GettyImages-123456.jpg',
+        'https://cdn.nba.com/manage/2021/03/GettyImages-123456.jpg',
+      ],
+    ]) {
+      const w = { ...p, a: key }
+      expect(actionDirectUrl(w)).toBe(url)
+      expect(actionUrls(w)).toEqual([])
+      expect(actionCreditUrl(w)).toBeNull()
+    }
+    for (const bad of [
+      'web:evil.example.com/x.jpg',
+      'web:a.espncdn.com/i/headshots/x.png',
+      'web:a.espncdn.com/photo/../../x.jpg',
+      'web:a.espncdn.com/photo/x.jpg?y=1',
+      'web:a.espncdn.com.evil.com/photo/x.jpg',
+      'web:https://a.espncdn.com/photo/x.jpg',
+    ])
+      expect(actionDirectUrl({ ...p, a: bad }), bad).toBeNull()
+  })
   it('in-uniform photo: thumbnail then original, straight from the CORS-enabled host', () => {
     expect(actionUrls(p)).toEqual([])
     expect(actionCreditUrl(p)).toBeNull()

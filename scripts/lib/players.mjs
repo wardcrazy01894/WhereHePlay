@@ -80,7 +80,38 @@ export function actionKeyFor(value) {
     return /^tsdb:(thumb|cutout|render|fanart)\/[a-z0-9]+\.(jpg|png)$/.test(v)
       ? v
       : ''
+  if (v.startsWith('web:')) return WEB_KEY.test(v) ? v : ''
   return commonsPath(v)
+}
+
+/**
+ * "web:<host>/<path>": a game photo hotlinked from a host whose image URLs
+ * are opaque ids (ESPN article photos, NFL.com, NFL club sites, NBA.com).
+ * Same pattern as WEB in src/lib/images.ts.
+ */
+export const WEB_KEY =
+  /^web:(?:a\.espncdn\.com\/photo|static\.www\.nfl\.com\/image\/(?:upload|private)|static\.clubs\.nfl\.com\/image\/(?:upload|private)|cdn\.nba\.com\/manage)\/(?!.*\.\.)(?!.*\/\/)[\w,.\-/]+$/
+
+const fold = (s) =>
+  s
+    .normalize('NFKD')
+    .replace(/[̀-ͯ]/g, '')
+    .toLowerCase()
+    .replace(/[^a-z]/g, '')
+
+/**
+ * True when a "web:" photo URL contains part of his name (4+ letters, accents
+ * folded), which would give the answer away before the name hint. Other key
+ * forms are not checked: a Commons file name is hidden by fetching it.
+ */
+export function webKeyNamesPlayer(key, name) {
+  if (!String(key).startsWith('web:')) return false
+  const url = fold(key)
+  return String(name)
+    .split(/[\s'.-]+/)
+    .map(fold)
+    .filter((part) => part.length >= 4)
+    .some((part) => url.includes(part))
 }
 
 /** nflverse headshot URL → the path after ".../image/" ('' if unexpected). */

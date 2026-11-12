@@ -21,6 +21,7 @@ import {
   pickDecoys,
   applyOverrides,
   actionKeyFor,
+  webKeyNamesPlayer,
   HIGH_SCHOOL_ID,
 } from './lib/players.mjs'
 
@@ -70,8 +71,8 @@ const nba = nbaCandidates(
 // applyBlocklist. A player left with no photo at all cannot be asked.
 const blockedPhotos = JSON.parse(await read('data/photo-blocklist.json'))
 // Hand-picked replacement photos (data/photo-overrides.json): player id →
-// Commons file name (or a "clubs:" headshot, below), for players whose only
-// listed photo is a college one.
+// Commons file name, a "tsdb:" or "web:" game photo (see actionKeyFor), or a
+// "clubs:" headshot (below).
 const photoOverrides = JSON.parse(await read('data/photo-overrides.json'))
 for (const r of [...nfl.records, ...nba.records]) {
   const file = photoOverrides[r.id]
@@ -87,6 +88,9 @@ for (const r of [...nfl.records, ...nba.records]) {
   const path = actionKeyFor(file)
   if (!path)
     throw new Error(`photo-overrides.json: bad file "${file}" for ${r.id}`)
+  // A hotlinked game photo's URL is in the page: it must not name him.
+  if (webKeyNamesPlayer(path, r.name))
+    throw new Error(`photo-overrides.json: the URL names ${r.name} (${r.id})`)
   r.action = path
 }
 const knownIds = new Set([...nfl.records, ...nba.records].map((r) => r.id))
@@ -99,7 +103,7 @@ await writeFile(
   new URL('data/raw/photo-candidates.json', root),
   JSON.stringify(
     [...nfl.records, ...nba.records]
-      .filter((r) => r.action && !r.action.startsWith('tsdb:'))
+      .filter((r) => r.action && !/^(tsdb|web):/.test(r.action))
       .map((r) => ({ n: r.name, y: r.year, s: r.schools, a: r.action })),
   ),
 )

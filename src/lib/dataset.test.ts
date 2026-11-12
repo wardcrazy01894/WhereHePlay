@@ -123,8 +123,19 @@ describe('players.json', () => {
       expect(seen.get(p.a), `${p.id} and ${seen.get(p.a)}`).toBeUndefined()
       seen.set(p.a, p.id)
       expect(p.a, p.id).toMatch(
-        /^([0-9a-f]{2}\/[^/]+\.(jpe?g|png)|tsdb:(thumb|cutout|render|fanart)\/[a-z0-9]+\.(jpg|png))$/i,
+        /^([0-9a-f]{2}\/[^/]+\.(jpe?g|png)|tsdb:(thumb|cutout|render|fanart)\/[a-z0-9]+\.(jpg|png)|web:[\w,.\-/]+)$/i,
       )
+      // A hotlinked game photo's URL is in the page: it never names him.
+      if (p.a.startsWith('web:')) {
+        const fold = (s: string) =>
+          s
+            .normalize('NFKD')
+            .replace(/[\u0300-\u036f]/g, '')
+            .toLowerCase()
+            .replace(/[^a-z]/g, '')
+        for (const part of p.n.split(/[\s'.-]+/).map(fold))
+          if (part.length >= 4) expect(fold(p.a), p.id).not.toContain(part)
+      }
     }
   })
   it('a playing photo is a playing photo: nothing from the blocklist', () => {
