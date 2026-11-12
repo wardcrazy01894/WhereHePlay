@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import type { Player, School } from '../types'
-import { HIGH_SCHOOL_ID } from '../types'
+import { HIGH_SCHOOL_ID, INTERNATIONAL_ID } from '../types'
 import {
   type QuestionState,
   LAST_STAGE,
@@ -70,7 +70,8 @@ export function QuestionCard({
           <span className="hint-value">
             {!showConf
               ? '—'
-              : player.s[0] === HIGH_SCHOOL_ID
+              : player.s[0] === HIGH_SCHOOL_ID ||
+                  player.s[0] === INTERNATIONAL_ID
                 ? 'Wouldn’t you like to know weather boy'
                 : `${player.c} (${player.y} season)`}
           </span>
@@ -94,7 +95,12 @@ export function QuestionCard({
         >
           <div className="reveal-line">
             {state.correct ? '✅' : '❌'}{' '}
-            {player.s[0] === HIGH_SCHOOL_ID ? (
+            {player.s[0] === INTERNATIONAL_ID ? (
+              <>
+                {player.n} skipped college — he went pro{' '}
+                <strong>overseas</strong> before the NBA
+              </>
+            ) : player.s[0] === HIGH_SCHOOL_ID ? (
               <>
                 {player.n} skipped college — straight to the NBA from{' '}
                 <strong>{player.hs ?? 'high school'}</strong>

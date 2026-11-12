@@ -349,6 +349,9 @@ hartford|Hartford||Hartford Hawks|||1994:America East,2023:Division III
 # --- Not a school: the answer for NBA players who skipped college ---
 high-school|High School (no college)|||High School;HS;Prep;Preps to pros;No college;None;Straight to the NBA||No college
 
+# --- Not a school: the answer for internationals who turned pro abroad instead of college ---
+international|International (no college)|||International;Overseas;Abroad;Europe;Pro overseas;Euroleague;No college;None||No college
+
 # --- Division II / III / NAIA and others (conference hint = level) ---
 grand-valley|Grand Valley State|Grand Valley;Grand Valley State|Grand Valley State Lakers|GVSU|Division II|
 saginaw-valley|Saginaw Valley State|Saginaw Valley State|Saginaw Valley State Cardinals|SVSU|Division II|

@@ -318,6 +318,7 @@
 {"id":"houston-christian","name":"Houston Christian","aliases":["Houston Baptist"]},
 {"id":"hartford","name":"Hartford"},
 {"id":"high-school","name":"High School (no college)","aliases":["High School","HS","Prep","Preps to pros","No college","None","Straight to the NBA"]},
+{"id":"international","name":"International (no college)","aliases":["International","Overseas","Abroad","Europe","Pro overseas","Euroleague","No college","None"]},
 {"id":"grand-valley","name":"Grand Valley State","aliases":["GVSU"]},
 {"id":"saginaw-valley","name":"Saginaw Valley State","aliases":["SVSU"]},
 {"id":"ferris-state","name":"Ferris State"},

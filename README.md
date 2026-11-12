@@ -9,7 +9,7 @@
 [![CI](https://github.com/wardcrazy01894/WhereHePlay/actions/workflows/ci.yml/badge.svg)](https://github.com/wardcrazy01894/WhereHePlay/actions/workflows/ci.yml)
 [![deploy](https://github.com/wardcrazy01894/WhereHePlay/actions/workflows/deploy.yml/badge.svg)](https://github.com/wardcrazy01894/WhereHePlay/actions/workflows/deploy.yml)
 
-React · TypeScript · Vite · Cloudflare Workers + D1 &nbsp;·&nbsp; 2,021 players &nbsp;·&nbsp; $0 hosting
+React · TypeScript · Vite · Cloudflare Workers + D1 &nbsp;·&nbsp; 2,073 players &nbsp;·&nbsp; $0 hosting
 
 </div>
 
@@ -34,7 +34,9 @@ Each question climbs a hint ladder:
 Type your answer — autocomplete suggests from about 375 colleges. A wrong
 typed guess uses up a hint. Transfers count: any college he played for is
 right. For a player who went straight from high school to the NBA, the answer
-is simply "High School" — the reveal tells you which one.
+is simply "High School" — the reveal tells you which one. For a star who
+went pro overseas instead of college (Dirk, Giannis, Luka…), it's
+"International".
 
 ```
 WhereHePlay #1 · NFL (headshot)
@@ -61,8 +63,9 @@ WhereHePlay #1 · NFL (headshot)
 
 ## 🧑‍🤝‍🧑 The players
 
-1,108 NFL and 913 NBA players who were in college from 1994 on (plus the 34
-who skipped it — LeBron, Kobe, KG: for them just answer **High School**), weighted
+1,108 NFL and 965 NBA players who were in college from 1994 on (plus the 34
+who skipped it — LeBron, Kobe, KG: for them just answer **High School** — and
+52 international stars who turned pro abroad: answer **International**), weighted
 toward careers that ran into 2008 or later and filtered for fame — see
 [docs/DATA.md](docs/DATA.md) for the sources and the exact rules.
 

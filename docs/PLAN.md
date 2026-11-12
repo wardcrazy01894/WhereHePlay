@@ -23,6 +23,9 @@ worth the stage it was given at (`src/lib/game.ts`):
   answer is just "High School" (it is in the autocomplete); the reveal names
   the actual school, and the conference hint just says "Wouldn't you like to
   know weather boy".
+- **Went pro abroad instead?** For an easy-tier international with no
+  college (Dirk, Giannis, Luka…) the answer is "International (no college)";
+  same conference hint, and the reveal says he went pro overseas.
 - **Any college he played for is correct** (transfers). The reveal, the
   conference hint and the multiple choice use the school he finished at.
 - The **four choices** are the finishing school plus three decoys from the

@@ -64,6 +64,44 @@ describe('players.json', () => {
       ).toEqual([p.s[0]])
     }
   })
+  it('internationals are listed, NBA, easy, answer "International", with top-program decoys', () => {
+    const listed = new Set(
+      (
+        JSON.parse(
+          readFileSync(
+            new URL('../../data/international.json', import.meta.url),
+            'utf8',
+          ),
+        ).players as { name: string }[]
+      ).map((p) =>
+        p.name
+          .normalize('NFKD')
+          .toLowerCase()
+          .replace(/[^a-z]/g, ''),
+      ),
+    )
+    const intl = players.filter((p) => p.s[0] === 'international')
+    expect(intl.length).toBeGreaterThanOrEqual(20)
+    for (const p of intl) {
+      expect(
+        listed.has(
+          p.n
+            .normalize('NFKD')
+            .toLowerCase()
+            .replace(/[^a-z]/g, ''),
+        ),
+        p.id,
+      ).toBe(true)
+      expect(p.l, p.id).toBe('nba')
+      expect(p.t, p.id).toBe('easy')
+      expect(p.s, p.id).toEqual(['international'])
+      expect(p.d, p.id).not.toContain('international')
+      expect(p.d, p.id).not.toContain('high-school')
+    }
+    expect(schools.find((s) => s.id === 'international')?.aliases).toContain(
+      'International',
+    )
+  })
   it('preps-to-pros players are in, answer "High School", and carry their real school', () => {
     const preps = players.filter((p) => p.s[0] === 'high-school')
     expect(preps.length).toBeGreaterThanOrEqual(30)
