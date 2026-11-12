@@ -1,6 +1,6 @@
 {
   "_comment": "Hand-picked photos, checked by eye: player id → a Wikimedia Commons file name (his in-uniform photo: not in college gear, and showing him playing for the team he is best known for), or \"clubs:<path>\" for an image on the NFL clubs' image server (static.clubs.nfl.com/image/<path>) used as his headshot. Applied by scripts/build-players.mjs before the blocklist. See docs/DATA.md §Photos.",
-  "nfl-GrieBr00": "Brian_Griese_2013.jpg",
+  "nfl-GrieBr00": "web:static.clubs.nfl.com/image/private/f_auto/broncos/jzysl1azegg07sb1knem.jpg",
   "nfl-NewtCa00": "Cam_Newton_(50121508306).jpg",
   "nfl-LewiRa00": "Ray-Lewis-2008-Steelers-regseason-game.jpg",
   "nba-adebaba01": "Bam_Adebayo_(cropped).jpg",
@@ -583,5 +583,21 @@
   "nfl-DeJeCo00": "web:static.clubs.nfl.com/image/upload/c_limit,w_1600,f_jpg/eagles/gkdsf5cxjyeddm1zf8qo",
   "nfl-ColeLa00": "web:static.clubs.nfl.com/image/private/c_limit,w_1600/jets/liqvkjsmcapwp4eaz0cf",
   "nfl-CrumAl00": "web:static.clubs.nfl.com/image/private/c_limit,w_1600/falcons/i53iwivosivgpiuebwz7",
-  "nfl-FielJu00": "web:a.espncdn.com/photo/2025/1026/r1566287_1296x729_16-9.jpg"
+  "nfl-FielJu00": "web:a.espncdn.com/photo/2025/1026/r1566287_1296x729_16-9.jpg",
+  "nfl-GonzCh00": "web:a.espncdn.com/photo/2025/0101/r1433646_1296x729_16-9.jpg",
+  "nfl-HarrMa09": "web:a.espncdn.com/photo/2025/1112/r1574668_1296x729_16-9.jpg",
+  "nfl-HendTr00": "web:a.espncdn.com/photo/2024/1106/r1411266_1296x729_16-9.jpg",
+  "nfl-HornJa00": "web:a.espncdn.com/photo/2025/1125/r1580345_1296x729_16-9.jpg",
+  "nfl-HowaXa00": "web:a.espncdn.com/photo/2025/0904/r1540861_1296x729_16-9.jpg",
+  "nfl-HufaTa00": "web:a.espncdn.com/photo/2024/0628/r1351834_1296x729_16-9.jpg",
+  "nfl-JenkEl00": "web:a.espncdn.com/photo/2023/0918/r1226447_1296x729_16-9.jpg",
+  "nfl-HuntTr00": "web:a.espncdn.com/photo/2025/0928/r1552270_1296x729_16-9.jpg",
+  "nfl-GrahMa00": "web:static.clubs.nfl.com/image/upload/t_new_photo_album/f_auto/browns/q1olyaj0tocqcrhf3nr6.jpg",
+  "nfl-JoneMa05": "web:static.clubs.nfl.com/image/private/f_auto/patriots/relyiidwxqkblvyxla4l.jpg",
+  "nfl-JohnRu00": "web:static.www.nfl.com/image/private/f_auto/league/wzyrpznjkebij4gvogai.jpg",
+  "nfl-GonzAn00": "web:static.www.nfl.com/image/private/f_auto/league/gmrfkq0hxnyzc6g77u7m.jpg",
+  "nfl-HarrTo99": "web:static.www.nfl.com/image/private/f_auto/league/ji5tgaosxboyt3frljnm.jpg",
+  "nfl-JoseDa20": "web:static.clubs.nfl.com/image/private/f_auto/buccaneers/l3jj0byaizuvbhr9mp6y.jpg",
+  "nfl-HallDa00": "web:static.clubs.nfl.com/image/private/f_auto/chiefs/ymevuq3hdbx32hsm6m93.jpg",
+  "nba-farmajo01": "web:a.espncdn.com/photo/2013/1231/nba_g_farmar_kh_1296x729.jpg"
 }
