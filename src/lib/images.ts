@@ -21,6 +21,11 @@ export function headshotUrl(p: Player): string | null {
   // NBA.com shows a silhouette for and ESPN does not have.
   if (p.h.startsWith('bbr:'))
     return `https://www.basketball-reference.com/req/202106291/images/headshots/${p.h.slice(4)}.jpg`
+  // "pfr:<file>": the same, for NFL players the league and ESPN lack, on
+  // Pro-Football-Reference (its
+  // file names carry a year: "DaviTe00_USAT_1996").
+  if (p.h.startsWith('pfr:'))
+    return `https://www.pro-football-reference.com/req/20230307/images/headshots/${p.h.slice(4)}.jpg`
   // "clubs:<path>": a hand-picked image on the NFL clubs' image server.
   if (p.h.startsWith('clubs:'))
     return `https://static.clubs.nfl.com/image/${p.h.slice(6)}`

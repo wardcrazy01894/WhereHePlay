@@ -209,7 +209,12 @@ Nothing is stored in the repo; `src/lib/images.ts` builds URLs.
   380 retired players that URL serves the league's generic helmet
   placeholder; `scan-headshots` detects it by ETag and records the keys in
   `data/nfl-placeholder-heads.json` (committed, cumulative). Those players use
-  ESPN's headshot where it has one; the rest have no headshot yet.
+  ESPN's headshot where it has one. For 9 more, a hand-checked portrait on
+  Pro-Football-Reference is used (`data/head-overrides.json`, key
+  `pfr:<file>`, e.g. `pfr:DaviTe00_USAT_1996` — found by opening each
+  player's page in a browser, since the site refuses scripted requests; it
+  has a photo for only 9 of the players who needed one). The other 64 have no
+  headshot yet.
 - **NBA headshots:** `cdn.nba.com/headshots/…/<NBA.com id>.png` — which for
   227 retired players is a generic grey silhouette. `scan-headshots` detects
   it the same way (`data/nba-placeholder-heads.json`, NBA.com ids) and

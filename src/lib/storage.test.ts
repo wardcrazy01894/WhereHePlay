@@ -140,6 +140,11 @@ describe('images', () => {
       'https://www.basketball-reference.com/req/202106291/images/headshots/almonmo01.jpg',
     )
   })
+  it('a "pfr:" key points at a Pro-Football-Reference headshot', () => {
+    expect(headshotUrl({ ...p, l: 'nfl', h: 'pfr:DaviTe00_USAT_1996' })).toBe(
+      'https://www.pro-football-reference.com/req/20230307/images/headshots/DaviTe00_USAT_1996.jpg',
+    )
+  })
   it('a "clubs:" key points at the NFL clubs image server', () => {
     expect(
       headshotUrl({ ...p, h: 'clubs:private/w_480/buccaneers/abc.jpg' }),

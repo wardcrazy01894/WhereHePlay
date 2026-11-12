@@ -97,7 +97,7 @@ describe('players.json', () => {
         expect(p.h, p.id).toMatch(/^((espn:)?\d+|bbr:[a-z]+\d{2})$/)
       else
         expect(p.h, p.id).toMatch(
-          /^(espn:\d+|clubs:[\w,/.-]+|(private|upload)\/.+)$/,
+          /^(espn:\d+|clubs:[\w,/.-]+|pfr:[A-Za-z]+\d{2}_(USAT_)?\d{4}|(private|upload)\/.+)$/,
         )
     }
   })

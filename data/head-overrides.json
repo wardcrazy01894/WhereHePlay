@@ -1,5 +1,5 @@
 {
-  "_comment": "Hand-checked headshots from Basketball-Reference for NBA players whose NBA.com image is the grey silhouette and whom ESPN does not have: player id → \"bbr:<Basketball-Reference id>\". Each was viewed (2026-11-11): a posed headshot in uniform, not a game photo. The owner chose this source knowing Sports-Reference discourages hotlinking; if these images stop loading, the players simply wait for another headshot. See docs/DATA.md §Photos.",
+  "_comment": "Hand-checked headshots from Sports-Reference sites for players whose league image is a placeholder (or not a headshot) and whom ESPN does not have: player id → \"bbr:<Basketball-Reference id>\" (NBA) or \"pfr:<Pro-Football-Reference headshot file, without .jpg>\" (NFL). Each was viewed (2026-11-11): a head-and-shoulders portrait, not a game photo. The owner chose this source knowing Sports-Reference discourages hotlinking; if these images stop loading, the players simply wait for another headshot. See docs/DATA.md §Photos.",
   "nba-almonmo01": "bbr:almonmo01",
   "nba-collima01": "bbr:collima01",
   "nba-dentmju01": "bbr:dentmju01",
@@ -12,5 +12,14 @@
   "nba-swiftst01": "bbr:swiftst01",
   "nba-udokaim01": "bbr:udokaim01",
   "nba-wilksmi01": "bbr:wilksmi01",
-  "nba-willima03": "bbr:willima03"
+  "nba-willima03": "bbr:willima03",
+  "nfl-AlbeBr20": "pfr:AlbeBr20_2017",
+  "nfl-DaviTe00": "pfr:DaviTe00_USAT_1996",
+  "nfl-DunnWa00": "pfr:DunnWa00_USAT_2008",
+  "nfl-HarrMa00": "pfr:HarrMa00_USAT_2005",
+  "nfl-JameEd00": "pfr:JameEd00_USAT_1999",
+  "nfl-JohnKe00": "pfr:JohnKe00_USAT_2004",
+  "nfl-MartCu00": "pfr:MartCu00_USAT_1996",
+  "nfl-SappWa00": "pfr:SappWa00_USAT_1998",
+  "nfl-WarnKu00": "pfr:WarnKu00_USAT_1999"
 }
