@@ -45,5 +45,9 @@
   "nfl-AndeWi00": "web:static.clubs.nfl.com/image/private/f_auto,q_auto/bengals/cpafcbera0svwtylvesv",
   "nfl-BrowRu00": "web:static.clubs.nfl.com/image/private/c_crop,x_150,y_0,w_400,h_400/f_jpg/bears/mxnifgain9nv4nhwf1ai",
   "nfl-CartKe00": "web:static.clubs.nfl.com/image/private/c_crop,x_250,y_30,w_330,h_380/f_jpg/buccaneers/oulpqb4tgesmzepbz4oz",
-  "nfl-MadiSa00": "local:nfl-madisa00-h.jpg"
+  "nfl-MadiSa00": "local:nfl-madisa00-h.jpg",
+  "nfl-McAlDe00": "web:static.clubs.nfl.com/image/private/w_1200/f_auto/saints/rxaxlvgfymvoymjmwyi6.jpg",
+  "nfl-McNaSt00": "web:static.clubs.nfl.com/image/private/w_1200/f_auto/titans/cxnxrdiwz2wihrehrdzq.jpg",
+  "nfl-RiceSi00": "web:static.clubs.nfl.com/image/private/t_new_photo_album/buccaneers/zntlwl73q9txdava91kv.jpg",
+  "nfl-PestTo00": "web:a.espncdn.com/i/headshots/nfl/players/full/13009.png"
 }
