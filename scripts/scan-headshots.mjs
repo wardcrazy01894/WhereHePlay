@@ -24,10 +24,15 @@ const readJson = async (url, fallback) => {
 const players = JSON.parse(
   await readFile(new URL('public/players.json', root), 'utf8'),
 )
-/** A league's own image keys: not ESPN's, not a hand-picked one. */
+/** A league's own image keys: not ESPN's, not a hand-picked one (espn:, clubs:,
+ *  bbr:, pfr:, web:, local: — those are not league ids, and the NBA CDN answers
+ *  an unknown id with the silhouette, so they would be misread as one). */
 const own = (league) =>
   players
-    .filter((p) => p.l === league && p.h && !/^(espn|clubs|bbr):/.test(p.h))
+    .filter(
+      (p) =>
+        p.l === league && p.h && !/^(espn|clubs|bbr|pfr|web|local):/.test(p.h),
+    )
     .map((p) => p.h)
 
 const LEAGUES = [

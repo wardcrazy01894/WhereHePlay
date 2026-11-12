@@ -24,6 +24,7 @@ import {
   applyExclusions,
   actionKeyFor,
   HIGH_SCHOOL_ID,
+  INTERNATIONAL_ID,
 } from './lib/players.mjs'
 
 const root = new URL('../', import.meta.url)
@@ -64,6 +65,7 @@ const nba = nbaCandidates(
     placeholders: new Set(await json('data/nba-placeholder-heads.json', '[]')),
     espn: await json('data/nba-espn-heads.json', '{}'),
   },
+  JSON.parse(await read('data/international.json')).players,
 )
 
 // Wikimedia photos never to use (data/photo-blocklist.json): the ones that
@@ -182,7 +184,11 @@ for (const league of ['nfl', 'nba']) {
   // The dozen schools with the most players in this league's pool.
   const counts = new Map()
   for (const r of records)
-    if (r.league === league && r.schools[0] !== HIGH_SCHOOL_ID)
+    if (
+      r.league === league &&
+      r.schools[0] !== HIGH_SCHOOL_ID &&
+      r.schools[0] !== INTERNATIONAL_ID
+    )
       counts.set(r.schools[0], (counts.get(r.schools[0]) ?? 0) + 1)
   const top = [...counts.entries()]
     .sort((a, b) => b[1] - a[1] || (a[0] < b[0] ? -1 : 1))
@@ -253,6 +259,10 @@ for (const league of ['nfl', 'nba']) {
 }
 const prepsIn = records.filter((r) => r.hs).length
 console.log(`preps to pros: ${prepsIn} in the pool`)
+if (nba.missingIntl.length)
+  console.log(
+    `international.json: listed but not in the source (name mismatch?): ${nba.missingIntl.join(', ')}`,
+  )
 if (nba.missingPreps.length)
   console.log(
     `  listed but not in the pool source (name mismatch?): ${nba.missingPreps.join(', ')}`,

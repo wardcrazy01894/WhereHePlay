@@ -2,7 +2,7 @@
 
 Two committed artifacts drive the game:
 
-- `public/players.json` — 2,018 players (1,105 NFL, 913 NBA); 1,000 of them
+- `public/players.json` — 2,070 players (1,105 NFL, 965 NBA); 1,000 of them
   can be drawn today (see "Who can be drawn")
 - `public/schools.json` — 375 colleges plus the "High School (no college)"
   answer (id, name, search aliases)
@@ -58,9 +58,11 @@ without that, Stephen Curry and Kevin Durant silently vanish.
 4. **Answerable:** the college he finished at is in the schools table (junior
    colleges are not), and there is a photo to show.
 
-NBA players who never played college ball have no college stint.
-Internationals and G League Ignite players drop out naturally; players who
-went straight from a US high school to the NBA are kept — see Preps to pros.
+NBA players who never played college ball have no college stint, so they
+drop out — except two hand-kept lists: players who went straight from a US
+high school to the NBA (see Preps to pros) and easy-tier internationals who
+turned pro abroad instead (see International (no college)). G League Ignite
+players and everyone else with no college stay out.
 
 `MIN_FAME`, `LEGEND_FAME`, `PRO_FOCUS_YEAR` and `FIRST_COLLEGE_YEAR` are
 constants at the top of that file. Lower `MIN_FAME` for a bigger, more
@@ -93,8 +95,29 @@ players are listed in `data/excluded.json` (id → reason) and removed by
 `build-players` after tiers and decoys are set (`applyExclusions`), so no
 one else moves. The build refuses to exclude a player who has ever been
 drawn (he is in `data/eligible-since.json`): removing him would re-roll days
-already played. The NFL check is the draft table's career games (and, for
-undrafted players, Pro-Football-Reference by hand).
+already played. Who qualifies is checked by hand (the draft table's career
+games, Pro-Football-Reference); no script decides it.
+
+## International (no college) (`data/international.json`)
+
+Easy-tier NBA players who never played college basketball because they
+turned pro outside the US — Dirk, Giannis, Luka, Jokić, Yao, Parker, the
+Gasols… (and Brandon Jennings, who went to Italy instead of college). Their
+answer is the pseudo-school `international`, **"International (no college)"**
+in the autocomplete (aliases: International, Overseas, Abroad, Europe, Pro
+overseas…); the conference hint says "Wouldn't you like to know weather boy",
+like Preps to pros, and the reveal says he went pro overseas. Their wrong
+answers are top programs, as for preps.
+
+The list is hand-picked by the owner (2026-11-12): only famous players, so
+they are all **easy**. Their tier is fixed (`fixedTier` in
+`scripts/lib/players.mjs`) and they take no part in the tier ranking, so
+adding or removing one never moves anyone else's tier or a day's lineup.
+They are matched to the Wikidata rows by name; the build prints any listed
+name it cannot find. Their automatic Wikimedia photos were screened like
+everyone's — most show a EuroLeague or national-team uniform, so they are on
+`notPlaying` until an NBA photo is found. No NFL player qualifies: the most
+famous no-college NFL players (International Pathway) are far below easy.
 
 ## Preps to pros (`data/preps-to-pros.json`)
 

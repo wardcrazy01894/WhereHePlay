@@ -1,0 +1,161 @@
+{
+  "_comment": "Easy-tier NBA players who never played college basketball because they turned pro outside the US (or, like Brandon Jennings, went overseas instead of college). Hand-picked by the owner (2026-11-12) from the most famous no-college NBA players in the source; only easy ones belong here. Matched to the Wikidata rows by name (accents, case and punctuation ignored). Their answer is the pseudo-school 'international'; their tier is fixed at easy and they do not take part in the tier ranking, so adding one never moves anyone else. See docs/DATA.md §International (no college).",
+  "players": [
+    {
+      "name": "Yao Ming"
+    },
+    {
+      "name": "Dirk Nowitzki"
+    },
+    {
+      "name": "Giannis Antetokounmpo"
+    },
+    {
+      "name": "Luka Dončić"
+    },
+    {
+      "name": "Tony Parker"
+    },
+    {
+      "name": "Pau Gasol"
+    },
+    {
+      "name": "Marc Gasol"
+    },
+    {
+      "name": "Nikola Jokić"
+    },
+    {
+      "name": "Manu Ginóbili"
+    },
+    {
+      "name": "Ricky Rubio"
+    },
+    {
+      "name": "Hidayet Türkoğlu"
+    },
+    {
+      "name": "Peja Stojaković"
+    },
+    {
+      "name": "Victor Wembanyama"
+    },
+    {
+      "name": "Serge Ibaka"
+    },
+    {
+      "name": "Bojan Bogdanović"
+    },
+    {
+      "name": "Rudy Gobert"
+    },
+    {
+      "name": "José Calderón"
+    },
+    {
+      "name": "Zaza Pachulia"
+    },
+    {
+      "name": "Andrea Bargnani"
+    },
+    {
+      "name": "Darko Miličić"
+    },
+    {
+      "name": "Goran Dragić"
+    },
+    {
+      "name": "Kristaps Porziņģis"
+    },
+    {
+      "name": "Nicolas Batum"
+    },
+    {
+      "name": "Dennis Schröder"
+    },
+    {
+      "name": "Žydrūnas Ilgauskas"
+    },
+    {
+      "name": "Boris Diaw"
+    },
+    {
+      "name": "Joe Ingles"
+    },
+    {
+      "name": "Alperen Şengün"
+    },
+    {
+      "name": "Arvydas Sabonis"
+    },
+    {
+      "name": "Brandon Jennings"
+    },
+    {
+      "name": "Miloš Teodosić"
+    },
+    {
+      "name": "Juan Carlos Navarro"
+    },
+    {
+      "name": "Ersan İlyasova"
+    },
+    {
+      "name": "Rudy Fernández"
+    },
+    {
+      "name": "Marcin Gortat"
+    },
+    {
+      "name": "Álex Abrines"
+    },
+    {
+      "name": "Ömer Aşık"
+    },
+    {
+      "name": "Timofey Mozgov"
+    },
+    {
+      "name": "Sasha Vujačić"
+    },
+    {
+      "name": "Nenê"
+    },
+    {
+      "name": "Nikola Mirotić"
+    },
+    {
+      "name": "Mehmet Okur"
+    },
+    {
+      "name": "Evan Fournier"
+    },
+    {
+      "name": "Tiago Splitter"
+    },
+    {
+      "name": "Willy Hernangómez"
+    },
+    {
+      "name": "Sergio Rodríguez"
+    },
+    {
+      "name": "Jan Veselý"
+    },
+    {
+      "name": "Clint Capela"
+    },
+    {
+      "name": "Deni Avdija"
+    },
+    {
+      "name": "Bismack Biyombo"
+    },
+    {
+      "name": "Boban Marjanović"
+    },
+    {
+      "name": "Thanasis Antetokounmpo"
+    }
+  ]
+}

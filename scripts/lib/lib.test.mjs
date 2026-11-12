@@ -17,6 +17,7 @@ import {
   pickDecoys,
   applyOverrides,
   applyExclusions,
+  INTERNATIONAL_ID,
   actionKeyFor,
   commonsPath,
   NBA_LEAGUE,
@@ -470,6 +471,113 @@ describe('players', () => {
     // An international with no college stint and not on the list stays out.
     expect(records.some((r) => r.name === 'Luka Doncic')).toBe(false)
     expect(missingPreps).toEqual(['Not In Source'])
+  })
+
+  it('NBA: a listed international is admitted with the International answer, as easy', () => {
+    const base = [
+      {
+        bbref: 'd/doncilu01',
+        name: 'Luka Dončić',
+        nbaid: '7',
+        img: '',
+        links: '58',
+        dob: '1999-02-28T00:00:00Z',
+      },
+      {
+        bbref: 'x/euro01',
+        name: 'Unlisted Euro',
+        nbaid: '8',
+        img: '',
+        links: '40',
+        dob: '1990-01-01T00:00:00Z',
+      },
+    ]
+    const teams = [
+      {
+        bbref: 'd/doncilu01',
+        teamLabel: 'Real Madrid Baloncesto',
+        league: 'x',
+        start: '2015-01-01T00:00:00Z',
+        end: '2018-01-01T00:00:00Z',
+      },
+      {
+        bbref: 'd/doncilu01',
+        teamLabel: 'Dallas Mavericks',
+        league: NBA_LEAGUE,
+        start: '2018-01-01T00:00:00Z',
+        end: '',
+      },
+      {
+        bbref: 'x/euro01',
+        teamLabel: 'Utah Jazz',
+        league: NBA_LEAGUE,
+        start: '2012-01-01T00:00:00Z',
+        end: '2014-01-01T00:00:00Z',
+      },
+    ]
+    const { records, missingIntl } = nbaCandidates(
+      base,
+      teams,
+      match,
+      2026,
+      [],
+      undefined,
+      [
+        { name: 'Luka Doncic' }, // accents and case ignored
+        { name: 'Not In Source' },
+      ],
+    )
+    expect(records.map((r) => r.name)).toEqual(['Luka Dončić'])
+    expect(records[0]).toMatchObject({
+      schools: [INTERNATIONAL_ID],
+      year: 2017, // the fall before his NBA debut
+      fixedTier: 'easy',
+    })
+    expect(missingIntl).toEqual(['Not In Source'])
+  })
+
+  it('tiers: hand-picked internationals are easy and do not move anyone else', () => {
+    const make = () =>
+      Array.from({ length: 50 }, (_, i) => ({
+        id: `nba-${String(i).padStart(3, '0')}`,
+        league: 'nba',
+        fame: 100 - i,
+        schools: [i % 2 ? 'kansas' : `solo-${i}`],
+      }))
+    const alone = assignTiers(make()).map((r) => r.tier)
+    const withIntl = assignTiers([
+      ...make(),
+      {
+        id: 'nba-intl1',
+        league: 'nba',
+        fame: 99.5,
+        schools: [INTERNATIONAL_ID],
+        fixedTier: 'easy',
+      },
+      {
+        id: 'nba-intl2',
+        league: 'nba',
+        fame: 1,
+        schools: [INTERNATIONAL_ID],
+        fixedTier: 'easy',
+      },
+    ])
+    expect(withIntl.slice(0, 50).map((r) => r.tier)).toEqual(alone)
+    expect(withIntl.slice(50).map((r) => r.tier)).toEqual(['easy', 'easy'])
+  })
+
+  it("an international's decoys are top programs, like a prep player's", () => {
+    const rec = {
+      id: 'nba-doncilu01',
+      league: 'nba',
+      schools: [INTERNATIONAL_ID],
+      year: 2017,
+      conf: 'No college',
+    }
+    const top = ['kansas', 'texas', 'baylor', 'gonzaga']
+    const d = pickDecoys(rec, schools, new Set(), top)
+    expect(d).toHaveLength(3)
+    for (const id of d) expect(top).toContain(id)
   })
 
   it("a prep player's decoys are top programs, never random schools", () => {

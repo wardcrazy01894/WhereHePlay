@@ -122,6 +122,65 @@ describe('QuestionCard', () => {
     expect(screen.getByRole('status').textContent).toContain('Auburn')
   })
 
+  describe('an international who skipped college', () => {
+    const intl: Player = {
+      id: 'nba-doncilu01',
+      n: 'Luka Dončić',
+      l: 'nba',
+      s: ['international'],
+      c: 'No college',
+      y: 2017,
+      t: 'easy',
+      h: '1629029',
+      d: ['auburn', 'alabama', 'kentucky'],
+    }
+    const all: School[] = [
+      ...schools,
+      {
+        id: 'international',
+        name: 'International (no college)',
+        aliases: ['International', 'Overseas'],
+      },
+    ]
+    function IntlHarness() {
+      const [state, setState] = useState(newQuestion)
+      return (
+        <QuestionCard
+          player={intl}
+          schools={all}
+          state={state}
+          photoStyle="headshot"
+          onChange={(next) => {
+            last = next
+            setState(next)
+          }}
+        />
+      )
+    }
+    it('typing "international" is right; the reveal says he went pro overseas', () => {
+      render(<IntlHarness />)
+      type('international')
+      fireEvent.mouseDown(
+        screen.getByRole('option', { name: 'International (no college)' }),
+      )
+      fireEvent.click(screen.getByRole('button', { name: 'Guess' }))
+      expect(last).toMatchObject({ done: true, correct: true, points: 100 })
+      const reveal = screen.getByRole('status').textContent!
+      expect(reveal).toContain('skipped college')
+      expect(reveal).toContain('overseas')
+    })
+    it('the conference hint refuses to say', () => {
+      render(<IntlHarness />)
+      fireEvent.click(screen.getByRole('button', { name: /Show his name/ }))
+      fireEvent.click(
+        screen.getByRole('button', { name: /Show his conference/ }),
+      )
+      expect(
+        screen.getByText('Wouldn’t you like to know weather boy'),
+      ).toBeTruthy()
+    })
+  })
+
   describe('a player who skipped college', () => {
     const prep: Player = {
       id: 'nba-jamesle01',

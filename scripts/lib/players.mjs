@@ -204,6 +204,9 @@ export function nflCandidates(
 /** The pseudo-school that is the answer for a preps-to-pros player. */
 export const HIGH_SCHOOL_ID = 'high-school'
 
+/** The pseudo-school that is the answer for an international who skipped college. */
+export const INTERNATIONAL_ID = 'international'
+
 /** Name key for matching the preps-to-pros list: letters only, lowercased. */
 export const nameKey = (name) =>
   String(name)
@@ -221,6 +224,10 @@ export const nameKey = (name) =>
  *   ESPN id for those ESPN has a real headshot of (data/nba-espn-heads.json).
  *   A player left with no headshot and no Wikimedia photo is still returned:
  *   membership never depends on photos (see eligibleSince in ./photos.mjs).
+ * @param intl  data/international.json `players` — hand-picked easy NBA
+ *   players who turned pro outside the US instead of playing college ball.
+ *   Their answer is INTERNATIONAL_ID and their tier is fixed at easy
+ *   (`fixedTier`, see assignTiers). Returns `missingIntl` like missingPreps.
  */
 export function nbaCandidates(
   baseRows,
@@ -229,9 +236,12 @@ export function nbaCandidates(
   nowYear,
   preps = [],
   heads = { placeholders: new Set(), espn: {} },
+  intl = [],
 ) {
   const prepByName = new Map(preps.map((p) => [nameKey(p.name), p]))
   const foundPreps = new Set()
+  const intlNames = new Set(intl.map((p) => nameKey(p.name)))
+  const foundIntl = new Set()
   const base = new Map()
   for (const b of baseRows) if (!base.has(b.bbref)) base.set(b.bbref, b)
   const teams = new Map()
@@ -254,7 +264,8 @@ export function nbaCandidates(
         !/national/.test(t.teamLabel),
     )
     const prep = prepByName.get(nameKey(b.name))
-    if (!college.length && !prep) continue
+    const abroad = !prep && intlNames.has(nameKey(b.name))
+    if (!college.length && !prep && !abroad) continue
     const dob = year(b.dob)
     // Last attended first: order by the stint's end (then start) year, desc.
     const stints = college
@@ -272,7 +283,13 @@ export function nbaCandidates(
           unmapped.set(t.teamLabel, (unmapped.get(t.teamLabel) ?? 0) + 1)
       }
     })
-    if (!prep && (!schools.length || !firstMapped)) continue
+    if (!prep && !abroad && (!schools.length || !firstMapped)) continue
+    if (abroad) {
+      // Turned pro abroad instead: that is the one accepted answer.
+      schools.length = 0
+      schools.push(INTERNATIONAL_ID)
+      foundIntl.add(nameKey(b.name))
+    }
     if (prep) {
       // Straight from high school: that is the one accepted answer, whatever
       // stray college rows the source may carry.
@@ -281,7 +298,7 @@ export function nbaCandidates(
       foundPreps.add(nameKey(prep.name))
     }
     const nbaStarts = nba.map((t) => year(t.start)).filter(Boolean)
-    const lastCollege = prep ? prep.draft : (stints[0]?.when ?? 0)
+    const lastCollege = prep ? prep.draft : abroad ? 0 : (stints[0]?.when ?? 0)
     // Fall year of the final college season: a stint "ending 2009" was the
     // 2008-09 season (for a prep: his senior year, the fall before the draft). Fallbacks: the year before the NBA debut, then age 21.
     const yr = lastCollege
@@ -298,7 +315,7 @@ export function nbaCandidates(
     const lastPro = open ? nowYear : ends.length ? Math.max(...ends) : yr + 9
     // The preps list is hand-picked, so it is not second-guessed by the
     // fame / era filter.
-    if (!prep && !passesEra(fame, lastPro, 'nba')) continue
+    if (!prep && !abroad && !passesEra(fame, lastPro, 'nba')) continue
     const head = !heads.placeholders.has(b.nbaid)
       ? b.nbaid
       : heads.espn[b.nbaid]
@@ -321,12 +338,16 @@ export function nbaCandidates(
       action,
       lastPro,
       ...(prep ? { hs: prep.hs } : {}),
+      ...(abroad ? { fixedTier: 'easy' } : {}),
     })
   }
   const missingPreps = preps
     .filter((p) => !foundPreps.has(nameKey(p.name)))
     .map((p) => p.name)
-  return { records, unmapped, missingPreps }
+  const missingIntl = intl
+    .filter((p) => !foundIntl.has(nameKey(p.name)))
+    .map((p) => p.name)
+  return { records, unmapped, missingPreps, missingIntl }
 }
 
 /**
@@ -335,9 +356,12 @@ export function nbaCandidates(
  * very top of the fame list is easy wherever he went (Curry → Davidson).
  */
 export function assignTiers(records) {
+  // A hand-picked tier (internationals) is kept, and those players are left
+  // out of the ranking, so adding one never moves anyone else's tier.
+  for (const r of records) if (r.fixedTier) r.tier = r.fixedTier
   for (const league of ['nfl', 'nba']) {
     const rs = records
-      .filter((r) => r.league === league)
+      .filter((r) => r.league === league && !r.fixedTier)
       .sort((a, b) => b.fame - a.fame || (a.id < b.id ? -1 : 1))
     const perSchool = new Map()
     for (const r of rs)
@@ -365,7 +389,10 @@ export function pickDecoys(rec, schools, poolSchoolIds, topPrograms = []) {
   // A player who skipped college has no conference mates. His wrong answers
   // are the programs that produce the most pros — where you'd guess a star
   // went — not three random schools.
-  if (rec.schools[0] === HIGH_SCHOOL_ID) {
+  if (
+    rec.schools[0] === HIGH_SCHOOL_ID ||
+    rec.schools[0] === INTERNATIONAL_ID
+  ) {
     const rankTop = (id) => hash(`${rec.id}|${id}`)
     return [...topPrograms]
       .filter((id) => !rec.schools.includes(id))
