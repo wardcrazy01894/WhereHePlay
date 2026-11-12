@@ -1,6 +1,7 @@
 {
   "_comment": "Who may be drawn, and when: player id → the day his window opened (days since puzzle #1, 2026-11-11), or window edges [from, until, from, …] for a player who lost a photo for a while. A player is drawn only while he has BOTH a real headshot and a real playing photo. Written by `npm run build-players`, which never changes an edge already written and dates new ones the day after the build. NEVER edit or delete this file: it is the history of every lineup, and a changed past edge re-rolls days already played. See docs/DATA.md §Photos.",
   "nba-abrinal01": 2,
+  "nba-ackeral01": 2,
   "nba-acyqu01": 1,
   "nba-adamsjo01": 2,
   "nba-adamsst01": 0,
@@ -288,6 +289,7 @@
   "nba-georgpa01": 0,
   "nba-gibsoda01": 0,
   "nba-gibsota01": 1,
+  "nba-giddejr01": 2,
   "nba-gilgesh01": 1,
   "nba-ginobma01": 2,
   "nba-gladnmi01": 2,
@@ -1559,6 +1561,7 @@
   "nfl-NixxBo00": 1,
   "nfl-NjokDa00": 2,
   "nfl-NormJo01": 0,
+  "nfl-ONeaDe00": 2,
   "nfl-ONeiBr00": 0,
   "nfl-OdunRo00": 2,
   "nfl-OgdeJo00": 2,
