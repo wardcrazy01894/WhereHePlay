@@ -2,7 +2,7 @@
 
 Two committed artifacts drive the game:
 
-- `public/players.json` — 2,070 players (1,105 NFL, 965 NBA); 1,000 of them
+- `public/players.json` — 2,069 players (1,105 NFL, 964 NBA); 1,000 of them
   can be drawn today (see "Who can be drawn")
 - `public/schools.json` — 375 colleges plus the "High School (no college)"
   answer (id, name, search aliases)
