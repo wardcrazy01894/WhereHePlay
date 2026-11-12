@@ -789,7 +789,7 @@
   "nba-broekry01": "web:cdn.nba.com/teams/legacy/www.mavs.com/wp-content/uploads/2020/02/GettyImages-1198053326.jpg",
   "nba-boldejo01": "web:www.inquirer.com/resizer/v2/IU776KLZENCF7KJ5YAMUDHEBGA.jpg?auth=85cf0943ad046ba6fc6e5583b3660567bbf0ec74f9d251e222cb969e333d4d14&width=800&height=533&smart=true",
   "nba-bonejo01": "web:cdn.hoopsrumors.com/files/2020/05/USATSI_14001708-900x687.jpg",
-  "nba-almonmo01": "web:www.deseret.com/resizer/v2/5WQNFWVDAVGQVBDB253VPLWF5A.jpg?auth=c18896b2c68553ad261909019279e1c1c270286e5173ef5a981e5e84347ac2f0",
+  "nba-almonmo01": "local:nba-almonmo01-a.jpg",
   "nba-bhullsi01": "web:assets.qz.com/media/ca20c3e3736f4e2e8ea801ba12d0dac7.jpg",
   "nba-applike01": "web:cdn.nba.com/teams/legacy/www.nba.com/magic/sites/magic/files/appling_760_012916.jpg",
   "nfl-SingDe00": "web:upload.wikimedia.org/wikipedia/commons/thumb/e/e9/Devin_Singletary.jpg/1280px-Devin_Singletary.jpg",
