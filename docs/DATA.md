@@ -276,7 +276,9 @@ test check the file is there). The owner's rules (2026-11-12): the URL may
 contain the player's name (a player who opens the image in a new tab can
 learn it; that is accepted), hotlinking is preferred, and a copy is kept only
 when hotlinking is not possible. `data/head-overrides.json` takes the same two
-forms for headshots. These were found by hand, one player at a time, for
+forms for headshots. Keep each image light (well under 1 MB): on the NFL
+image servers ask for a resized copy (`…/image/upload/f_auto,q_auto,w_900/…`),
+and on Commons use a standard thumbnail (`…/thumb/…/960px-<file>`). These were found by hand, one player at a time, for
 players Commons and TheSportsDB do not cover; each was viewed. To drop a bad `web:`, `local:` or `tsdb:` photo,
 remove its line from `data/photo-overrides.json` — `notPlaying` only applies to
 Commons file names. To act on a "that's not him playing" report: add the file
