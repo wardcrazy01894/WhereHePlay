@@ -753,7 +753,7 @@
 {"id":"nba-riverau01","n":"Austin Rivers","l":"nba","s":["duke"],"c":"ACC","y":2011,"t":"medium","d":["virginia","miami-fl","wake-forest"],"h":"203085","a":"24/Austin_Rivers_shooting.jpg","e":1},
 {"id":"nba-roberan03","n":"André Roberson","l":"nba","s":["colorado"],"c":"Pac-12","y":2012,"t":"medium","d":["arizona-state","utah","california"],"h":"203460","a":"60/Andre_Roberson_2017.jpg","e":1},
 {"id":"nba-roberbr01","n":"Brian Roberts","l":"nba","s":["dayton"],"c":"A-10","y":2007,"t":"hard","d":["st-bonaventure","george-washington","xavier"],"h":"203148","a":"39/Brian_Roberts_Hornets.jpg","e":0},
-{"id":"nba-roberla01","n":"Lawrence Roberts","l":"nba","s":["baylor","mississippi-state"],"c":"Big 12","y":2000,"t":"hard","d":["colorado","oklahoma","oklahoma-state"],"a":"local:nba-roberla01-a.jpg"},
+{"id":"nba-roberla01","n":"Lawrence Roberts","l":"nba","s":["baylor","mississippi-state"],"c":"Big 12","y":2000,"t":"hard","d":["colorado","oklahoma","oklahoma-state"]},
 {"id":"nba-robindu01","n":"Duncan Robinson","l":"nba","s":["michigan","williams"],"c":"Big Ten","y":2017,"t":"medium","d":["maryland","michigan-state","iowa"],"h":"1629130","a":"tsdb:thumb/wbeu0z1703959034.jpg","e":1},
 {"id":"nba-robingl02","n":"Glenn Robinson III","l":"nba","s":["michigan"],"c":"Big Ten","y":2013,"t":"medium","d":["nebraska","illinois","iowa"],"h":"203922","a":"27/Glenn_Robinson_III_(40870909011).jpg","e":1},
 {"id":"nba-robinje01","n":"Jerome Robinson","l":"nba","s":["boston-college"],"c":"ACC","y":2017,"t":"hard","d":["pittsburgh","virginia","duke"],"h":"1629010","a":"tsdb:thumb/ht4z591703589161.jpg","e":1},
