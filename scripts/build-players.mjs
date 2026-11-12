@@ -71,8 +71,9 @@ const nba = nbaCandidates(
 // applyBlocklist. A player left with no photo at all cannot be asked.
 const blockedPhotos = JSON.parse(await read('data/photo-blocklist.json'))
 // Hand-picked replacement photos (data/photo-overrides.json): player id →
-// Commons file name, a "tsdb:" or "web:" game photo (see actionKeyFor), or a
-// "clubs:" headshot (below).
+// Commons file name, a "tsdb:" photo, a "web:" image on any https host, a
+// "local:" copy in public/photos/ (see actionKeyFor), or a "clubs:" headshot
+// (below).
 const photoOverrides = JSON.parse(await read('data/photo-overrides.json'))
 for (const r of [...nfl.records, ...nba.records]) {
   const file = photoOverrides[r.id]
