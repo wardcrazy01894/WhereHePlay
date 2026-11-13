@@ -113,6 +113,11 @@ export function gameFromScore(
   if (!board) return null
   const { date } = score
   if (!isValidDateKey(date)) return null
+  // A second daily only exists on its own side of the swap: a row for the
+  // other one (posted by a tab still running an old build) is not rebuilt —
+  // its lineup would not be the one that was played.
+  if (board.variant !== 'standard' && board.variant !== secondVariant(date))
+    return null
   if (date < addDays(today, -3) || date > addDays(today, 1)) return null
   if (
     typeof score.marks !== 'string' ||

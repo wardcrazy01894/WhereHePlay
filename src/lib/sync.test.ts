@@ -186,6 +186,31 @@ describe('gameFromScore (a result from another device)', () => {
       dailyLineup(players, 'nba', day).map((p) => p.id),
     )
   })
+  it('a second daily on the wrong side of the swap is not rebuilt', () => {
+    const row = { score: 250, marks: '43210' }
+    expect(
+      gameFromScore(
+        players,
+        { ...row, board: 'nfl-beginner', date: '2026-11-14' },
+        '2026-11-14',
+      ),
+    ).toBeNull()
+    expect(
+      gameFromScore(
+        players,
+        { ...row, board: 'nfl-sicko', date: '2026-11-13' },
+        '2026-11-14',
+      ),
+    ).toBeNull()
+    // The beginner daily of the day before the swap still is.
+    expect(
+      gameFromScore(
+        players,
+        { ...row, board: 'nfl-beginner', date: '2026-11-13' },
+        '2026-11-14',
+      )?.variant,
+    ).toBe('beginner')
+  })
   it('refuses anything malformed or far from today (a far date would hang the walk)', () => {
     const ok = { board: 'nfl', date: TODAY, score: 250, marks: '43210' }
     for (const bad of [
