@@ -89,6 +89,9 @@ team history for most players since ~2019. So, on top of the launch rule:
   `match.edu`). His final college season is the stint's, else the year before
   his NBA class as read off his NBA.com id (`nbaClassOf`) — **a guess that
   can be a year or two out**; correct it with `y` in `data/overrides.json`.
+  Two known gaps: a transfer whose last stint has no date gets his schools
+  in the wrong order (fix with `s`), and a class newer than the table in
+  `nbaClassOf` (2026 on) reads as 2025 — hand-list those players.
 - **By hand** (`data/nba-added.json`): players the pass cannot place — no
   college on Wikidata, fame under the floor, or not on Wikidata at all. Keyed
   by id, with school ids and year.

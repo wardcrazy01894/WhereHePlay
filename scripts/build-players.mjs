@@ -74,6 +74,25 @@ const nba = nbaCandidates(
   },
 )
 
+// A hand-listed id must not be a player the launch rule already admits: the
+// hand entry would replace his record, and a core row must never change.
+{
+  const args = [
+    await csv('data/raw/wd_nba.csv'),
+    await csv('data/raw/wd_nba_teams.csv'),
+    match,
+    new Date().getUTCFullYear(),
+    JSON.parse(await read('data/preps-to-pros.json')).players,
+    undefined,
+    JSON.parse(await read('data/international.json')).players,
+  ]
+  const core = new Set(nbaCandidates(...args).records.map((r) => r.id))
+  for (const a of JSON.parse(await read('data/nba-added.json')).players)
+    if (core.has(a.id))
+      throw new Error(
+        `nba-added.json: ${a.id} is already in the game — correct him in data/overrides.json instead`,
+      )
+}
 // Wikimedia photos never to use (data/photo-blocklist.json): the ones that
 // show the player in college, from `npm run audit-photos` plus hand-added bug
 // reports, and the ones that do not show him playing for a pro team. See

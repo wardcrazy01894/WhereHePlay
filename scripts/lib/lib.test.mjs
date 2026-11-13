@@ -894,6 +894,9 @@ describe('recent players admitted on their pro careers (`extended`)', () => {
     expect(id('Miami University')).toBe('miami-oh')
     expect(id('University of Miami')).toBe('miami-fl')
     expect(id('Washington University in St. Louis')).toBeUndefined()
+    expect(id('Boston University')).toBe('boston-university')
+    expect(id('Boston College')).toBe('boston-college')
+    expect(id('Pennsylvania State University')).toBe('penn-state')
     expect(id('Cypress Lakes High School')).toBeUndefined()
   })
 

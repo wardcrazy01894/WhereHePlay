@@ -46,5 +46,26 @@
   },
   "nba-maluakh01": {
     "y": 2024
+  },
+  "nba-gillan01": {
+    "s": [
+      "virginia",
+      "south-carolina"
+    ],
+    "y": 2015
+  },
+  "nba-gbinimi01": {
+    "s": [
+      "syracuse",
+      "duke"
+    ],
+    "y": 2015
+  },
+  "nba-youngjo01": {
+    "s": [
+      "oregon",
+      "houston"
+    ],
+    "y": 2014
   }
 }

@@ -86,6 +86,10 @@ const EDU_LABELS = {
   'Miami University': 'miami-oh',
   'University of Miami': 'miami-fl',
   'Washington University in St. Louis': '',
+  // "Boston" alone would be Boston College.
+  'Boston University': 'boston-university',
+  'Pennsylvania State University': 'penn-state',
+  'University of Maryland, College Park': 'maryland',
   'University of North Carolina at Chapel Hill': 'north-carolina',
   'University of Texas at Austin': 'texas',
   'University of Illinois Urbana-Champaign': 'illinois',
