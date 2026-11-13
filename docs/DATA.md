@@ -2,7 +2,7 @@
 
 Two committed artifacts drive the game:
 
-- `public/players.json` — 3,163 players (1,974 NFL, 1,189 NBA); 2,839 of them
+- `public/players.json` — 3,162 players (1,973 NFL, 1,189 NBA); 2,966 of them
   can be drawn from 2026-11-14 (see "Who can be drawn")
 - `public/schools.json` — 375 colleges plus the "High School (no college)"
   answer (id, name, search aliases)
@@ -135,7 +135,7 @@ drawn from 2026-11-14.
 Commons category, a Commons full-text search on his name, and the og:image
 of his current NFL team-site roster page (`static.clubs.nfl.com` — often a
 game photo, more often a posed headshot), each viewed on contact sheets,
-plus a per-player web search. 238 more kept, then 271 from the per-player web search (324 still wait). A tattoo that names
+plus a per-player web search. 238 more kept, then 398 from the per-player web search (196 still wait). A tattoo that names
 his college is fine (owner's call, 2026-11-13: Jaylin Williams); gear,
 captions and overlays naming the school are not; a wide shot
 where he is a small figure, a frame-grab or a blurred crop is not kept.
