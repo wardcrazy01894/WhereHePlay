@@ -20,8 +20,8 @@ Ideas and known gaps, roughly in priority order. Nothing here is promised.
   their order), so a correct "he started at X" guess can be marked wrong, and
   the finishing school can be the wrong one (Ronnie Price was). Fix each in
   `data/overrides.json`.
-- **834 recent players still wait for a playing photo** (644 NFL, 190 NBA —
-  docs/DATA.md §Recent players): the 262 with a usable Wikimedia photo are
+- **835 recent players still wait for a playing photo** (645 NFL, 190 NBA —
+  docs/DATA.md §Recent players): the 261 with a usable Wikimedia photo are
   in; these need one found by hand, plus a look at the player (played a real
   game, right school and final season).
 - **Undrafted NFL players are hand-listed** (`data/nfl-added.json`, 57 of

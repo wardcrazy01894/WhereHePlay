@@ -124,12 +124,13 @@ byte-for-byte the same.
 
 **First photo pass (2026-11-13):** 822 of the waiting players had a Wikidata
 image. The college-gear audit (`photoFlag`) set 276 aside; the other 546 were
-viewed on contact sheets and 262 kept (225 NFL, 37 NBA) — a game photo in an
+viewed on contact sheets and 261 kept (224 NFL, 37 NBA) — a game photo in an
 NFL/NBA uniform with his face visible. Rejected: practice and training-camp
 jerseys (the sponsor patch gives them away), press conferences and street
 clothes, college, G League, EuroLeague, UFL and CFL uniforms, back views and
 blurs. The kept ones are in `data/photo-overrides.json` and those players are
-drawn from 2026-11-14. The rest (834) still wait for a photo found by hand. Before giving an extended player his photo, check him:
+drawn from 2026-11-14. The rest (835) still wait for a photo found by hand.
+Before giving an extended player his photo, check him:
 he played a real game (else `data/excluded.json`), his school and final
 season are right, and his league headshot is a real one.
 
