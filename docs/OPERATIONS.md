@@ -62,7 +62,7 @@ Cross-device sync also lives in the worker (`/me` returns the player's
 streaks and recent results): until it is redeployed the site behaves as
 before — nothing syncs, nothing breaks.
 
-A new leaderboard board (e.g. the `-beginner` boards) is a worker code
+A new leaderboard board (e.g. the `-sicko` boards) is a worker code
 change: until `npm run worker:deploy` is run, the deployed worker answers
 `unknown board`, and that daily plays normally but shows "The leaderboard is
 unavailable right now." No migration is involved (`board` is free text).

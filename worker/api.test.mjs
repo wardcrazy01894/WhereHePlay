@@ -121,12 +121,20 @@ describe('validation', () => {
   it('accepts a consistent submission', () => {
     expect(validateScore(good, now).ok).toBe(true)
   })
-  it('accepts the beginner boards', () => {
-    for (const board of ['nfl-beginner', 'nba-beginner', 'mixed-beginner']) {
+  it('accepts the beginner and Sicko Mode boards', () => {
+    for (const board of [
+      'nfl-beginner',
+      'nba-beginner',
+      'mixed-beginner',
+      'nfl-sicko',
+      'nba-sicko',
+      'mixed-sicko',
+    ]) {
       expect(validateScore({ ...good, board }, now).ok).toBe(true)
       expect(validateBoardQuery({ board, date: good.date }, now).ok).toBe(true)
     }
     expect(validateScore({ ...good, board: 'beginner' }, now).ok).toBe(false)
+    expect(validateScore({ ...good, board: 'nfl-sicko-x' }, now).ok).toBe(false)
   })
   it('rejects a score that does not match the marks', () => {
     expect(validateScore({ ...good, score: 500 }, now).error).toBe(

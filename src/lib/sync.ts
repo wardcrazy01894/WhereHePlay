@@ -9,7 +9,7 @@
  * the server), free play, and the first-photo setting.
  */
 import type { BoardId, Mode, Player, Variant } from '../types'
-import { MODES, boardId, parseBoardId } from '../types'
+import { MODES, boardId, parseBoardId, secondVariant } from '../types'
 import type { Me, ServerScore, ServerStreak } from './api'
 import { submitScore } from './api'
 import {
@@ -37,7 +37,6 @@ import {
 
 export type Progress = Pick<Me, 'streaks' | 'scores'>
 
-const VARIANTS: Variant[] = ['standard', 'beginner']
 const isCount = (n: unknown): n is number =>
   typeof n === 'number' && Number.isInteger(n) && n >= 0
 
@@ -114,6 +113,11 @@ export function gameFromScore(
   if (!board) return null
   const { date } = score
   if (!isValidDateKey(date)) return null
+  // A second daily only exists on its own side of the swap: a row for the
+  // other one (posted by a tab still running an old build) is not rebuilt —
+  // its lineup would not be the one that was played.
+  if (board.variant !== 'standard' && board.variant !== secondVariant(date))
+    return null
   if (date < addDays(today, -3) || date > addDays(today, 1)) return null
   if (
     typeof score.marks !== 'string' ||
@@ -124,7 +128,7 @@ export function gameFromScore(
   if (totalPoints(questions) !== score.score) return null
   return {
     mode: board.mode,
-    ...(board.variant === 'beginner' ? { variant: board.variant } : {}),
+    ...(board.variant !== 'standard' ? { variant: board.variant } : {}),
     dateKey: date,
     lineup: dailyLineup(players, board.mode, date, board.variant).map(
       (p) => p.id,
@@ -196,7 +200,7 @@ export function planSync(input: {
   // (sign out, sign in as someone else: their board must not get this day).
   if (me.username && scores)
     for (const mode of MODES)
-      for (const variant of VARIANTS) {
+      for (const variant of ['standard', secondVariant(today)] as const) {
         const local = localGame(mode, today, variant)
         if (!local || !isFinished(local)) continue
         if (local.owner && local.owner !== me.username) continue

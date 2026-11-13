@@ -5,7 +5,8 @@ import {
   MODE_LABEL,
   SWAP_DATE_KEY,
   boardId,
-  secondDailyName,
+  SECOND_DAILY_NAME,
+  secondVariant,
 } from './types'
 import { eligibleOn, getDateKey, puzzleNumber } from './lib/daily'
 import { resolveDay } from './lib/day'
@@ -62,6 +63,9 @@ export function App() {
   const [searchOpen, setSearchOpen] = useState(false)
   // Any dialog over the page (they may hold half-typed text).
   const dialogOpen = accountOpen || bugOpen || searchOpen
+  // A second daily left open over the swap's midnight becomes the new day's.
+  const onDay = (v: Variant): Variant =>
+    v === 'standard' ? v : secondVariant(dateKey)
   const [{ dateKey, official }, setDay] = useState(() =>
     resolveDay(window.location.search, new Date()),
   )
@@ -305,14 +309,14 @@ export function App() {
                 const done = saved?.questions.every((q) => q.done)
                 const started = saved?.questions.some((q) => q.done)
                 const streak = liveStreak(loadStats(mode), dateKey)
-                // The second daily: Sicko Mode (the beginner daily until the
-                // swap), under the id it has always had.
+                // The day's second daily: Sicko Mode (the beginner daily
+                // until the swap).
                 const second = official
-                  ? loadDaily(mode, dateKey, 'beginner')
+                  ? loadDaily(mode, dateKey, secondVariant(dateKey))
                   : undefined
                 const secondDone = second?.questions.every((q) => q.done)
                 const secondStarted = second?.questions.some((q) => q.done)
-                const secondName = secondDailyName(dateKey)
+                const secondName = SECOND_DAILY_NAME[secondVariant(dateKey)]
                 return (
                   <section key={mode} className={`mode mode-${mode}`}>
                     <h2>{MODE_LABEL[mode]}</h2>
@@ -336,7 +340,11 @@ export function App() {
                     <button
                       type="button"
                       onClick={() =>
-                        setView({ screen: 'daily', mode, variant: 'beginner' })
+                        setView({
+                          screen: 'daily',
+                          mode,
+                          variant: secondVariant(dateKey),
+                        })
                       }
                     >
                       {secondDone
@@ -381,11 +389,11 @@ export function App() {
 
         {ready && view.screen === 'daily' && (
           <DailyGame
-            key={`${boardId(view.mode, view.variant)}:${dateKey}`}
+            key={`${boardId(view.mode, onDay(view.variant))}:${dateKey}`}
             players={players}
             schools={schools}
             mode={view.mode}
-            variant={view.variant}
+            variant={onDay(view.variant)}
             dateKey={dateKey}
             official={official}
             identity={identity}
@@ -406,7 +414,7 @@ export function App() {
         {view.screen === 'board' && (
           <Leaderboard
             mode={view.mode}
-            variant={view.variant}
+            variant={onDay(view.variant)}
             dateKey={dateKey}
             token={identity.token}
             refreshKey={identity.name.length}
@@ -449,7 +457,7 @@ export function App() {
                 ? 'home'
                 : view.screen === 'free'
                   ? `free ${view.mode}`
-                  : `${view.screen} ${boardId(view.mode, view.variant)}`,
+                  : `${view.screen} ${boardId(view.mode, onDay(view.variant))}`,
             date: dateKey,
           }}
           onClose={() => setBugOpen(false)}

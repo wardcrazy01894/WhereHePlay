@@ -10,8 +10,9 @@
  * controls here stop accidents, drive-by abuse and account takeover.
  */
 
-// One per daily game: the three modes, and each mode's second daily — Sicko
-// Mode since 2026-11-14, the beginner daily before; the id is kept for good
+// One per daily game: the three modes, and each mode's second daily — the
+// beginner daily through 2026-11-13, Sicko Mode from 2026-11-14 (a new game:
+// its own boards and streaks). The beginner boards stay for their old rows
 // (`boardId` in src/types.ts).
 export const BOARDS = new Set([
   'nfl',
@@ -20,6 +21,9 @@ export const BOARDS = new Set([
   'nfl-beginner',
   'nba-beginner',
   'mixed-beginner',
+  'nfl-sicko',
+  'nba-sicko',
+  'mixed-sicko',
 ])
 export const QUESTIONS = 5
 /** Points per mark character ('4' = photo only … '1' = multiple choice). */

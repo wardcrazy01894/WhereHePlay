@@ -32,7 +32,7 @@ function write(key: string, value: unknown): void {
 
 export interface DailyGame {
   mode: Mode
-  /** Absent on the daily; 'beginner' on the second daily (Sicko Mode). */
+  /** Absent on the daily; 'sicko' on Sicko Mode ('beginner' before the swap). */
   variant?: Variant
   dateKey: string
   /** Player ids of the lineup this game was started on. */

@@ -37,17 +37,18 @@ export const EASY_COOLDOWN_DAYS = 30
  */
 export type Draw = 'classic' | 'easy'
 /**
- * Which draw a daily shows on a given day. Until SWAP_DATE_KEY the daily was
- * the classic draw and the second daily ("beginner") the easy one; from that
- * day on they are swapped — the daily is five easy players and the second
- * daily is Sicko Mode, the classic 3-1-1. Only this mapping changed: both
- * walks carry on untouched, so no day already played re-rolled. A future
- * change goes here the same way: a new rule with a START DATE IN THE FUTURE,
- * never an edit to days already played.
+ * Which draw a daily shows on a given day. The beginner daily was the easy
+ * draw and Sicko Mode is the classic one, whatever the day. The daily itself
+ * was the classic draw until SWAP_DATE_KEY and is the easy one from that day
+ * on — so on any day the two dailies of a mode show the two different draws.
+ * Only this mapping changed: both walks carry on untouched, so no day already
+ * played re-rolled. A future change goes here the same way: a new rule with
+ * a START DATE IN THE FUTURE, never an edit to days already played.
  */
 export function drawFor(variant: Variant, dateKey: string): Draw {
-  const swapped = dateKey >= SWAP_DATE_KEY
-  return (variant === 'standard') === swapped ? 'easy' : 'classic'
+  if (variant === 'beginner') return 'easy'
+  if (variant === 'sicko') return 'classic'
+  return dateKey < SWAP_DATE_KEY ? 'classic' : 'easy'
 }
 /** The tier plan of a daily on a given day. */
 export function tierPlanFor(

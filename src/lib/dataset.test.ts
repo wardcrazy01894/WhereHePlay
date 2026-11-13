@@ -1,3 +1,4 @@
+import { secondVariant } from '../types'
 import { describe, it, expect } from 'vitest'
 import { existsSync, readFileSync } from 'node:fs'
 import type { Player, School } from '../types'
@@ -342,9 +343,10 @@ describe('players.json', () => {
   })
   it('a year of both real dailies follows the plan of the day: the daily goes all easy on 2026-11-14 and Sicko Mode takes the 3-1-1', () => {
     for (const mode of ['nfl', 'nba', 'mixed'] as const)
-      for (const variant of ['standard', 'beginner'] as const)
+      for (const second of [false, true])
         for (let i = 0; i < 365; i++) {
           const d = addDays(EPOCH_DATE_KEY, i)
+          const variant = second ? secondVariant(d) : 'standard'
           const lineup = dailyLineup(players, mode, d, variant)
           expect(
             tiersOn(lineup, d).map((p) => p.t),

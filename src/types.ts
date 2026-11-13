@@ -61,26 +61,31 @@ export const HIGH_SCHOOL_ID = 'high-school'
 export const INTERNATIONAL_ID = 'international'
 
 /**
- * Which daily of a mode: the standard one ("the daily"), or its second daily.
- * The second daily's id is `beginner` for good — it is in every saved game,
- * streak and leaderboard row — but what it IS changed on SWAP_DATE_KEY:
- * before, the beginner daily (five players from the easy tier); from that day
- * on, Sicko Mode (three easy, one medium, one hard — what the daily used to
- * be), while the daily became the five easy ones. Ids, saves and streaks did
- * not move; only how each one's players are picked (tierPlanFor in
+ * Which daily of a mode. Every mode has two a day: the daily (`standard`) and
+ * a second one, which is a different game either side of SWAP_DATE_KEY:
+ *   - `beginner` — through 2026-11-13: five players from the easy tier;
+ *   - `sicko` — Sicko Mode, from 2026-11-14: three easy, one medium, one hard
+ *     (what the daily was until then, while the daily became the five easy).
+ * Sicko Mode is a new game with its own id, saves, streak and leaderboard;
+ * the beginner daily's are left as they ended. The daily's id and streak
+ * never moved — only how its players are picked (drawFor in
  * src/lib/daily.ts).
  */
-export type Variant = 'standard' | 'beginner'
+export type Variant = 'standard' | 'beginner' | 'sicko'
 /** The first day of the swapped dailies (the player's local day). */
 export const SWAP_DATE_KEY = '2026-11-14'
+/** The second daily that exists on `dateKey`. */
+export function secondVariant(dateKey: string): 'beginner' | 'sicko' {
+  return dateKey < SWAP_DATE_KEY ? 'beginner' : 'sicko'
+}
 /**
  * Identifies one daily game everywhere it is keyed: the saved game, the
- * streak and the leaderboard (the worker's BOARDS). A standard daily keeps
- * the bare mode.
+ * streak and the leaderboard (the worker's BOARDS). The daily keeps the bare
+ * mode.
  */
-export type BoardId = Mode | `${Mode}-beginner`
+export type BoardId = Mode | `${Mode}-beginner` | `${Mode}-sicko`
 export function boardId(mode: Mode, variant: Variant = 'standard'): BoardId {
-  return variant === 'beginner' ? `${mode}-beginner` : mode
+  return variant === 'standard' ? mode : `${mode}-${variant}`
 }
 /** The inverse of boardId, for a board name that came over the wire. */
 export function parseBoardId(
@@ -90,7 +95,9 @@ export function parseBoardId(
   if (rest.length || (mode !== 'nfl' && mode !== 'nba' && mode !== 'mixed'))
     return null
   if (tail === undefined) return { mode, variant: 'standard' }
-  return tail === 'beginner' ? { mode, variant: 'beginner' } : null
+  return tail === 'beginner' || tail === 'sicko'
+    ? { mode, variant: tail }
+    : null
 }
 
 export const MODES: Mode[] = ['mixed', 'nfl', 'nba']
@@ -99,17 +106,14 @@ export const MODE_LABEL: Record<Mode, string> = {
   nfl: 'NFL',
   nba: 'NBA',
 }
-/** What the second daily is called on `dateKey`. */
-export function secondDailyName(dateKey: string): 'Beginner' | 'Sicko Mode' {
-  return dateKey < SWAP_DATE_KEY ? 'Beginner' : 'Sicko Mode'
-}
-/** A daily's display name that day: "NFL", "NFL Sicko Mode". */
-export function gameLabel(
-  mode: Mode,
-  variant: Variant,
-  dateKey: string,
-): string {
-  return variant === 'beginner'
-    ? `${MODE_LABEL[mode]} ${secondDailyName(dateKey)}`
-    : MODE_LABEL[mode]
+/** What a second daily is called. */
+export const SECOND_DAILY_NAME = {
+  beginner: 'Beginner',
+  sicko: 'Sicko Mode',
+} as const
+/** A daily's display name: "NFL", "NFL Sicko Mode". */
+export function gameLabel(mode: Mode, variant: Variant = 'standard'): string {
+  return variant === 'standard'
+    ? MODE_LABEL[mode]
+    : `${MODE_LABEL[mode]} ${SECOND_DAILY_NAME[variant]}`
 }

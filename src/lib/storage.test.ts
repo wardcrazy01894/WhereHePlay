@@ -10,7 +10,7 @@ import {
   headshotUrl,
 } from './images'
 import type { Player } from '../types'
-import { boardId, gameLabel, secondDailyName } from '../types'
+import { boardId, gameLabel, secondVariant } from '../types'
 
 const empty: Stats = {
   current: 0,
@@ -106,7 +106,7 @@ describe('share', () => {
         [],
         'https://x.test/',
         'headshot',
-        'beginner',
+        'sicko',
       ).split('\n')[0],
     ).toBe('WhereHePlay #4 · Grab Bag Sicko Mode (headshot)')
   })
@@ -245,19 +245,16 @@ describe('images', () => {
 })
 
 describe('board ids', () => {
-  it('a standard daily keeps the bare mode; a beginner daily gets its own id', () => {
+  it('the daily keeps the bare mode; the beginner daily and Sicko Mode each have their own id', () => {
     expect(boardId('nfl')).toBe('nfl')
     expect(boardId('mixed', 'standard')).toBe('mixed')
     expect(boardId('nba', 'beginner')).toBe('nba-beginner')
-    expect(gameLabel('nba', 'standard', '2026-11-14')).toBe('NBA')
-    // Same id for good; the name it goes by changed with the swap.
-    expect(gameLabel('mixed', 'beginner', '2026-11-13')).toBe(
-      'Grab Bag Beginner',
-    )
-    expect(gameLabel('mixed', 'beginner', '2026-11-14')).toBe(
-      'Grab Bag Sicko Mode',
-    )
-    expect(secondDailyName('2026-11-13')).toBe('Beginner')
-    expect(secondDailyName('2026-11-14')).toBe('Sicko Mode')
+    expect(boardId('nba', 'sicko')).toBe('nba-sicko')
+    expect(gameLabel('nba')).toBe('NBA')
+    expect(gameLabel('mixed', 'beginner')).toBe('Grab Bag Beginner')
+    expect(gameLabel('mixed', 'sicko')).toBe('Grab Bag Sicko Mode')
+    // The second daily of the day: Sicko Mode from the swap on.
+    expect(secondVariant('2026-11-13')).toBe('beginner')
+    expect(secondVariant('2026-11-14')).toBe('sicko')
   })
 })
