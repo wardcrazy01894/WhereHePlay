@@ -72,6 +72,37 @@ export function conferenceAt(school, sport, year) {
 }
 
 /** Lookup maps for the two source vocabularies. */
+const eduKey = (s) =>
+  s
+    .toLowerCase()
+    .normalize('NFKD')
+    .replace(/[^a-z0-9& ]/g, ' ')
+    .replace(/\b(the|university|of|at|college)\b/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+/** Wikidata university labels the generic rule gets wrong or cannot reach
+ *  (label → school id; '' = not a school of ours, whatever the rule says). */
+const EDU_LABELS = {
+  'Miami University': 'miami-oh',
+  'University of Miami': 'miami-fl',
+  'Washington University in St. Louis': '',
+  // "Boston" alone would be Boston College.
+  'Boston University': 'boston-university',
+  'Pennsylvania State University': 'penn-state',
+  'University of Maryland, College Park': 'maryland',
+  'University of North Carolina at Chapel Hill': 'north-carolina',
+  'University of Texas at Austin': 'texas',
+  'University of Illinois Urbana-Champaign': 'illinois',
+  'University of California, Los Angeles': 'ucla',
+  'University of Wisconsin–Madison': 'wisconsin',
+  'University of Colorado Boulder': 'colorado',
+  'University of Nebraska–Lincoln': 'nebraska',
+  'University of California, Santa Barbara': 'uc-santa-barbara',
+  'California State University, Fresno': 'fresno-state',
+  "Saint Mary's College of California": 'saint-marys',
+  'California Polytechnic State University': 'cal-poly',
+}
+
 export function buildMatchers(schools) {
   const byNfl = new Map()
   for (const s of schools)
@@ -83,7 +114,22 @@ export function buildMatchers(schools) {
   const prefixes = schools
     .flatMap((s) => s.wd.map((p) => [p.toLowerCase(), s]))
     .sort((a, b) => b[0].length - a[0].length)
+  // University names as Wikidata labels them ("University of Kentucky",
+  // "Gonzaga University"): the school's own names with the generic words
+  // dropped, plus the few a rule cannot get right.
+  const byEdu = new Map()
+  for (const s of schools)
+    for (const n of [s.name, ...s.nfl, ...s.aliases]) {
+      const k = eduKey(n)
+      if (k && !byEdu.has(k)) byEdu.set(k, s)
+    }
+  const byId = new Map(schools.map((s) => [s.id, s]))
   return {
+    /** Wikidata "educated at" label → school | undefined */
+    edu: (label) =>
+      label in EDU_LABELS
+        ? byId.get(EDU_LABELS[label])
+        : byEdu.get(eduKey(label)),
     /** nflverse `college_name` entry → school | undefined */
     nfl: (name) => byNfl.get(name.trim().toLowerCase()),
     /** Wikidata team label ("Duke Blue Devils men's basketball") → school */

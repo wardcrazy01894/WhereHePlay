@@ -355,6 +355,15 @@ describe('players.json', () => {
           expect(lineup).toBe(drawLineup(players, mode, d, drawFor(variant, d)))
         }
   })
+  it('data/nba-added.json: every hand-added player is in the dataset at his listed school and year', () => {
+    const byId = new Map(players.map((p) => [p.id, p]))
+    for (const a of data('nba-added.json').players) {
+      const p = byId.get(a.id)!
+      expect(p?.l, a.id).toBe('nba')
+      expect(p.s, a.id).toEqual(a.s)
+      expect(p.y, a.id).toBe(a.y)
+    }
+  })
   it('data/nba-top-picks.json: every listed player is an easy NBA player, with his old tier dated to the move', () => {
     const file = data('nba-top-picks.json')
     const from = puzzleNumber(file.from) - 1

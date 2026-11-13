@@ -9,7 +9,7 @@
 [![CI](https://github.com/wardcrazy01894/WhereHePlay/actions/workflows/ci.yml/badge.svg)](https://github.com/wardcrazy01894/WhereHePlay/actions/workflows/ci.yml)
 [![deploy](https://github.com/wardcrazy01894/WhereHePlay/actions/workflows/deploy.yml/badge.svg)](https://github.com/wardcrazy01894/WhereHePlay/actions/workflows/deploy.yml)
 
-React · TypeScript · Vite · Cloudflare Workers + D1 &nbsp;·&nbsp; 2,069 players &nbsp;·&nbsp; $0 hosting
+React · TypeScript · Vite · Cloudflare Workers + D1 &nbsp;·&nbsp; 3,097 players &nbsp;·&nbsp; $0 hosting
 
 </div>
 
@@ -63,10 +63,12 @@ WhereHePlay #1 · NFL (headshot)
 
 ## 🧑‍🤝‍🧑 The players
 
-1,105 NFL and 964 NBA players who were in college from 1994 on (plus the 34
+1,917 NFL and 1,180 NBA players who were in college from 1994 on (plus the 34
 who skipped it — LeBron, Kobe, KG: for them just answer **High School** — and
 52 international stars who turned pro abroad: answer **International**), weighted
-toward careers that ran into 2008 or later and filtered for fame — see
+toward careers that ran into 2008 or later and filtered for fame, plus the
+last ten years' players who really played. 2,069 can be drawn today; the
+rest join as their photos are checked — see
 [docs/DATA.md](docs/DATA.md) for the sources and the exact rules.
 
 ## 🧱 Stack

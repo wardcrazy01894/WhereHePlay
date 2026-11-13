@@ -58,6 +58,9 @@ without that, Stephen Curry and Kevin Durant silently vanish.
 4. **Answerable:** the college he finished at is in the schools table (junior
    colleges are not), and there is a photo to show.
 
+5. **Or a recent player who really played** — admitted whatever his fame
+   score (see Recent players).
+
 NBA players who never played college ball have no college stint, so they
 drop out — except two hand-kept lists: players who went straight from a US
 high school to the NBA (see Preps to pros) and easy-tier internationals who
@@ -67,6 +70,52 @@ players and everyone else with no college stay out.
 `MIN_FAME`, `LEGEND_FAME`, `PRO_FOCUS_YEAR` and `FIRST_COLLEGE_YEAR` are
 constants at the top of that file. Lower `MIN_FAME` for a bigger, more
 obscure pool.
+
+## Recent players (`extended`)
+
+The owner's bar (2026-11-13): anyone from about the last ten years you would
+ask "where did he go to school?" about while watching a game must be in.
+The fame score missed many of them, and Wikidata — the NBA source — has no
+team history for most players since ~2019. So, on top of the launch rule:
+
+- **NFL** (`recentNfl`): a rookie of 2016 or later (`RECENT_ROOKIE_YEAR`) who
+  has played a game and was a first- or second-round pick, or made a Pro
+  Bowl, or started for two seasons, or has career AV 8+ at QB/RB/WR/TE or 20+
+  anywhere. The draft table is the only career data we hold, so **undrafted
+  players are not covered yet** (Austin Ekeler, Kendrick Bourne — BACKLOG).
+- **NBA** (`recentNba`): an NBA.com id from the 2015 class on, the usual fame
+  floor, and a college — from a college team stint, or else from the schools
+  he attended (`data/raw/wd_nba_edu.csv`, Wikidata "educated at", matched by
+  `match.edu`). His final college season is the stint's, else the year before
+  his NBA class as read off his NBA.com id (`nbaClassOf`) — **a guess that
+  can be a year or two out**; correct it with `y` in `data/overrides.json`.
+  Two known gaps: a transfer whose last stint has no date gets his schools
+  in the wrong order (fix with `s`), and a class newer than the table in
+  `nbaClassOf` (2026 on) reads as 2025 — hand-list those players.
+- **By hand** (`data/nba-added.json`): players the pass cannot place — no
+  college on Wikidata, fame under the floor, or not on Wikidata at all. Keyed
+  by id, with school ids and year.
+
+These players are **extended**, and three rules keep them from disturbing the
+game already being played:
+
+1. **They move nobody's tier.** `assignTiers` ranks the launch (core) pool
+   exactly as before and places each extended player against that ranking.
+2. **They change nobody's wrong answers.** Decoys are drawn from the core
+   pool's schools.
+3. **They are not drawn until someone has looked.** An extended player never
+   takes an automatic Wikimedia photo; his playing photo is only ever
+   hand-picked (`data/photo-overrides.json`), so he waits in the dataset —
+   found by the search — until then.
+
+So a build that adds them leaves every existing row of `players.json`
+byte-for-byte the same. Before giving an extended player his photo, check him:
+he played a real game (else `data/excluded.json`), his school and final
+season are right, and his league headshot is a real one.
+
+To fetch the two NBA tables without refreshing the rows the dataset was built
+from (a refresh moves fame, and tiers with it):
+`npm run fetch-raw -- --only=wd_nba_edu.csv,wd_nba_draft.csv`.
 
 ## Tiers
 
@@ -175,9 +224,10 @@ tier (use it when the fame formula is plainly off: Josh Allen is not a
 ## Top draft picks (`data/nba-top-picks.json`)
 
 The owner's rule (2026-11-13): an NBA **top-10 pick of the last ten drafts**
-(2017–2026) is **easy**. The file lists the ones who are in the dataset —
-player id → name, draft, pick and `was`, the tier he had before (absent if he
-was already easy): 38 players, 21 of them moved. `build-players` applies it
+(2017–2026) is **easy**, bust or not, as long as he played a game. The file
+lists the ones who are in the dataset — player id → name, draft, pick and
+`was`, the tier he had before (absent if he was already easy, or joined the
+dataset after the rule): 83 players, 21 of them moved. `build-players` applies it
 after tiers and overrides (`applyTierMoves`), so nobody else's tier moves.
 
 The move is **dated** (`from`: 2026-11-14, the day the dailies swapped). A
@@ -188,11 +238,9 @@ lineups of days already played are exactly what they were. Never change
 the list a second dated group rather than back-dating this one.
 
 It is a snapshot, not a rolling rule: next year's class is added by hand.
-Most top-10 picks since 2019 are **not in the dataset at all** — Wikidata,
-the NBA source, often lists no NBA team or no college team for recent
-players, so the build skips them (62 of the 100 picks; the NBA pool has ~45
-players per college class through 2018 and a handful a year after). They are
-not in this file; fixing that needs another NBA source (BACKLOG).
+The 17 picks not listed never played college basketball (LaMelo Ball, Jalen
+Green, Josh Giddey, Scoot Henderson, the Thompsons, the internationals not on
+the international list…).
 
 ## The schools table (`data/schools.psv`)
 

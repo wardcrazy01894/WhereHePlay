@@ -1,0 +1,142 @@
+{
+  "_comment": "Recent NBA players the automatic pass cannot place, added by hand: Wikidata lists no college for them, their fame is under the floor, or it does not have them at all. Keyed by id (nba-<Basketball-Reference id>): name, s = accepted school ids (finishing school first), y = fall year of the final college season; `nbaid` (his NBA.com id, for the headshot) only for a player Wikidata does not have. They are `extended` players: tiered against the launch ranking without moving anyone, and not drawn until a playing photo has been hand-picked. See docs/DATA.md §Recent players.",
+  "players": [
+    {
+      "id": "nba-smithja05",
+      "name": "Jabari Smith Jr.",
+      "s": [
+        "auburn"
+      ],
+      "y": 2021
+    },
+    {
+      "id": "nba-sochaje01",
+      "name": "Jeremy Sochan",
+      "s": [
+        "baylor"
+      ],
+      "y": 2021
+    },
+    {
+      "id": "nba-millebr02",
+      "name": "Brandon Miller",
+      "s": [
+        "alabama"
+      ],
+      "y": 2022
+    },
+    {
+      "id": "nba-hendrta01",
+      "name": "Taylor Hendricks",
+      "s": [
+        "ucf"
+      ],
+      "y": 2022
+    },
+    {
+      "id": "nba-dilliro01",
+      "name": "Rob Dillingham",
+      "s": [
+        "kentucky"
+      ],
+      "y": 2023
+    },
+    {
+      "id": "nba-willico04",
+      "name": "Cody Williams",
+      "s": [
+        "colorado"
+      ],
+      "y": 2023
+    },
+    {
+      "id": "nba-johnstr03",
+      "name": "Tre Johnson",
+      "s": [
+        "texas"
+      ],
+      "y": 2024
+    },
+    {
+      "id": "nba-fearsje01",
+      "name": "Jeremiah Fears",
+      "s": [
+        "oklahoma"
+      ],
+      "y": 2024
+    },
+    {
+      "id": "nba-murraco01",
+      "name": "Collin Murray-Boyles",
+      "s": [
+        "south-carolina"
+      ],
+      "y": 2024
+    },
+    {
+      "id": "nba-boozeca02",
+      "name": "Cameron Boozer",
+      "s": [
+        "duke"
+      ],
+      "y": 2025
+    },
+    {
+      "id": "nba-wilsoca01",
+      "name": "Caleb Wilson",
+      "s": [
+        "north-carolina"
+      ],
+      "y": 2025
+    },
+    {
+      "id": "nba-wagleke01",
+      "name": "Keaton Wagler",
+      "s": [
+        "illinois"
+      ],
+      "y": 2025
+    },
+    {
+      "id": "nba-brownmi02",
+      "name": "Mikel Brown Jr.",
+      "s": [
+        "louisville"
+      ],
+      "y": 2025
+    },
+    {
+      "id": "nba-acuffda01",
+      "name": "Darius Acuff Jr.",
+      "s": [
+        "arkansas"
+      ],
+      "y": 2025
+    },
+    {
+      "id": "nba-flemiki01",
+      "name": "Kingston Flemings",
+      "s": [
+        "houston"
+      ],
+      "y": 2025
+    },
+    {
+      "id": "nba-johnsmo01",
+      "name": "Morez Johnson Jr.",
+      "s": [
+        "michigan",
+        "illinois"
+      ],
+      "y": 2025
+    },
+    {
+      "id": "nba-burribr01",
+      "name": "Brayden Burries",
+      "s": [
+        "arizona"
+      ],
+      "y": 2025
+    }
+  ]
+}

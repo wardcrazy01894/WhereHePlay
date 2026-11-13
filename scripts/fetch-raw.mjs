@@ -44,6 +44,17 @@ const SPARQL = {
   // that adding it could not disturb the rows the dataset is built from.
   'wd_nba_espn.csv': `SELECT ?bbref ?espn WHERE {
     ?item wdt:P2685 ?bbref . ?item wdt:P3685 ?espn }`,
+  // Where he went to school (P69) and when he was drafted (P647, with its
+  // date), for recent NBA players whose team history (P54) Wikidata has not
+  // filled in — most players drafted since ~2019. Separate tables, fetched on
+  // their own (`-- --only=`), so the rows the dataset was built from are not
+  // refreshed along the way (a refresh moves fame, and with it tiers).
+  'wd_nba_edu.csv': `SELECT ?bbref ?eduLabel ?eduEnd WHERE {
+    ?item wdt:P2685 ?bbref . ?item p:P69 ?st . ?st ps:P69 ?edu .
+    ?edu rdfs:label ?eduLabel FILTER(LANG(?eduLabel)="en")
+    OPTIONAL { ?st pq:P582 ?eduEnd } }`,
+  'wd_nba_draft.csv': `SELECT ?bbref ?draft WHERE {
+    ?item wdt:P2685 ?bbref . ?item p:P647 ?st . ?st pq:P585 ?draft }`,
 }
 
 async function get(url, headers = {}) {
@@ -53,12 +64,20 @@ async function get(url, headers = {}) {
 }
 
 await mkdir(OUT, { recursive: true })
+// `-- --only=a.csv,b.csv` fetches just those tables (see wd_nba_edu.csv).
+const only = process.argv
+  .find((x) => x.startsWith('--only='))
+  ?.slice(7)
+  .split(',')
+const wanted = (name) => !only || only.includes(name)
 for (const [name, url] of Object.entries(FILES)) {
+  if (!wanted(name)) continue
   const text = await get(url)
   await writeFile(new URL(name, OUT), text)
   console.log(`${name}: ${text.length} bytes`)
 }
 for (const [name, query] of Object.entries(SPARQL)) {
+  if (!wanted(name)) continue
   const url =
     'https://query.wikidata.org/sparql?query=' + encodeURIComponent(query)
   const text = await get(url, { Accept: 'text/csv' })
