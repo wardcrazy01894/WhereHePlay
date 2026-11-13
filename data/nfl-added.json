@@ -1,0 +1,233 @@
+{
+  "_comment": "Notable UNDRAFTED NFL players of the last ten years, added by hand (2026-11-13): the recent-player rule reads the draft table, which has no row for them. Player id → name and t, his tier (he takes no part in the tier ranking). They are `extended` players like the rule's: not drawn until a playing photo has been hand-picked. A player whose college is not in the schools table (Austin Ekeler, Western Colorado) cannot be listed. See docs/DATA.md §Recent players.",
+  "players": {
+    "nfl-HillTa00": {
+      "name": "Taysom Hill",
+      "t": "easy"
+    },
+    "nfl-BourKe00": {
+      "name": "Kendrick Bourne",
+      "t": "medium"
+    },
+    "nfl-DowdRi01": {
+      "name": "Rico Dowdle",
+      "t": "medium"
+    },
+    "nfl-BrowJa08": {
+      "name": "Jake Browning",
+      "t": "medium"
+    },
+    "nfl-LindPh00": {
+      "name": "Phillip Lindsay",
+      "t": "medium"
+    },
+    "nfl-RobiJa00": {
+      "name": "James Robinson",
+      "t": "medium"
+    },
+    "nfl-LazaAl00": {
+      "name": "Allen Lazard",
+      "t": "medium"
+    },
+    "nfl-MeyeJa01": {
+      "name": "Jakobi Meyers",
+      "t": "medium"
+    },
+    "nfl-HuntTy01": {
+      "name": "Tyler Huntley",
+      "t": "medium"
+    },
+    "nfl-JackJ.00": {
+      "name": "J.C. Jackson",
+      "t": "medium"
+    },
+    "nfl-MoorKe03": {
+      "name": "Kenny Moore II",
+      "t": "medium"
+    },
+    "nfl-WardCh01": {
+      "name": "Charvarius Ward",
+      "t": "medium"
+    },
+    "nfl-WarrJa01": {
+      "name": "Jaylen Warren",
+      "t": "medium"
+    },
+    "nfl-AndeRo04": {
+      "name": "Robbie Chosen",
+      "t": "medium"
+    },
+    "nfl-KooxYo00": {
+      "name": "Younghoe Koo",
+      "t": "medium"
+    },
+    "nfl-AubrBr00": {
+      "name": "Brandon Aubrey",
+      "t": "medium"
+    },
+    "nfl-NixoKe00": {
+      "name": "Keisean Nixon",
+      "t": "medium"
+    },
+    "nfl-BreiMa00": {
+      "name": "Matt Breida",
+      "t": "medium"
+    },
+    "nfl-EdwaGu00": {
+      "name": "Gus Edwards",
+      "t": "medium"
+    },
+    "nfl-TonyRo00": {
+      "name": "Robert Tonyan",
+      "t": "medium"
+    },
+    "nfl-RushCo00": {
+      "name": "Cooper Rush",
+      "t": "medium"
+    },
+    "nfl-MullNi00": {
+      "name": "Nick Mullens",
+      "t": "medium"
+    },
+    "nfl-MasoJo00": {
+      "name": "Jordan Mason",
+      "t": "medium"
+    },
+    "nfl-DeViTo00": {
+      "name": "Tommy DeVito",
+      "t": "medium"
+    },
+    "nfl-PatrTi00": {
+      "name": "Tim Patrick",
+      "t": "medium"
+    },
+    "nfl-HiltMi01": {
+      "name": "Mike Hilton",
+      "t": "medium"
+    },
+    "nfl-JoneJo03": {
+      "name": "Jonathan Jones",
+      "t": "medium"
+    },
+    "nfl-BageTy00": {
+      "name": "Tyson Bagent",
+      "t": "medium"
+    },
+    "nfl-AlleKy00": {
+      "name": "Kyle Allen",
+      "t": "medium"
+    },
+    "nfl-BlacRa00": {
+      "name": "Raheem Blackshear",
+      "t": "medium"
+    },
+    "nfl-WilsJe01": {
+      "name": "Jeff Wilson",
+      "t": "medium"
+    },
+    "nfl-ClemCo00": {
+      "name": "Corey Clement",
+      "t": "medium"
+    },
+    "nfl-DortGr01": {
+      "name": "Greg Dortch",
+      "t": "medium"
+    },
+    "nfl-ZaccOl01": {
+      "name": "Olamide Zaccheaus",
+      "t": "medium"
+    },
+    "nfl-AlliGe01": {
+      "name": "Geronimo Allison",
+      "t": "medium"
+    },
+    "nfl-FordPo00": {
+      "name": "Poona Ford",
+      "t": "medium"
+    },
+    "nfl-AlShAz00": {
+      "name": "Azeez Al-Shaair",
+      "t": "medium"
+    },
+    "nfl-NeedNi00": {
+      "name": "Nik Needham",
+      "t": "medium"
+    },
+    "nfl-PierMi00": {
+      "name": "Michael Pierce",
+      "t": "medium"
+    },
+    "nfl-GranCa01": {
+      "name": "Carl Granderson",
+      "t": "medium"
+    },
+    "nfl-DickCa00": {
+      "name": "Cameron Dicker",
+      "t": "medium"
+    },
+    "nfl-SealRi00": {
+      "name": "Ricky Seals-Jones",
+      "t": "medium"
+    },
+    "nfl-PrinBy00": {
+      "name": "Byron Pringle",
+      "t": "medium"
+    },
+    "nfl-JohnDE04": {
+      "name": "D'Ernest Johnson",
+      "t": "medium"
+    },
+    "nfl-AhmeSa01": {
+      "name": "Salvon Ahmed",
+      "t": "medium"
+    },
+    "nfl-MitcKe01": {
+      "name": "Keaton Mitchell",
+      "t": "medium"
+    },
+    "nfl-DemeEm00": {
+      "name": "Emari Demercado",
+      "t": "medium"
+    },
+    "nfl-BrowPh01": {
+      "name": "Pharaoh Brown",
+      "t": "medium"
+    },
+    "nfl-SherTr00": {
+      "name": "Trent Sherfield",
+      "t": "medium"
+    },
+    "nfl-ButlAd00": {
+      "name": "Adam Butler",
+      "t": "medium"
+    },
+    "nfl-RobeRo00": {
+      "name": "Roy Robertson-Harris",
+      "t": "medium"
+    },
+    "nfl-BateJa00": {
+      "name": "Jake Bates",
+      "t": "medium"
+    },
+    "nfl-HeatMa00": {
+      "name": "Malik Heath",
+      "t": "medium"
+    },
+    "nfl-CokeJa01": {
+      "name": "Jalen Coker",
+      "t": "medium"
+    },
+    "nfl-PaceIv00": {
+      "name": "Ivan Pace Jr.",
+      "t": "medium"
+    },
+    "nfl-MoorJa03": {
+      "name": "Jaylon Moore",
+      "t": "medium"
+    },
+    "nfl-WingAn01": {
+      "name": "Andrew Wingard",
+      "t": "medium"
+    }
+  }
+}

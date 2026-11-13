@@ -19,6 +19,8 @@ import {
   applyExclusions,
   applyTierMoves,
   recentNfl,
+  recentNflTier,
+  parseInfobox,
   nbaClassOf,
   RECENT_ROOKIE_YEAR,
   INTERNATIONAL_ID,
@@ -876,6 +878,119 @@ describe('recent players admitted on their pro careers (`extended`)', () => {
     expect(['easy', 'medium']).toContain(tier('nfl-x1'))
   })
 
+  it('recentNflTier: easy for a star, medium for a name a fan knows, else hard', () => {
+    const d = (o) => pick('x', o)
+    expect(recentNflTier('WR', d({ probowls: '2' }))).toBe('easy')
+    expect(recentNflTier('G', d({ allpro: '1' }))).toBe('easy')
+    expect(recentNflTier('RB', d({ w_av: '45' }))).toBe('easy')
+    expect(recentNflTier('QB', d({ round: '1', w_av: '20' }))).toBe('easy')
+    expect(recentNflTier('G', d({ round: '1' }))).toBe('medium')
+    expect(recentNflTier('G', d({ probowls: '1' }))).toBe('medium')
+    expect(recentNflTier('TE', d({ w_av: '15' }))).toBe('medium')
+    expect(recentNflTier('WR', d({ round: '2' }))).toBe('medium')
+    expect(recentNflTier('G', d({ w_av: '35' }))).toBe('medium')
+    expect(recentNflTier('G', d({ round: '2', w_av: '30' }))).toBe('hard')
+    expect(recentNflTier('RB', {})).toBe('hard')
+  })
+
+  it('NFL: an extended player carries a tier from his career; assignTiers uses it, a step harder at a small school', () => {
+    const [r] = nflCandidates(
+      [nfl({ position: 'WR' })],
+      // Two Pro Bowls, modest AV: under the fame floor, so extended.
+      [pick('StarSo00', { probowls: '2', w_av: '16' })],
+      [],
+      match,
+    ).records
+    expect(r.tierHint).toBe('easy')
+    const core = Array.from({ length: 20 }, (_, i) => ({
+      id: `nfl-c${i}`,
+      league: 'nfl',
+      schools: ['alabama'],
+      fame: 100 - i,
+    }))
+    const at = (school, tierHint) =>
+      assignTiers([
+        ...core.map((c) => ({ ...c })),
+        {
+          id: 'nfl-x',
+          league: 'nfl',
+          schools: [school],
+          fame: 1,
+          extended: true,
+          tierHint,
+        },
+      ]).find((x) => x.id === 'nfl-x').tier
+    expect(at('alabama', 'easy')).toBe('easy')
+    expect(at('alabama', 'medium')).toBe('medium')
+    expect(at('tiny-school', 'easy')).toBe('medium')
+    expect(at('tiny-school', 'medium')).toBe('hard')
+    expect(at('tiny-school', 'hard')).toBe('hard')
+  })
+
+  it('NFL: an undrafted player gets in by the hand list, with its tier', () => {
+    const row = nfl({ pfr_id: 'UndrXx00', draft_round: '', draft_pick: '' })
+    const run = (added) =>
+      nflCandidates(
+        [row],
+        [],
+        [],
+        match,
+        undefined,
+        undefined,
+        undefined,
+        added,
+      ).records
+    expect(run({})).toEqual([])
+    expect(
+      run({ 'nfl-UndrXx00': { name: 'x', t: 'medium' } })[0],
+    ).toMatchObject({
+      id: 'nfl-UndrXx00',
+      extended: true,
+      tierHint: 'medium',
+      action: '',
+    })
+  })
+
+  it('parseInfobox: colleges with their years, draft and first season', () => {
+    const box = `{{Infobox basketball biography
+| name = Some Guy
+| college = {{ubl|[[South Carolina Gamecocks men's basketball|South Carolina]] (2011–2012)|[[Virginia Cavaliers men's basketball|Virginia]] (2013–2016)}}
+| draft_year = 2016
+| draft_pick = 
+| career_start = 2016
+| years1 = 2016–2017
+}}`
+    expect(parseInfobox(box)).toEqual({
+      colleges: [
+        {
+          team: "South Carolina Gamecocks men's basketball",
+          start: 2011,
+          end: 2012,
+        },
+        { team: "Virginia Cavaliers men's basketball", start: 2013, end: 2016 },
+      ],
+      draft: 2016,
+      pick: 0,
+      start: 2016,
+    })
+    // One season, no years, and no college at all.
+    expect(
+      parseInfobox(
+        "{{Infobox\n| college = [[Duke Blue Devils men's basketball|Duke]] (2024)\n| draft_year = 2025\n}}",
+      ).colleges,
+    ).toEqual([
+      { team: "Duke Blue Devils men's basketball", start: 2024, end: 2024 },
+    ])
+    expect(
+      parseInfobox(
+        "{{Infobox\n| college = [[Duke Blue Devils men's basketball|Duke]]\n| career_start = 2020\n}}",
+      ).colleges,
+    ).toEqual([{ team: "Duke Blue Devils men's basketball", start: 0, end: 0 }])
+    expect(
+      parseInfobox('{{Infobox\n| high_school = [[X]]\n| draft_year = 2020\n}}'),
+    ).toEqual({ colleges: [], draft: 2020, pick: 0, start: 0 })
+  })
+
   it('nbaClassOf: the incoming class, from the NBA.com id', () => {
     expect(nbaClassOf('1628368')).toBe(2017)
     expect(nbaClassOf('1630596')).toBe(2021)
@@ -1007,6 +1122,44 @@ describe('recent players admitted on their pro careers (`extended`)', () => {
   const run = (recent) =>
     nbaCandidates(base, teams, match, 2026, [], undefined, [], recent).records
   const full = { edu, added, matchEdu: match.edu }
+
+  it('NBA: the Wikipedia infobox decides school order and final season when it has them', () => {
+    const info = {
+      // Transfer; Wikidata knows only the first school, undated.
+      'e/eduonl01': {
+        colleges: [
+          {
+            team: "Kentucky Wildcats men's basketball",
+            start: 2015,
+            end: 2016,
+          },
+          { team: "Texas Longhorns men's basketball", start: 2016, end: 2018 },
+        ],
+        draft: 2018,
+        pick: 20,
+        start: 2018,
+      },
+      // No school anywhere on Wikidata, and no years in the infobox.
+      'h/hsonly01': {
+        colleges: [
+          { team: "Duke Blue Devils men's basketball", start: 0, end: 0 },
+        ],
+        draft: 2020,
+        pick: 3,
+        start: 2020,
+      },
+    }
+    const by = Object.fromEntries(run({ ...full, info }).map((r) => [r.id, r]))
+    expect(by['nba-eduonl01']).toMatchObject({
+      schools: ['texas', 'kentucky'],
+      year: 2017,
+      extended: true,
+    })
+    expect(by['nba-hsonly01']).toMatchObject({ schools: ['duke'], year: 2019 })
+    // The hand list still wins, and the core player is untouched.
+    expect(by['nba-handli01'].schools).toEqual(['texas'])
+    expect(by['nba-coreco01']).toEqual(run(undefined)[0])
+  })
 
   it('NBA: without the new tables nothing changes — only the core player', () => {
     expect(run(undefined).map((r) => r.id)).toEqual(['nba-coreco01'])

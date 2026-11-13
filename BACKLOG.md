@@ -20,18 +20,14 @@ Ideas and known gaps, roughly in priority order. Nothing here is promised.
   their order), so a correct "he started at X" guess can be marked wrong, and
   the finishing school can be the wrong one (Ronnie Price was). Fix each in
   `data/overrides.json`.
-- **1,028 recent players wait for a checked playing photo** (812 NFL, 216
-  NBA — docs/DATA.md §Recent players). Each also needs a look: played a real
+- **Recent players wait for a checked playing photo** (869 NFL, 227
+  NBA at first — docs/DATA.md §Recent players). Each also needs a look: played a real
   game, right school and final season (the NBA year is partly guessed), real
   headshot (`npm run scan-headshots` for the NFL ones).
-- **Undrafted NFL players are not covered by the recent-player rule** — the
-  draft table is the only career data we hold (Austin Ekeler, Kendrick
-  Bourne, Rico Dowdle, Jake Browning). Needs a games/starts source, e.g.
-  nflverse season stats.
-- **Recent NBA players Wikidata has nothing for** (no school at all) are
-  still missing unless hand-listed in `data/nba-added.json`.
-- NFL extended players all land in the hard tier (their fame score is low by
-  construction); a better tier signal for them would use draft round and AV.
+- **Undrafted NFL players are hand-listed** (`data/nfl-added.json`, 57 of
+  them) — the draft table is the only career data we hold. A games/starts
+  source (nflverse season stats) would make it a rule. Austin Ekeler is still
+  out: Western Colorado is not in the schools table.
 - NBA positions and pro teams (Wikidata has them patchily) for the name hint.
 
 ## Game

@@ -55,6 +55,7 @@ const nfl = nflCandidates(
   placeholders,
   await json('data/nfl-espn-heads.json', '{}'),
   notHeadshots,
+  JSON.parse(await read('data/nfl-added.json')).players,
 )
 const nba = nbaCandidates(
   await csv('data/raw/wd_nba.csv'),
@@ -71,6 +72,7 @@ const nba = nbaCandidates(
     edu: await csv('data/raw/wd_nba_edu.csv'),
     added: JSON.parse(await read('data/nba-added.json')).players,
     matchEdu: match.edu,
+    info: await json('data/raw/nba-infobox.json', '{}'),
   },
 )
 

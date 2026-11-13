@@ -55,6 +55,10 @@ const SPARQL = {
     OPTIONAL { ?st pq:P582 ?eduEnd } }`,
   'wd_nba_draft.csv': `SELECT ?bbref ?draft WHERE {
     ?item wdt:P2685 ?bbref . ?item p:P647 ?st . ?st pq:P585 ?draft }`,
+  // His English Wikipedia article, for scripts/fetch-nba-infobox.mjs.
+  'wd_nba_enwiki.csv': `SELECT ?bbref ?title WHERE {
+    ?item wdt:P2685 ?bbref . ?article schema:about ?item ;
+      schema:isPartOf <https://en.wikipedia.org/> ; schema:name ?title }`,
 }
 
 async function get(url, headers = {}) {
