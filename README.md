@@ -67,7 +67,7 @@ WhereHePlay #1 · NFL (headshot)
 who skipped it — LeBron, Kobe, KG: for them just answer **High School** — and
 52 international stars who turned pro abroad: answer **International**), weighted
 toward careers that ran into 2008 or later and filtered for fame, plus the
-last ten years' players who really played. 3,086 can be drawn from 2026-11-14; the
+last ten years' players who really played. 3,095 can be drawn from 2026-11-14; the
 rest join as their photos are checked — see
 [docs/DATA.md](docs/DATA.md) for the sources and the exact rules.
 
