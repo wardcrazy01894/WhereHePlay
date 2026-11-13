@@ -220,12 +220,17 @@ describe('players.json', () => {
       if (p.a)
         expect(blocked.has(p.a.slice(p.a.indexOf('/') + 1)), p.id).toBe(false)
   })
-  it('`e` (may be drawn): his window is open exactly when he has both photos; and it matches data/eligible-since.json', () => {
+  it('`e` (may be drawn): his window is open exactly when he has both photos (or a headshot and a place on data/headshot-only.json); and it matches data/eligible-since.json', () => {
     const since = data('eligible-since.json')
+    const headOnly = new Set(
+      Object.keys(data('headshot-only.json')).filter((k) => !k.startsWith('_')),
+    )
     for (const p of players) {
       // One day, or window edges [from, until, from, …]; odd length = open.
       const edges = [p.e ?? []].flat()
-      expect(edges.length % 2 === 1, p.id).toBe(!!p.h && !!p.a)
+      expect(edges.length % 2 === 1, p.id).toBe(
+        !!p.h && (!!p.a || headOnly.has(p.id)),
+      )
       edges.forEach((d, i) => {
         expect(Number.isInteger(d) && d >= 0, p.id).toBe(true)
         if (i) expect(d, p.id).toBeGreaterThan(edges[i - 1])
