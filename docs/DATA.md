@@ -135,7 +135,9 @@ drawn from 2026-11-14.
 Commons category, a Commons full-text search on his name, and the og:image
 of his current NFL team-site roster page (`static.clubs.nfl.com` — often a
 game photo, more often a posed headshot), each viewed on contact sheets,
-plus a per-player web search. 238 more kept, then 77 from the per-player web search (518 still wait); a wide shot
+plus a per-player web search. 238 more kept, then 78 from the per-player web search (518 still wait). A tattoo that names
+his college is fine (owner's call, 2026-11-13: Jaylin Williams); gear,
+captions and overlays naming the school are not; a wide shot
 where he is a small figure, a frame-grab or a blurred crop is not kept.
 
 Before giving an extended player his photo, check him:
