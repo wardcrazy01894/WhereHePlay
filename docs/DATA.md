@@ -130,6 +130,12 @@ jerseys (the sponsor patch gives them away), press conferences and street
 clothes, college, G League, EuroLeague, UFL and CFL uniforms, back views and
 blurs. The kept ones are in `data/photo-overrides.json` and those players are
 drawn from 2026-11-14. The rest (835) still wait for a photo found by hand.
+
+**Second pass (2026-11-13, on Opus):** every photo in each waiting player's
+Commons category, a Commons full-text search on his name, and the og:image
+of his current NFL team-site roster page (`static.clubs.nfl.com` — often a
+game photo, more often a posed headshot), each viewed on contact sheets,
+plus a per-player web search. 245 more kept; the rest are hunted by hand.
 Before giving an extended player his photo, check him:
 he played a real game (else `data/excluded.json`), his school and final
 season are right, and his league headshot is a real one.
