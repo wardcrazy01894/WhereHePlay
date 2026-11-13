@@ -1,4 +1,3 @@
 {
-  "_comment": "Players drawn with just a headshot: player id → why. Owner's rule (2026-11-13): a newer player still without a playing photo after a final search may be drawn with only his headshot (the game shows it in place of the playing photo) and stays on this list to be re-searched later — in a year or so he may have photos or be out of the league. Remove him from here once his playing photo is in data/photo-overrides.json. Read by scripts/build-players.mjs; docs/DATA.md §Photos.",
-  "nfl-JoneLo01": "Logan Jones (Bears C #54, 2026 2nd round): no game photo of him found in four searches (2026-11-13) — Bears gallery captions do not name linemen. Re-search later."
+  "_comment": "Players drawn with just a headshot: player id → why. Owner's rule (2026-11-13): a newer player still without a playing photo after a final search may be drawn with only his headshot (the game shows it in place of the playing photo) and stays on this list to be re-searched later — in a year or so he may have photos or be out of the league. Remove him from here once his playing photo is in data/photo-overrides.json. Read by scripts/build-players.mjs; docs/DATA.md §Photos."
 }

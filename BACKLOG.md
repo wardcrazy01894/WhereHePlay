@@ -20,11 +20,6 @@ Ideas and known gaps, roughly in priority order. Nothing here is promised.
   their order), so a correct "he started at X" guess can be marked wrong, and
   the finishing school can be the wrong one (Ronnie Price was). Fix each in
   `data/overrides.json`.
-- **Re-search the headshot-only players** (`data/headshot-only.json`, now just Logan
-  Jones, Bears C, 2026): drawn with only a headshot since 2026-11-14 because no
-  game photo was found. Look again in a year or so — he may have photos by
-  then, or be out of the league. Once a playing photo is in
-  `data/photo-overrides.json`, take him off the list.
 - **Undrafted NFL players are hand-listed** (`data/nfl-added.json`, 57 of
   them) — the draft table is the only career data we hold. A games/starts
   source (nflverse season stats) would make it a rule. Austin Ekeler is still
