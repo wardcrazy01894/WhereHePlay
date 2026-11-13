@@ -135,7 +135,7 @@ drawn from 2026-11-14.
 Commons category, a Commons full-text search on his name, and the og:image
 of his current NFL team-site roster page (`static.clubs.nfl.com` — often a
 game photo, more often a posed headshot), each viewed on contact sheets,
-plus a per-player web search. 238 more kept, then 592 from the per-player web search; Logan Jones is drawn with just his headshot (`data/headshot-only.json`). A tattoo that names
+plus a per-player web search. 238 more kept, then 593 from the per-player web search (the last, Logan Jones, found by the owner; `data/headshot-only.json` is empty again). A tattoo that names
 his college is fine (owner's call, 2026-11-13: Jaylin Williams); gear,
 captions and overlays naming the school are not; a wide shot
 where he is a small figure, a frame-grab or a blurred crop is not kept.
