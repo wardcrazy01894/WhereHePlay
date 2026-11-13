@@ -179,7 +179,7 @@ describe('App', () => {
     expect(screen.getByText('🔥 1-day streak')).toBeTruthy()
   })
 
-  it('each mode has Sicko Mode (three easy, a medium, a hard) under the second daily’s id: its own save, streak and share card', async () => {
+  it('each mode has Sicko Mode (three easy, a medium, a hard) with its own id: its own save, streak and share card', async () => {
     const writeText = vi.fn(async (text: string) => void text)
     Object.defineProperty(navigator, 'clipboard', {
       configurable: true,
@@ -204,12 +204,12 @@ describe('App', () => {
     expect(
       screen.getByRole('heading', { name: /NFL Sicko Mode #\d+/ }),
     ).toBeTruthy()
-    // Saved under the key it has always had, with the 3-1-1 lineup…
+    // Saved under its own key, with the 3-1-1 lineup…
     const key = Object.keys(localStorage).find((k) =>
-      k.startsWith('whp:v2:daily:nfl-beginner:'),
+      k.startsWith('whp:v2:daily:nfl-sicko:'),
     )!
     const saved = JSON.parse(localStorage.getItem(key)!)
-    expect(saved.variant).toBe('beginner')
+    expect(saved.variant).toBe('sicko')
     expect(saved.lineup).toHaveLength(5)
     expect(saved.lineup.map((id: string) => id.split('-')[1])).toEqual([
       'easy',
@@ -218,7 +218,9 @@ describe('App', () => {
       'medium',
       'hard',
     ])
-    expect(localStorage.getItem('whp:v2:stats:nfl-beginner')).toBeTruthy()
+    expect(localStorage.getItem('whp:v2:stats:nfl-sicko')).toBeTruthy()
+    // A new game: nothing is written to the beginner daily's streak.
+    expect(localStorage.getItem('whp:v2:stats:nfl-beginner')).toBeNull()
     // …and the card names it.
     fireEvent.click(screen.getByRole('button', { name: 'Share result' }))
     await waitFor(() => expect(writeText).toHaveBeenCalled())

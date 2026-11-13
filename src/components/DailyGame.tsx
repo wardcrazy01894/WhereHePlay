@@ -33,7 +33,7 @@ interface Props {
   players: Player[]
   schools: School[]
   mode: Mode
-  /** The daily, or the second one — Sicko Mode (its own save, streak and board). */
+  /** The daily, or that day's second one — Sicko Mode (its own save, streak and board). */
   variant: Variant
   dateKey: string
   /** False for ?date= playtest days: nothing is recorded or submitted. */
@@ -66,7 +66,7 @@ function startGame(
   return {
     mode,
     // Left off a standard game, so its saved shape is what it always was.
-    ...(variant === 'beginner' ? { variant } : {}),
+    ...(variant !== 'standard' ? { variant } : {}),
     dateKey,
     // The first-photo choice is fixed when the day starts, so the share card
     // can say truthfully which way it was played.
@@ -81,7 +81,7 @@ export function DailyGame(props: Props) {
     props
   const { variant } = props
   const board = boardId(mode, variant)
-  const label = gameLabel(mode, variant, dateKey)
+  const label = gameLabel(mode, variant)
   const [game, setGame] = useState<Saved>(() =>
     startGame(players, mode, dateKey, photoStyle, variant),
   )

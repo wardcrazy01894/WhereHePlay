@@ -73,7 +73,16 @@ describe('parseBoardId', () => {
       mode: 'mixed',
       variant: 'beginner',
     })
-    for (const bad of ['mlb', 'beginner', 'nfl-expert', '', 'nfl-beginner-x'])
+    expect(parseBoardId('nba-sicko')).toEqual({ mode: 'nba', variant: 'sicko' })
+    for (const bad of [
+      'mlb',
+      'beginner',
+      'sicko',
+      'nfl-expert',
+      '',
+      'nfl-beginner-x',
+      'nfl-sicko-x',
+    ])
       expect(parseBoardId(bad)).toBeNull()
   })
 })
@@ -161,6 +170,21 @@ describe('gameFromScore (a result from another device)', () => {
       TODAY,
     )!
     expect('variant' in s).toBe(false)
+  })
+  it('a Sicko Mode day is rebuilt as Sicko Mode: its own id and the 3-1-1 lineup', () => {
+    const day = '2026-11-14'
+    const g = gameFromScore(
+      players,
+      { board: 'nba-sicko', date: day, score: 250, marks: '43210' },
+      day,
+    )!
+    expect(g).toMatchObject({ mode: 'nba', variant: 'sicko', dateKey: day })
+    expect(g.lineup).toEqual(
+      dailyLineup(players, 'nba', day, 'sicko').map((p) => p.id),
+    )
+    expect(g.lineup).not.toEqual(
+      dailyLineup(players, 'nba', day).map((p) => p.id),
+    )
   })
   it('refuses anything malformed or far from today (a far date would hang the walk)', () => {
     const ok = { board: 'nfl', date: TODAY, score: 250, marks: '43210' }

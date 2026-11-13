@@ -35,8 +35,9 @@ All routes are `POST` with JSON:
 | `/bug`      | `message, context, logs`           | `url` of the GitHub issue             |
 
 `board` is one of `nfl`, `nba`, `mixed`, `nfl-beginner`, `nba-beginner`,
-`mixed-beginner` (`BOARDS` in `api-lib.mjs`; the `-beginner` boards are Sicko
-Mode since 2026-11-14 — same ids); anything else is a 400.
+`mixed-beginner`, `nfl-sicko`, `nba-sicko`, `mixed-sicko` (`BOARDS` in
+`api-lib.mjs`; the `-beginner` boards ended on 2026-11-13, Sicko Mode took
+their place the next day); anything else is a 400.
 
 `pass` is the client-derived key (64 hex chars), never the password.
 

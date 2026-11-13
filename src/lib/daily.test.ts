@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import type { League, Player, Tier } from '../types'
+import { secondVariant } from '../types'
 import {
   EASY_COOLDOWN_DAYS,
   EASY_PLAN,
@@ -187,15 +188,22 @@ describe('the swap of 2026-11-14: the daily is five easy, the second daily is Si
   it('drawFor / tierPlanFor: which draw each daily shows, by day', () => {
     for (const d of before) {
       expect(drawFor('standard', d)).toBe('classic')
-      expect(drawFor('beginner', d)).toBe('easy')
       expect(tierPlanFor(d)).toBe(TIER_PLAN)
-      expect(tierPlanFor(d, 'beginner')).toBe(EASY_PLAN)
+      expect(secondVariant(d)).toBe('beginner')
     }
     for (const d of after) {
       expect(drawFor('standard', d)).toBe('easy')
-      expect(drawFor('beginner', d)).toBe('classic')
       expect(tierPlanFor(d)).toBe(EASY_PLAN)
-      expect(tierPlanFor(d, 'beginner')).toBe(TIER_PLAN)
+      expect(secondVariant(d)).toBe('sicko')
+    }
+    // The second dailies are what they are on any day; and whichever exists
+    // that day shows the draw the daily does not.
+    for (const d of [...before, ...after]) {
+      expect(drawFor('beginner', d)).toBe('easy')
+      expect(tierPlanFor(d, 'beginner')).toBe(EASY_PLAN)
+      expect(drawFor('sicko', d)).toBe('classic')
+      expect(tierPlanFor(d, 'sicko')).toBe(TIER_PLAN)
+      expect(drawFor(secondVariant(d), d)).not.toBe(drawFor('standard', d))
     }
     // A practice day before the epoch is the daily as it launched.
     expect(drawFor('standard', '2026-11-01')).toBe('classic')
@@ -219,7 +227,7 @@ describe('the swap of 2026-11-14: the daily is five easy, the second daily is Si
       }
       for (const d of after) {
         const daily = dailyLineup(all, mode, d)
-        const sicko = dailyLineup(all, mode, d, 'beginner')
+        const sicko = dailyLineup(all, mode, d, 'sicko')
         expect(daily.map((p) => p.t)).toEqual(EASY_PLAN)
         expect(sicko.map((p) => p.t)).toEqual(TIER_PLAN)
         expect(ids(daily)).toEqual(ids(drawLineup(all, mode, d, 'easy')))
@@ -229,13 +237,13 @@ describe('the swap of 2026-11-14: the daily is five easy, the second daily is Si
       }
     }
   })
-  it('the swap leaves both walks unbroken: no repeat across it inside the window', () => {
+  it('Sicko Mode is the old daily carried on: no repeat across the swap inside the window', () => {
     const all = fixture(240)
     const days = Array.from({ length: 40 }, (_, i) =>
-      ids(dailyLineup(all, 'nfl', addDays(EPOCH_DATE_KEY, i), 'beginner')),
+      ids(dailyLineup(all, 'nfl', addDays(EPOCH_DATE_KEY, i), 'sicko')),
     )
-    // Sicko Mode from day 3 on is the classic walk: nobody from the classic
-    // lineups of days 0-2 (the old daily) comes back inside 45 days.
+    // Sicko Mode is the classic walk: nobody from the classic lineups of
+    // days 0-2 (the old daily) comes back inside 45 days.
     const old = new Set(
       [0, 1, 2].flatMap((i) =>
         ids(drawLineup(all, 'nfl', addDays(EPOCH_DATE_KEY, i), 'classic')),

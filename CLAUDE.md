@@ -58,9 +58,9 @@ requirement, pinned by `src/App.render.test.tsx`.
   re-rolls today's game under people mid-play. Golden-value tests pin them. A
   plan change goes through `drawFor`: a new rule with a start date in the
   future, never an edit to days already played — as on 2026-11-14, when the
-  daily became five easy players and the beginner daily became Sicko Mode
-  (the old 3-1-1). Its ids are still `<mode>-beginner`: never rename them,
-  they key every save, streak and leaderboard row. (The one exception was
+  daily became five easy players and Sicko Mode (the old 3-1-1, boards
+  `<mode>-sicko`) replaced the beginner daily. Never rename a board id: it
+  keys every save, streak and leaderboard row. (The one exception was
   launch day, 2026-11-11, before the link was shared: the plan went from
   2-2-1 to 3-1-1 and the test scores were wiped; that evening the game was
   restarted once more onto players with both photos — `localStorage` prefix

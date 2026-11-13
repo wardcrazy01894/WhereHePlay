@@ -4,8 +4,9 @@ import {
   MODES,
   MODE_LABEL,
   boardId,
+  SECOND_DAILY_NAME,
   gameLabel,
-  secondDailyName,
+  secondVariant,
 } from '../types'
 import { type Board, fetchBoard } from '../lib/api'
 import { squares } from '../lib/share'
@@ -73,7 +74,7 @@ export function Leaderboard({
       )}
       {onModeChange && (
         <div className="tabs" role="tablist" aria-label="Daily">
-          {(['standard', 'beginner'] as const).map((v) => (
+          {(['standard', secondVariant(dateKey)] as const).map((v) => (
             <button
               key={v}
               role="tab"
@@ -81,13 +82,13 @@ export function Leaderboard({
               className={v === variant ? 'tab on' : 'tab'}
               onClick={() => onModeChange(mode, v)}
             >
-              {v === 'standard' ? 'Daily' : secondDailyName(dateKey)}
+              {v === 'standard' ? 'Daily' : SECOND_DAILY_NAME[v]}
             </button>
           ))}
         </div>
       )}
       <h2>
-        {gameLabel(mode, variant, dateKey)} leaderboard{' '}
+        {gameLabel(mode, variant)} leaderboard{' '}
         <span className="muted">{dateKey}</span>
       </h2>
       {error && <p className="muted">{error}</p>}

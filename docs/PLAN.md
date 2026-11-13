@@ -52,11 +52,11 @@ Three modes — `nfl`, `nba`, `mixed` (Grab Bag) — each with:
 
 - a **daily**: 5 questions, all from the easy tier, max 500, one shot, same
   for everyone, rolling over at the player's local midnight;
-- **Sicko Mode** (`variant: 'beginner'`): 5 questions (easy, easy, easy,
+- **Sicko Mode** (`variant: 'sicko'`): 5 questions (easy, easy, easy,
   medium, hard), scored the same way (max 500). It is its own game — own
   save, streak, share-card label ("NFL Sicko Mode") and leaderboard —
-  identified everywhere by `boardId(mode, variant)`: `nfl-beginner`,
-  `nba-beginner`, `mixed-beginner` (the daily keeps the bare mode). There is
+  identified everywhere by `boardId(mode, variant)`: `nfl-sicko`,
+  `nba-sicko`, `mixed-sicko` (the daily keeps the bare mode). There is
   no Sicko Mode free play;
 - **free play**: endless random players from that mode's pool, no repeat
   within the last 150, with a running correct-answer streak (best is kept).
@@ -64,12 +64,13 @@ Three modes — `nfl`, `nba`, `mixed` (Grab Bag) — each with:
 **The swap of 2026-11-14.** Through 2026-11-13 it was the other way round:
 the daily was the 3-1-1 and the second daily was the "beginner daily", five
 easy players. On 2026-11-14 (each player's local day, `SWAP_DATE_KEY`) the two
-swapped how their players are picked and the beginner daily was renamed Sicko
-Mode. Nothing else moved: the ids (hence `-beginner`, kept for good), the
-saved games, the streaks and the leaderboards are the ones each game always
-had, so a daily streak carried straight on. The name shown is by day
-(`secondDailyName`, `gameLabel`): a day before the swap still reads
-"Beginner".
+swapped how their players are picked. The daily kept its id, saves, streak
+and leaderboard, so a daily streak carried straight on. The beginner daily
+(`variant: 'beginner'`, boards `<mode>-beginner`) ended with 2026-11-13 and
+Sicko Mode began the next day as a new game with a fresh streak (the owner's
+call: only the daily's streak had to survive). Which second daily a day has
+is `secondVariant(date)`; the beginner ids remain valid for the days it was
+played.
 
 A player's tier is internal: it shapes the lineup but is never shown in the
 UI (no tier label on a question, no tier mix in the tagline) — pinned by
@@ -82,7 +83,8 @@ far-future date in a shared link would otherwise freeze the tab.
 
 Everything client-side is in `localStorage` under `whp:v2:` (`v1` was the
 launch-day data, abandoned on the restart of 2026-11-11)
-(`src/lib/storage.ts`; `<board>` is the mode, or `<mode>-beginner`):
+(`src/lib/storage.ts`; `<board>` is the mode, `<mode>-sicko`, or
+`<mode>-beginner` for a day before the swap):
 `daily:<board>:<date>` (the game, including the lineup
 it was started on, so a dataset update can't change a game in progress),
 `stats:<board>` (streak, best, played, points), `free:<mode>`, `identity`
@@ -100,9 +102,10 @@ shown streak is the larger of the device's and the server's.
 
 `src/lib/daily.ts`. There are two **draws**, each one unbroken walk from
 puzzle #1: `classic` (easy, easy, easy, medium, hard) and `easy` (five easy).
-`drawFor(variant, date)` says which one a daily shows that day — classic for
-the daily and easy for the second daily through 2026-11-13, the other way
-round from 2026-11-14 (`tierPlanFor` gives the matching plan). Only that
+`drawFor(variant, date)` says which one a daily shows that day — the daily
+shows classic through 2026-11-13 and easy from 2026-11-14; the beginner daily
+was the easy draw and Sicko Mode is the classic one (`tierPlanFor` gives the
+matching plan). Only that
 mapping changed on the swap; neither walk did, so no day re-rolled and no
 player comes back early across it. A future change goes the same way: a new
 rule with a start date in the future.
@@ -273,9 +276,9 @@ There is **no password reset** (no email on file) — an operator can clear an
 account by hand (docs/OPERATIONS.md).
 
 **Boards:** one per daily game — `nfl`, `nba`, `mixed` and their
-`-beginner` twins, which are Sicko Mode since 2026-11-14 (`BOARDS` in
-`worker/api-lib.mjs`, `boardId` in the client). The worker knows nothing of
-tiers, so the swap needed no worker change.
+`-sicko` twins, plus the `-beginner` boards of the days before 2026-11-14
+(`BOARDS` in `worker/api-lib.mjs`, `boardId` in the client). The worker knows
+nothing of tiers; a new board only has to be listed.
 
 **Scores** (`/score`): `{board, date, marks, score}` where `marks` is five
 characters `0`–`4` and `score` must equal what the marks add up to. The date
