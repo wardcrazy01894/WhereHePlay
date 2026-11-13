@@ -1,0 +1,217 @@
+{
+  "_comment": "NBA top-10 draft picks of the last ten drafts (2017-2026) who are in the dataset: all easy (owner's rule, 2026-11-13). Player id -> name, draft year, pick, and `was`: the tier he had before the move (absent if he was already easy). The move takes effect on `from` (the player's local day); earlier days are still drawn with `was` (the `tw` field in players.json, tiersOn in src/lib/daily.ts), so no lineup already played changed. NEVER move `from` or a `was` once that day has started. Applied by scripts/build-players.mjs (applyTierMoves) after tiers and overrides, so nobody else's tier moves. A top-10 pick who is not in the dataset at all is not listed: add him here when he joins. See docs/DATA.md §Top draft picks.",
+  "from": "2026-11-14",
+  "players": {
+    "nba-fultzma01": {
+      "name": "Markelle Fultz",
+      "draft": 2017,
+      "pick": 1,
+      "was": "medium"
+    },
+    "nba-balllo01": {
+      "name": "Lonzo Ball",
+      "draft": 2017,
+      "pick": 2
+    },
+    "nba-tatumja01": {
+      "name": "Jayson Tatum",
+      "draft": 2017,
+      "pick": 3
+    },
+    "nba-jacksjo02": {
+      "name": "Josh Jackson",
+      "draft": 2017,
+      "pick": 4,
+      "was": "medium"
+    },
+    "nba-isaacjo01": {
+      "name": "Jonathan Isaac",
+      "draft": 2017,
+      "pick": 6,
+      "was": "medium"
+    },
+    "nba-markkla01": {
+      "name": "Lauri Markkanen",
+      "draft": 2017,
+      "pick": 7
+    },
+    "nba-smithde03": {
+      "name": "Dennis Smith Jr.",
+      "draft": 2017,
+      "pick": 9,
+      "was": "medium"
+    },
+    "nba-colliza01": {
+      "name": "Zach Collins",
+      "draft": 2017,
+      "pick": 10,
+      "was": "hard"
+    },
+    "nba-aytonde01": {
+      "name": "Deandre Ayton",
+      "draft": 2018,
+      "pick": 1
+    },
+    "nba-baglema01": {
+      "name": "Marvin Bagley III",
+      "draft": 2018,
+      "pick": 2,
+      "was": "medium"
+    },
+    "nba-doncilu01": {
+      "name": "Luka Dončić",
+      "draft": 2018,
+      "pick": 3
+    },
+    "nba-jacksja02": {
+      "name": "Jaren Jackson Jr.",
+      "draft": 2018,
+      "pick": 4
+    },
+    "nba-youngtr01": {
+      "name": "Trae Young",
+      "draft": 2018,
+      "pick": 5
+    },
+    "nba-bambamo01": {
+      "name": "Mohamed Bamba",
+      "draft": 2018,
+      "pick": 6,
+      "was": "medium"
+    },
+    "nba-cartewe01": {
+      "name": "Wendell Carter Jr.",
+      "draft": 2018,
+      "pick": 7,
+      "was": "medium"
+    },
+    "nba-sextoco01": {
+      "name": "Collin Sexton",
+      "draft": 2018,
+      "pick": 8,
+      "was": "medium"
+    },
+    "nba-knoxke01": {
+      "name": "Kevin Knox II",
+      "draft": 2018,
+      "pick": 9,
+      "was": "medium"
+    },
+    "nba-bridgmi01": {
+      "name": "Mikal Bridges",
+      "draft": 2018,
+      "pick": 10,
+      "was": "medium"
+    },
+    "nba-willizi01": {
+      "name": "Zion Williamson",
+      "draft": 2019,
+      "pick": 1
+    },
+    "nba-moranja01": {
+      "name": "Ja Morant",
+      "draft": 2019,
+      "pick": 2
+    },
+    "nba-barrerj01": {
+      "name": "RJ Barrett",
+      "draft": 2019,
+      "pick": 3
+    },
+    "nba-garlada01": {
+      "name": "Darius Garland",
+      "draft": 2019,
+      "pick": 5
+    },
+    "nba-culveja01": {
+      "name": "Jarrett Culver",
+      "draft": 2019,
+      "pick": 6,
+      "was": "hard"
+    },
+    "nba-whiteco01": {
+      "name": "Coby White",
+      "draft": 2019,
+      "pick": 7,
+      "was": "medium"
+    },
+    "nba-hachiru01": {
+      "name": "Rui Hachimura",
+      "draft": 2019,
+      "pick": 9
+    },
+    "nba-edwaran01": {
+      "name": "Anthony Edwards",
+      "draft": 2020,
+      "pick": 1,
+      "was": "medium"
+    },
+    "nba-toppiob01": {
+      "name": "Obi Toppin",
+      "draft": 2020,
+      "pick": 8,
+      "was": "hard"
+    },
+    "nba-avdijde01": {
+      "name": "Deni Avdija",
+      "draft": 2020,
+      "pick": 9
+    },
+    "nba-cunnica01": {
+      "name": "Cade Cunningham",
+      "draft": 2021,
+      "pick": 1,
+      "was": "medium"
+    },
+    "nba-barnesc01": {
+      "name": "Scottie Barnes",
+      "draft": 2021,
+      "pick": 4,
+      "was": "medium"
+    },
+    "nba-suggsja01": {
+      "name": "Jalen Suggs",
+      "draft": 2021,
+      "pick": 5,
+      "was": "hard"
+    },
+    "nba-wagnefr01": {
+      "name": "Franz Wagner",
+      "draft": 2021,
+      "pick": 8
+    },
+    "nba-banchpa01": {
+      "name": "Paolo Banchero",
+      "draft": 2022,
+      "pick": 1
+    },
+    "nba-wembavi01": {
+      "name": "Victor Wembanyama",
+      "draft": 2023,
+      "pick": 1
+    },
+    "nba-edeyza01": {
+      "name": "Zach Edey",
+      "draft": 2024,
+      "pick": 9,
+      "was": "medium"
+    },
+    "nba-flaggco01": {
+      "name": "Cooper Flagg",
+      "draft": 2025,
+      "pick": 1
+    },
+    "nba-dybanaj01": {
+      "name": "AJ Dybantsa",
+      "draft": 2026,
+      "pick": 1,
+      "was": "hard"
+    },
+    "nba-peterda02": {
+      "name": "Darryn Peterson",
+      "draft": 2026,
+      "pick": 2,
+      "was": "hard"
+    }
+  }
+}

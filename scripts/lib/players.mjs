@@ -474,3 +474,27 @@ export function applyOverrides(records, overrides, schoolIds) {
   }
   return records
 }
+
+/**
+ * Apply data/nba-top-picks.json — a hand-kept list of players who are all
+ * easy from day `fromDay` (days after puzzle #1). A listed player whose tier
+ * was something else (`was`) gets `tierWas: [fromDay, was]` — the `tw` field
+ * of players.json — so days before the move are still drawn with his old
+ * tier and no lineup already played changes. Runs after assignTiers and
+ * applyOverrides, so nobody else's tier moves. Throws on an unknown player
+ * or tier.
+ */
+export function applyTierMoves(records, players, fromDay) {
+  if (!Number.isInteger(fromDay) || fromDay < 0)
+    throw new Error(`nba-top-picks.json: bad "from" day ${fromDay}`)
+  const byId = new Map(records.map((r) => [r.id, r]))
+  for (const [id, o] of Object.entries(players)) {
+    const r = byId.get(id)
+    if (!r) throw new Error(`nba-top-picks.json: no player "${id}" in the pool`)
+    if (o.was !== undefined && !['medium', 'hard'].includes(o.was))
+      throw new Error(`nba-top-picks.json: bad "was" tier for ${id}`)
+    r.tier = 'easy'
+    if (o.was) r.tierWas = [fromDay, o.was]
+  }
+  return records
+}

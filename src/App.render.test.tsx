@@ -15,8 +15,8 @@ import { resolveDay } from './lib/day'
 const players: Player[] = []
 for (const l of ['nfl', 'nba'] as League[])
   for (const t of ['easy', 'medium', 'hard'] as Tier[])
-    // Eight per cell: a beginner daily needs five easy players besides the
-    // three the standard daily holds back.
+    // Eight per cell: the five-easy daily needs five easy players besides
+    // the three Sicko Mode holds back.
     for (let i = 0; i < 8; i++)
       players.push({
         id: `${l}-${t}-${i}`,
@@ -37,6 +37,9 @@ const schools = ['a', 'b', 'c', 'd'].map((id) => ({
 }))
 
 beforeEach(() => {
+  // A fixed day after the swap of 2026-11-14 (only Date is faked: timers run).
+  vi.useFakeTimers({ toFake: ['Date'] })
+  vi.setSystemTime(new Date('2026-11-20T17:00:00Z'))
   localStorage.clear()
   vi.stubGlobal(
     'fetch',
@@ -47,6 +50,7 @@ beforeEach(() => {
   )
 })
 afterEach(() => {
+  vi.useRealTimers()
   cleanup()
   vi.unstubAllGlobals()
 })
@@ -175,7 +179,7 @@ describe('App', () => {
     expect(screen.getByText('🔥 1-day streak')).toBeTruthy()
   })
 
-  it('each mode has a beginner daily: five easy players, its own save, streak and share card', async () => {
+  it('each mode has Sicko Mode (three easy, a medium, a hard) under the second daily’s id: its own save, streak and share card', async () => {
     const writeText = vi.fn(async (text: string) => void text)
     Object.defineProperty(navigator, 'clipboard', {
       configurable: true,
@@ -183,12 +187,12 @@ describe('App', () => {
     })
     render(<App />)
     await screen.findByRole('heading', { name: 'NFL' })
-    const buttons = screen.getAllByRole('button', { name: 'Beginner daily' })
+    const buttons = screen.getAllByRole('button', { name: 'Sicko Mode' })
     expect(buttons).toHaveLength(3)
     fireEvent.click(buttons[1])
     for (let i = 0; i < 5; i++) {
       expect(
-        screen.getByText(new RegExp(`NFL Beginner daily · ${i + 1} of 5`)),
+        screen.getByText(new RegExp(`NFL Sicko Mode daily · ${i + 1} of 5`)),
       ).toBeTruthy()
       fireEvent.click(screen.getByRole('button', { name: 'I don’t know' }))
       fireEvent.click(
@@ -198,32 +202,68 @@ describe('App', () => {
       )
     }
     expect(
-      screen.getByRole('heading', { name: /NFL Beginner #\d+/ }),
+      screen.getByRole('heading', { name: /NFL Sicko Mode #\d+/ }),
     ).toBeTruthy()
-    // Saved under its own key, with an all-easy lineup…
+    // Saved under the key it has always had, with the 3-1-1 lineup…
     const key = Object.keys(localStorage).find((k) =>
       k.startsWith('whp:v2:daily:nfl-beginner:'),
     )!
     const saved = JSON.parse(localStorage.getItem(key)!)
     expect(saved.variant).toBe('beginner')
     expect(saved.lineup).toHaveLength(5)
-    for (const id of saved.lineup) expect(id).toMatch(/^nfl-easy-/)
+    expect(saved.lineup.map((id: string) => id.split('-')[1])).toEqual([
+      'easy',
+      'easy',
+      'easy',
+      'medium',
+      'hard',
+    ])
     expect(localStorage.getItem('whp:v2:stats:nfl-beginner')).toBeTruthy()
     // …and the card names it.
     fireEvent.click(screen.getByRole('button', { name: 'Share result' }))
     await waitFor(() => expect(writeText).toHaveBeenCalled())
     expect(String(writeText.mock.calls[0][0]).split('\n')[0]).toMatch(
-      /^WhereHePlay #\d+ · NFL Beginner \(headshot\)$/,
+      /^WhereHePlay #\d+ · NFL Sicko Mode \(headshot\)$/,
     )
-    // Home: the beginner daily is done, the standard one is untouched.
+    // Home: Sicko Mode is done, the standard one is untouched.
     fireEvent.click(screen.getByRole('button', { name: '← All games' }))
     expect(
-      screen.getByRole('button', { name: 'Beginner done · 0' }),
+      screen.getByRole('button', { name: 'Sicko Mode done · 0' }),
     ).toBeTruthy()
     expect(screen.getAllByRole('button', { name: 'Play daily' })).toHaveLength(
       3,
     )
     expect(localStorage.getItem('whp:v2:stats:nfl')).toBeNull()
+  })
+
+  it('the daily is five easy players from 2026-11-14', async () => {
+    render(<App />)
+    await screen.findByRole('heading', { name: 'NFL' })
+    fireEvent.click(screen.getAllByRole('button', { name: 'Play daily' })[1])
+    fireEvent.click(screen.getByRole('button', { name: 'I don’t know' }))
+    const key = Object.keys(localStorage).find((k) =>
+      k.startsWith('whp:v2:daily:nfl:'),
+    )!
+    const saved = JSON.parse(localStorage.getItem(key)!)
+    expect(saved.variant).toBeUndefined()
+    for (const id of saved.lineup) expect(id).toMatch(/^nfl-easy-/)
+  })
+
+  it('through 2026-11-13 the second daily is still the beginner daily: five easy players', async () => {
+    vi.setSystemTime(new Date('2026-11-13T17:00:00Z'))
+    render(<App />)
+    await screen.findByRole('heading', { name: 'NFL' })
+    expect(screen.queryByRole('button', { name: 'Sicko Mode' })).toBeNull()
+    fireEvent.click(
+      screen.getAllByRole('button', { name: 'Beginner daily' })[1],
+    )
+    expect(screen.getByText(/NFL Beginner daily · 1 of 5/)).toBeTruthy()
+    fireEvent.click(screen.getByRole('button', { name: 'I don’t know' }))
+    const key = Object.keys(localStorage).find((k) =>
+      k.startsWith('whp:v2:daily:nfl-beginner:'),
+    )!
+    for (const id of JSON.parse(localStorage.getItem(key)!).lineup)
+      expect(id).toMatch(/^nfl-easy-/)
   })
 
   it('first photo: two radio choices; the pick is remembered and stamped on the day that starts', async () => {
@@ -295,7 +335,7 @@ describe('App', () => {
       expect(dialog.textContent).toContain('Waiting Forphoto is in the game')
       fireEvent.click(within(dialog).getByRole('button', { name: 'Close' }))
       // Opening the daily: the old lineup is not resumed, it starts at 1 of 5.
-      fireEvent.click(screen.getAllByRole('button', { name: /daily/i })[2])
+      fireEvent.click(screen.getAllByRole('button', { name: /daily/i })[1])
       expect(screen.getByText(/NFL daily · 1 of 5/)).toBeTruthy()
       const saved = () =>
         JSON.parse(localStorage.getItem(`whp:v2:daily:nfl:${day}`)!)

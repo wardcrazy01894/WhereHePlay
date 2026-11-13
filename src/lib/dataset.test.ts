@@ -2,8 +2,8 @@ import { describe, it, expect } from 'vitest'
 import { existsSync, readFileSync } from 'node:fs'
 import type { Player, School } from '../types'
 import {
-  BEGINNER_COOLDOWN_DAYS,
-  BEGINNER_PLAN,
+  EASY_COOLDOWN_DAYS,
+  EASY_PLAN,
   cooldownFor,
   eligibleOn,
   COOLDOWN_DAYS,
@@ -12,6 +12,10 @@ import {
   tierPlanFor,
   addDays,
   dailyLineup,
+  puzzleNumber,
+  drawFor,
+  drawLineup,
+  tiersOn,
 } from './daily'
 import { choices } from './game'
 import { actionDirectUrl, headshotUrl } from './images'
@@ -247,8 +251,8 @@ describe('players.json', () => {
         cooldownFor(
           pool.filter((p) => p.t === 'easy'),
           mode,
-          BEGINNER_PLAN,
-          BEGINNER_COOLDOWN_DAYS,
+          EASY_PLAN,
+          EASY_COOLDOWN_DAYS,
           mode === 'mixed' ? 2 : 3,
         ),
         `${mode} beginner`,
@@ -261,23 +265,24 @@ describe('players.json', () => {
     i: number,
     beginner: boolean,
   ) => {
-    const eligible = eligibleOn(players, addDays(EPOCH_DATE_KEY, i))
+    const d = addDays(EPOCH_DATE_KEY, i)
+    const eligible = tiersOn(eligibleOn(players, d), d)
     const pool =
       mode === 'mixed' ? eligible : eligible.filter((p) => p.l === mode)
     return beginner
       ? cooldownFor(
           pool.filter((p) => p.t === 'easy'),
           mode,
-          BEGINNER_PLAN,
-          BEGINNER_COOLDOWN_DAYS,
+          EASY_PLAN,
+          EASY_COOLDOWN_DAYS,
           mode === 'mixed' ? 2 : 3,
         )
       : cooldownFor(pool, mode, TIER_PLAN, COOLDOWN_DAYS)
   }
-  it('a year of real dailies: only players with both photos, on plan, no repeat inside the window', () => {
+  it('a year of the real classic draw (the daily to 2026-11-13, then Sicko Mode): only players with both photos, on plan, no repeat inside the window', () => {
     for (const mode of ['nfl', 'nba', 'mixed'] as const) {
       const days = Array.from({ length: 365 }, (_, i) =>
-        dailyLineup(players, mode, addDays(EPOCH_DATE_KEY, i)),
+        drawLineup(players, mode, addDays(EPOCH_DATE_KEY, i), 'classic'),
       )
       days.forEach((day, i) => {
         const eligible = new Set(
@@ -288,9 +293,9 @@ describe('players.json', () => {
           `${mode} day ${i}`,
         ).toBe(true)
         expect(
-          day.map((p) => p.t),
+          tiersOn(day, addDays(EPOCH_DATE_KEY, i)).map((p) => p.t),
           `${mode} day ${i}`,
-        ).toEqual(tierPlanFor(addDays(EPOCH_DATE_KEY, i)))
+        ).toEqual(TIER_PLAN)
         const window = new Set(
           days
             .slice(Math.max(0, i - windowOn(mode, i, false)), i)
@@ -303,16 +308,16 @@ describe('players.json', () => {
       })
     }
   })
-  it("a year of real beginner dailies is all easy, with no repeat inside the window and nobody from that day's standard daily", () => {
+  it("a year of the real easy draw (the beginner daily to 2026-11-13, then the daily) is all easy, with no repeat inside the window and nobody from that day's classic lineup", () => {
     for (const mode of ['nfl', 'nba', 'mixed'] as const) {
       const days = Array.from({ length: 365 }, (_, i) =>
-        dailyLineup(players, mode, addDays(EPOCH_DATE_KEY, i), 'beginner'),
+        drawLineup(players, mode, addDays(EPOCH_DATE_KEY, i), 'easy'),
       )
       days.forEach((day, i) => {
         expect(
-          day.map((p) => p.t),
+          tiersOn(day, addDays(EPOCH_DATE_KEY, i)).map((p) => p.t),
           `${mode} day ${i}`,
-        ).toEqual(Array(5).fill('easy'))
+        ).toEqual(EASY_PLAN)
         expect(
           day.every((p) => p.h && p.a),
           `${mode} day ${i}`,
@@ -321,9 +326,12 @@ describe('players.json', () => {
           ...days
             .slice(Math.max(0, i - windowOn(mode, i, true)), i)
             .flatMap((d) => d.map((p) => p.id)),
-          ...dailyLineup(players, mode, addDays(EPOCH_DATE_KEY, i)).map(
-            (p) => p.id,
-          ),
+          ...drawLineup(
+            players,
+            mode,
+            addDays(EPOCH_DATE_KEY, i),
+            'classic',
+          ).map((p) => p.id),
         ])
         expect(
           day.some((p) => blocked.has(p.id)),
@@ -331,5 +339,31 @@ describe('players.json', () => {
         ).toBe(false)
       })
     }
+  })
+  it('a year of both real dailies follows the plan of the day: the daily goes all easy on 2026-11-14 and Sicko Mode takes the 3-1-1', () => {
+    for (const mode of ['nfl', 'nba', 'mixed'] as const)
+      for (const variant of ['standard', 'beginner'] as const)
+        for (let i = 0; i < 365; i++) {
+          const d = addDays(EPOCH_DATE_KEY, i)
+          const lineup = dailyLineup(players, mode, d, variant)
+          expect(
+            tiersOn(lineup, d).map((p) => p.t),
+            `${mode} ${variant} day ${i}`,
+          ).toEqual(tierPlanFor(d, variant))
+          expect(lineup).toBe(drawLineup(players, mode, d, drawFor(variant, d)))
+        }
+  })
+  it('data/nba-top-picks.json: every listed player is an easy NBA player, with his old tier dated to the move', () => {
+    const file = data('nba-top-picks.json')
+    const from = puzzleNumber(file.from) - 1
+    const byId = new Map(players.map((p) => [p.id, p]))
+    for (const [id, o] of Object.entries<{ was?: string }>(file.players)) {
+      const p = byId.get(id)!
+      expect(p?.l, id).toBe('nba')
+      expect(p.t, id).toBe('easy')
+      expect(p.tw, id).toEqual(o.was ? [from, o.was] : undefined)
+    }
+    for (const p of players)
+      if (p.tw) expect(p.id in file.players, p.id).toBe(true)
   })
 })

@@ -20,6 +20,13 @@ Ideas and known gaps, roughly in priority order. Nothing here is promised.
   their order), so a correct "he started at X" guess can be marked wrong, and
   the finishing school can be the wrong one (Ronnie Price was). Fix each in
   `data/overrides.json`.
+- **Recent NBA players are mostly missing.** Wikidata often lists no NBA
+  team or no college team for players drafted since ~2019, so the build skips
+  them: ~45 players per college class through 2018, then 12, 7, 4, 4, 5, 3,
+  2 — including 62 of the 100 top-10 picks of 2017–2026 (De'Aaron Fox, LaMelo
+  Ball, Evan Mobley, Chet Holmgren, Brandon Miller…). Needs another NBA
+  source for rosters and colleges (docs/DATA.md §Top draft picks). The NFL
+  side (nflverse) has no such gap.
 - NBA positions and pro teams (Wikidata has them patchily) for the name hint.
 
 ## Game

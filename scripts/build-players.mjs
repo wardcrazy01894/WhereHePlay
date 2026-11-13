@@ -22,6 +22,7 @@ import {
   pickDecoys,
   applyOverrides,
   applyExclusions,
+  applyTierMoves,
   actionKeyFor,
   HIGH_SCHOOL_ID,
   INTERNATIONAL_ID,
@@ -175,6 +176,17 @@ const records = applyOverrides(
   JSON.parse(await read('data/overrides.json')),
   new Set(schools.map((s) => s.id)),
 )
+// NBA top-10 picks of the last ten drafts are all easy, from a set day on.
+const topPicks = JSON.parse(await read('data/nba-top-picks.json'))
+applyTierMoves(
+  records,
+  topPicks.players,
+  Math.round(
+    (Date.parse(topPicks.from + 'T00:00:00Z') -
+      Date.parse(EPOCH_DATE_KEY + 'T00:00:00Z')) /
+      86_400_000,
+  ),
+)
 for (const r of records)
   r.conf = conferenceAt(byId.get(r.schools[0]), r.league, r.year)
 for (const league of ['nfl', 'nba']) {
@@ -220,6 +232,7 @@ const out = kept.map((r) => ({
   ...(r.action ? { a: r.action } : {}),
   ...(r.hs ? { hs: r.hs } : {}),
   ...(r.id in since ? { e: since[r.id] } : {}),
+  ...(r.tierWas ? { tw: r.tierWas } : {}),
 }))
 await writeFile(
   new URL('public/players.json', root),

@@ -1,6 +1,12 @@
 import { useEffect, useRef, useState } from 'react'
 import type { Mode, Player, School, Variant } from './types'
-import { MODES, MODE_LABEL, boardId } from './types'
+import {
+  MODES,
+  MODE_LABEL,
+  SWAP_DATE_KEY,
+  boardId,
+  secondDailyName,
+} from './types'
 import { eligibleOn, getDateKey, puzzleNumber } from './lib/daily'
 import { resolveDay } from './lib/day'
 import { totalPoints } from './lib/game'
@@ -265,8 +271,9 @@ export function App() {
                   </li>
                   <li>Transfers count: any college he played for is right.</li>
                   <li>
-                    New here? The beginner daily is five household names a day,
-                    scored the same way.
+                    {dateKey < SWAP_DATE_KEY
+                      ? 'New here? The beginner daily is five household names a day, scored the same way.'
+                      : 'The daily is five household names. Want it harder? Sicko Mode saves two deep cuts for the end, scored the same way.'}
                   </li>
                 </ul>
               </details>
@@ -298,11 +305,14 @@ export function App() {
                 const done = saved?.questions.every((q) => q.done)
                 const started = saved?.questions.some((q) => q.done)
                 const streak = liveStreak(loadStats(mode), dateKey)
-                const beginner = official
+                // The second daily: Sicko Mode (the beginner daily until the
+                // swap), under the id it has always had.
+                const second = official
                   ? loadDaily(mode, dateKey, 'beginner')
                   : undefined
-                const beginnerDone = beginner?.questions.every((q) => q.done)
-                const beginnerStarted = beginner?.questions.some((q) => q.done)
+                const secondDone = second?.questions.every((q) => q.done)
+                const secondStarted = second?.questions.some((q) => q.done)
+                const secondName = secondDailyName(dateKey)
                 return (
                   <section key={mode} className={`mode mode-${mode}`}>
                     <h2>{MODE_LABEL[mode]}</h2>
@@ -329,11 +339,13 @@ export function App() {
                         setView({ screen: 'daily', mode, variant: 'beginner' })
                       }
                     >
-                      {beginnerDone
-                        ? `Beginner done · ${totalPoints(beginner!.questions)}`
-                        : beginnerStarted
-                          ? 'Continue beginner'
-                          : 'Beginner daily'}
+                      {secondDone
+                        ? `${secondName} done · ${totalPoints(second!.questions)}`
+                        : secondStarted
+                          ? `Continue ${secondName}`
+                          : secondName === 'Beginner'
+                            ? 'Beginner daily'
+                            : secondName}
                     </button>
                     <button
                       type="button"
