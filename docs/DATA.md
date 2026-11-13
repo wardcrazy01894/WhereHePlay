@@ -330,7 +330,9 @@ Nothing is stored in the repo; `src/lib/images.ts` builds URLs.
    game shows his headshot in place of the playing photo (`PlayerPhoto`
    already falls back to it). He stays on that list to be re-searched later;
    take him off once his playing photo is in `photo-overrides.json` (his `e`
-   does not change either way). An out-of-league player with no game photo
+   does not change either way). Taking him off while he still has no playing
+   photo closes his window from the next day, like any lost photo. The build
+   summary still counts him under "need a playing photo". An out-of-league player with no game photo
    may instead use a warm-up, hoodie or practice photo in his pro team's
    gear as his playing photo (owner, 2026-11-13). `build-players` writes `e`
    ("eligible since", days after puzzle #1) for them, from
