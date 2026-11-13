@@ -32,7 +32,7 @@ function write(key: string, value: unknown): void {
 
 export interface DailyGame {
   mode: Mode
-  /** Absent on a standard daily (and on every save from before beginner mode). */
+  /** Absent on the daily; 'beginner' on the second daily (Sicko Mode). */
   variant?: Variant
   dateKey: string
   /** Player ids of the lineup this game was started on. */
@@ -87,7 +87,7 @@ const EMPTY: Stats = {
   totalPoints: 0,
 }
 
-/** Streaks are per daily game: a beginner daily has its own. */
+/** Streaks are per daily game: Sicko Mode has its own. */
 export function loadStats(board: BoardId): Stats {
   const s = read<Stats>(`stats:${board}`)
   if (!s || typeof s.current !== 'number' || typeof s.best !== 'number')

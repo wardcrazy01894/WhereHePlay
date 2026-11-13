@@ -50,16 +50,26 @@ worth the stage it was given at (`src/lib/game.ts`):
 
 Three modes — `nfl`, `nba`, `mixed` (Grab Bag) — each with:
 
-- a **daily**: 5 questions (easy, easy, easy, medium, hard), max 500, one
-  shot, same for everyone, rolling over at the player's local midnight;
-- a **beginner daily** (`variant: 'beginner'`): 5 questions, all from the
-  easy tier, scored the same way (max 500). It is its own game — own save,
-  streak, share-card label ("NFL Beginner") and leaderboard — identified
-  everywhere by `boardId(mode, variant)`: `nfl-beginner`, `nba-beginner`,
-  `mixed-beginner` (a standard daily keeps the bare mode). There is no
-  beginner free play;
+- a **daily**: 5 questions, all from the easy tier, max 500, one shot, same
+  for everyone, rolling over at the player's local midnight;
+- **Sicko Mode** (`variant: 'beginner'`): 5 questions (easy, easy, easy,
+  medium, hard), scored the same way (max 500). It is its own game — own
+  save, streak, share-card label ("NFL Sicko Mode") and leaderboard —
+  identified everywhere by `boardId(mode, variant)`: `nfl-beginner`,
+  `nba-beginner`, `mixed-beginner` (the daily keeps the bare mode). There is
+  no Sicko Mode free play;
 - **free play**: endless random players from that mode's pool, no repeat
   within the last 150, with a running correct-answer streak (best is kept).
+
+**The swap of 2026-11-14.** Through 2026-11-13 it was the other way round:
+the daily was the 3-1-1 and the second daily was the "beginner daily", five
+easy players. On 2026-11-14 (each player's local day, `SWAP_DATE_KEY`) the two
+swapped how their players are picked and the beginner daily was renamed Sicko
+Mode. Nothing else moved: the ids (hence `-beginner`, kept for good), the
+saved games, the streaks and the leaderboards are the ones each game always
+had, so a daily streak carried straight on. The name shown is by day
+(`secondDailyName`, `gameLabel`): a day before the swap still reads
+"Beginner".
 
 A player's tier is internal: it shapes the lineup but is never shown in the
 UI (no tier label on a question, no tier mix in the tagline) — pinned by
@@ -78,18 +88,27 @@ it was started on, so a dataset update can't change a game in progress),
 `stats:<board>` (streak, best, played, points), `free:<mode>`, `identity`
 (API token, display name, username), `photo`.
 
-**Streaks** count consecutive days that daily was finished (the beginner
-daily keeps its own; the home screen shows the standard one). The
+**Streaks** count consecutive days that daily was finished (Sicko Mode
+keeps its own; the home screen shows the daily's). The
 shown streak is the larger of the device's and the server's.
 
 **Share card:** `WhereHePlay #N · NFL (headshot)` — or `(in action)`, and
-`NFL Beginner` for a beginner daily — five squares (🟩 photo, 🟨 name,
+`NFL Sicko Mode` for Sicko Mode — five squares (🟩 photo, 🟨 name,
 🟧 conference, 🟥 multiple choice, ⬛ missed), the score and the link.
 
 ## Daily selection
 
-`src/lib/daily.ts`. Each player gets a per-day rank
-`hash("<mode>:<date>|<id>")`; each slot takes the best-ranked unused player of
+`src/lib/daily.ts`. There are two **draws**, each one unbroken walk from
+puzzle #1: `classic` (easy, easy, easy, medium, hard) and `easy` (five easy).
+`drawFor(variant, date)` says which one a daily shows that day — classic for
+the daily and easy for the second daily through 2026-11-13, the other way
+round from 2026-11-14 (`tierPlanFor` gives the matching plan). Only that
+mapping changed on the swap; neither walk did, so no day re-rolled and no
+player comes back early across it. A future change goes the same way: a new
+rule with a start date in the future.
+
+Each player gets a per-day rank `hash("<seed>|<id>")` (classic seed
+`<mode>:<date>`); each slot takes the best-ranked unused player of
 its tier, preferring a school not already used that day. In the Grab Bag the
 slots alternate leagues (which league starts depends on the day), so a day is
 always a 3/2 split. Ranks are per player, so adding players to the dataset
@@ -105,24 +124,32 @@ day is drawn only from the players eligible that day — so new photos add
 players to later days and can never change a lineup already being played.
 Free play deals from the same pool.
 
-**Cooldown:** a player who appeared in that mode's previous 45 lineups is
+**Tiers by day:** a player moved to another tier by a hand-kept list carries
+his old tier and the day of the move (`tw` in `players.json`); `tiersOn`
+draws every earlier day with the old tier, so a move never changes a lineup
+already being played (docs/DATA.md §Top draft picks).
+
+**Cooldown:** a player who appeared in that draw's previous 45 lineups is
 skipped — or fewer while the pool is small: `cooldownFor` shrinks the window
 to what each league and tier can sustain that day (at launch: 45 days for NFL
-and Grab Bag, 38 for NBA; the beginner daily 30, and 22 for NBA), and it grows back as players get photos. Lineups are computed by walking forward from puzzle #1
+and Grab Bag, 38 for NBA; the easy draw 30, and 22 for NBA), and it grows back as players get photos. Lineups are computed by walking forward from puzzle #1
 (2026-11-11), so the result needs no storage and is identical everywhere. The
 walk costs one hash per player per day (no sorting); if it ever becomes
 noticeable years out, checkpoint it — without changing its output. A
 dataset guard test simulates a year of all three modes and checks the tier
-plan and the no-repeat window on the real data.
+plan and the no-repeat window on the real data — per draw, and per daily
+across the swap.
 
-**Beginner daily:** the same draw with the seed `<mode>-beginner:<date>`, a
+**The easy draw** (the daily; the beginner daily before the swap): the same
+algorithm with the seed `<mode>-beginner:<date>` (its launch name, kept), a
 plan of five easy slots and a pool of the easy tier only — so even the
 fallbacks can only ever pick an easy player. It skips its own previous 30
-lineups (`BEGINNER_COOLDOWN_DAYS`; shorter than 45 because five a day from the
+lineups (`EASY_COOLDOWN_DAYS`; shorter than 45 because five a day from the
 easy tier alone would run dry — and shorter still while few easy players
-have both photos, by the same `cooldownFor` rule) and that day's standard lineup of the
-same mode, so playing both never shows a player twice in a day. The standard
-daily does not depend on it: its seed and walk are exactly what they were.
+have both photos, by the same `cooldownFor` rule) and that day's classic lineup of the
+same mode, so playing both dailies never shows a player twice in a day. The
+classic draw does not depend on it: its seed and walk are exactly what they
+were at launch.
 The dataset guard simulates a year of it too.
 
 ## Auto-update (no stale tabs)
@@ -246,7 +273,9 @@ There is **no password reset** (no email on file) — an operator can clear an
 account by hand (docs/OPERATIONS.md).
 
 **Boards:** one per daily game — `nfl`, `nba`, `mixed` and their
-`-beginner` twins (`BOARDS` in `worker/api-lib.mjs`, `boardId` in the client).
+`-beginner` twins, which are Sicko Mode since 2026-11-14 (`BOARDS` in
+`worker/api-lib.mjs`, `boardId` in the client). The worker knows nothing of
+tiers, so the swap needed no worker change.
 
 **Scores** (`/score`): `{board, date, marks, score}` where `marks` is five
 characters `0`–`4` and `score` must equal what the marks add up to. The date

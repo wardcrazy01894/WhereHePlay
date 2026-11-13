@@ -33,7 +33,7 @@ interface Props {
   players: Player[]
   schools: School[]
   mode: Mode
-  /** Standard daily, or the beginner one (its own save, streak and board). */
+  /** The daily, or the second one — Sicko Mode (its own save, streak and board). */
   variant: Variant
   dateKey: string
   /** False for ?date= playtest days: nothing is recorded or submitted. */
@@ -81,7 +81,7 @@ export function DailyGame(props: Props) {
     props
   const { variant } = props
   const board = boardId(mode, variant)
-  const label = gameLabel(mode, variant)
+  const label = gameLabel(mode, variant, dateKey)
   const [game, setGame] = useState<Saved>(() =>
     startGame(players, mode, dateKey, photoStyle, variant),
   )

@@ -10,7 +10,7 @@ import {
   headshotUrl,
 } from './images'
 import type { Player } from '../types'
-import { boardId, gameLabel } from '../types'
+import { boardId, gameLabel, secondDailyName } from '../types'
 
 const empty: Stats = {
   current: 0,
@@ -97,6 +97,18 @@ describe('share', () => {
         'beginner',
       ).split('\n')[0],
     ).toBe('WhereHePlay #1 · Grab Bag Beginner (headshot)')
+  })
+  it('from 2026-11-14 the second daily is Sicko Mode on the card', () => {
+    expect(
+      shareText(
+        'mixed',
+        '2026-11-14',
+        [],
+        'https://x.test/',
+        'headshot',
+        'beginner',
+      ).split('\n')[0],
+    ).toBe('WhereHePlay #4 · Grab Bag Sicko Mode (headshot)')
   })
 })
 
@@ -237,7 +249,15 @@ describe('board ids', () => {
     expect(boardId('nfl')).toBe('nfl')
     expect(boardId('mixed', 'standard')).toBe('mixed')
     expect(boardId('nba', 'beginner')).toBe('nba-beginner')
-    expect(gameLabel('nba')).toBe('NBA')
-    expect(gameLabel('mixed', 'beginner')).toBe('Grab Bag Beginner')
+    expect(gameLabel('nba', 'standard', '2026-11-14')).toBe('NBA')
+    // Same id for good; the name it goes by changed with the swap.
+    expect(gameLabel('mixed', 'beginner', '2026-11-13')).toBe(
+      'Grab Bag Beginner',
+    )
+    expect(gameLabel('mixed', 'beginner', '2026-11-14')).toBe(
+      'Grab Bag Sicko Mode',
+    )
+    expect(secondDailyName('2026-11-13')).toBe('Beginner')
+    expect(secondDailyName('2026-11-14')).toBe('Sicko Mode')
   })
 })

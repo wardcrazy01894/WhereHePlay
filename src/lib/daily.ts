@@ -2,43 +2,60 @@
  * Deterministic daily question selection — same five players for everyone on
  * a given day and mode, with no backend.
  *
- * Each player gets a per-day rank, hash(`<mode>:<date>|<id>`); a slot takes
+ * Each player gets a per-day rank, hash(`<seed>|<id>`); a slot takes
  * the best-ranked eligible player of its tier (and, in the grab bag, of its
  * league). Ranks are per player, NOT a shuffle of the pool, so a dataset
  * rebuild that adds players leaves everyone else's rank untouched.
  *
  * Recency cooldown: a player who appeared in the previous COOLDOWN_DAYS
- * lineups of that mode is skipped. The lineups are computed by walking the
+ * lineups of that draw is skipped. The lineups are computed by walking the
  * days from EPOCH_DATE_KEY, so the result is a pure function of
  * (dataset, mode, date) — no storage, identical in every browser.
  *
  * The day rolls over at the PLAYER'S local midnight (Wordle-style).
  */
 import type { League, Mode, Player, Tier, Variant } from '../types'
-import { boardId } from '../types'
+import { SWAP_DATE_KEY } from '../types'
 
 export const QUESTIONS_PER_DAY = 5
 /** Three easy, one medium, one hard — warm-ups first, the stumper last. */
 export const TIER_PLAN: Tier[] = ['easy', 'easy', 'easy', 'medium', 'hard']
 /**
- * The plan for a given day. One plan so far (the game launched with it); if
- * it ever changes, add the new plan here with a START DATE IN THE FUTURE and
- * keep returning the old one for earlier days — never edit a plan that has
- * been played, or past and in-progress puzzles re-roll.
+ * Five easy players. Its window is shorter than the 3-1-1 one because it
+ * draws five a day from the easy tier alone — a dataset guard test checks
+ * the depth.
  */
-export function tierPlanFor(_dateKey: string): Tier[] {
-  return TIER_PLAN
-}
+export const EASY_PLAN: Tier[] = ['easy', 'easy', 'easy', 'easy', 'easy']
 /** Puzzle #1. */
 export const EPOCH_DATE_KEY = '2026-11-11'
 export const COOLDOWN_DAYS = 45
+export const EASY_COOLDOWN_DAYS = 30
+
 /**
- * The beginner daily: five easy players. Its window is shorter than the
- * standard one because it draws five a day from the easy tier alone (the
- * smallest, ~200 NBA players) — a dataset guard test checks the depth.
+ * The two draws, each one unbroken walk from puzzle #1: `classic` follows
+ * TIER_PLAN, `easy` follows EASY_PLAN. Neither has changed since launch.
  */
-export const BEGINNER_PLAN: Tier[] = ['easy', 'easy', 'easy', 'easy', 'easy']
-export const BEGINNER_COOLDOWN_DAYS = 30
+export type Draw = 'classic' | 'easy'
+/**
+ * Which draw a daily shows on a given day. Until SWAP_DATE_KEY the daily was
+ * the classic draw and the second daily ("beginner") the easy one; from that
+ * day on they are swapped — the daily is five easy players and the second
+ * daily is Sicko Mode, the classic 3-1-1. Only this mapping changed: both
+ * walks carry on untouched, so no day already played re-rolled. A future
+ * change goes here the same way: a new rule with a START DATE IN THE FUTURE,
+ * never an edit to days already played.
+ */
+export function drawFor(variant: Variant, dateKey: string): Draw {
+  const swapped = dateKey >= SWAP_DATE_KEY
+  return (variant === 'standard') === swapped ? 'easy' : 'classic'
+}
+/** The tier plan of a daily on a given day. */
+export function tierPlanFor(
+  dateKey: string,
+  variant: Variant = 'standard',
+): Tier[] {
+  return drawFor(variant, dateKey) === 'easy' ? EASY_PLAN : TIER_PLAN
+}
 
 export function addDays(dateKey: string, n: number): string {
   return new Date(Date.parse(dateKey + 'T00:00:00Z') + n * 86_400_000)
@@ -115,13 +132,23 @@ export function eligibleOn(all: Player[], dateKey: string): Player[] {
 }
 
 /**
+ * The same players with the tier each had on `dateKey`: a player moved by a
+ * hand-kept list (`tw`) keeps his old tier on the days before the move, so
+ * those days' lineups never change. Everyone else is returned as he is.
+ */
+export function tiersOn(players: Player[], dateKey: string): Player[] {
+  const day = Math.max(0, puzzleNumber(dateKey) - 1)
+  return players.map((p) => (p.tw && day < p.tw[0] ? { ...p, t: p.tw[1] } : p))
+}
+
+/**
  * How many past lineups a day can keep out without running a tier dry: `base`
  * (COOLDOWN_DAYS), or fewer while the pool is small — it grows as players
  * get their photos. For each league and tier the window's lineups plus
  * today's must fit in the pool. The grab bag alternates leagues, so one
  * league fills at most half a tier's slots (rounded up). `held` is the number
  * of players per league and tier already taken by another lineup that day
- * (the beginner daily keeps clear of the standard one).
+ * (the easy draw keeps clear of the classic one).
  */
 export function cooldownFor(
   pool: Player[],
@@ -209,37 +236,34 @@ export function selectDaily(
   return chosen
 }
 
-/** A standard daily's seed is `<mode>:<date>` — unchanged since launch. */
+/**
+ * A draw's seed: `<mode>:<date>` for the classic one, `<mode>-beginner:<date>`
+ * for the easy one — both unchanged since launch (the easy draw began as the
+ * beginner daily, hence the name).
+ */
 export function dateSeed(
   mode: Mode,
   dateKey: string,
-  variant: Variant = 'standard',
+  draw: Draw = 'classic',
 ): string {
-  return `${boardId(mode, variant)}:${dateKey}`
+  return `${draw === 'easy' ? `${mode}-beginner` : mode}:${dateKey}`
 }
 
 interface Walk {
   mode: Mode
-  variant: Variant
+  draw: Draw
   history: Player[][]
 }
-/** One walk per dataset array (identity), mode and variant. */
-const walks = new WeakMap<Player[], Walk[]>()
+interface Walks {
+  byId: Map<string, Player>
+  list: Walk[]
+}
+/** One walk per dataset array (identity), mode and draw. */
+const walks = new WeakMap<Player[], Walks>()
 
 /**
- * The official lineup for (mode, dateKey).
- *
- * Drawn only from the players eligible that day (both photos — eligibleOn),
- * skipping whoever appeared in the previous lineups of that board, as many
- * as the pool can sustain (cooldownFor). Each day depends only on the days
- * before it and on players already eligible then, so the result is a pure
- * function of (dataset, mode, date): photos that land later add players to
- * later days and never touch a day already played.
- *
- * The standard daily depends on nothing but itself. The beginner daily is
- * drawn from the easy tier only (so every fallback in selectDaily stays easy)
- * and also skips that day's standard lineup of the same mode, so playing both
- * never shows a player twice in a day.
+ * The official lineup of a daily for (mode, dateKey): that day's lineup of
+ * the draw the daily shows then (drawFor).
  */
 export function dailyLineup(
   all: Player[],
@@ -247,53 +271,83 @@ export function dailyLineup(
   dateKey: string,
   variant: Variant = 'standard',
 ): Player[] {
-  let list = walks.get(all)
-  if (!list) walks.set(all, (list = []))
-  let walk = list.find((w) => w.mode === mode && w.variant === variant)
-  if (!walk) list.push((walk = { mode, variant, history: [] }))
+  return drawLineup(all, mode, dateKey, drawFor(variant, dateKey))
+}
+
+/**
+ * A draw's lineup for (mode, dateKey).
+ *
+ * Drawn only from the players eligible that day (both photos — eligibleOn),
+ * with the tiers they had that day (tiersOn), skipping whoever appeared in
+ * the previous lineups of that draw, as many as the pool can sustain
+ * (cooldownFor). Each day depends only on the days before it and on players
+ * already eligible then, so the result is a pure function of (dataset, mode,
+ * date): photos that land later add players to later days and never touch a
+ * day already played.
+ *
+ * The classic draw depends on nothing but itself. The easy draw is drawn from
+ * the easy tier only (so every fallback in selectDaily stays easy) and also
+ * skips that day's classic lineup of the same mode, so playing both dailies
+ * never shows a player twice in a day.
+ */
+export function drawLineup(
+  all: Player[],
+  mode: Mode,
+  dateKey: string,
+  kind: Draw,
+): Player[] {
+  let cache = walks.get(all)
+  if (!cache)
+    walks.set(
+      all,
+      (cache = { byId: new Map(all.map((p) => [p.id, p])), list: [] }),
+    )
+  const { byId } = cache
+  let walk = cache.list.find((w) => w.mode === mode && w.draw === kind)
+  if (!walk) cache.list.push((walk = { mode, draw: kind, history: [] }))
   const draw = (d: string, history: Player[][]): Player[] => {
-    const eligible = eligibleOn(all, d)
+    const eligible = tiersOn(eligibleOn(all, d), d)
     const recent = (days: number) =>
       new Set(
         (days > 0 ? history.slice(-days) : []).flatMap((day) =>
           day.map((p) => p.id),
         ),
       )
-    if (variant === 'standard') {
-      const plan = tierPlanFor(d)
+    // tiersOn hands out copies of the players it re-tiers: give back the
+    // dataset's own rows.
+    const rows = (picks: Player[]) => picks.map((p) => byId.get(p.id)!)
+    if (kind === 'classic') {
       const window = cooldownFor(
         poolFor(eligible, mode),
         mode,
-        plan,
+        TIER_PLAN,
         COOLDOWN_DAYS,
       )
-      return selectDaily(
-        eligible,
-        mode,
-        dateSeed(mode, d),
-        recent(window),
-        plan,
+      return rows(
+        selectDaily(
+          eligible,
+          mode,
+          dateSeed(mode, d),
+          recent(window),
+          TIER_PLAN,
+        ),
       )
     }
     const easy = eligible.filter((p) => p.t === 'easy')
-    const standard = dailyLineup(all, mode, d)
+    const classic = drawLineup(all, mode, d, 'classic')
     const window = cooldownFor(
       poolFor(easy, mode),
       mode,
-      BEGINNER_PLAN,
-      BEGINNER_COOLDOWN_DAYS,
-      // At most this many of a league's easy players are in the standard
+      EASY_PLAN,
+      EASY_COOLDOWN_DAYS,
+      // At most this many of a league's easy players are in the classic
       // lineup that day (cooldownFor's own bound for a plan).
       mode === 'mixed' ? 2 : 3,
     )
     const exclude = recent(window)
-    for (const p of standard) exclude.add(p.id)
-    return selectDaily(
-      easy,
-      mode,
-      dateSeed(mode, d, 'beginner'),
-      exclude,
-      BEGINNER_PLAN,
+    for (const p of classic) exclude.add(p.id)
+    return rows(
+      selectDaily(easy, mode, dateSeed(mode, d, 'easy'), exclude, EASY_PLAN),
     )
   }
   // Days before the epoch (only reachable via ?date=) get a plain draw.

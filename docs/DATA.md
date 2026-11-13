@@ -172,6 +172,28 @@ looked up for — set it whenever `s` changes where he finished. `t` sets the
 tier (use it when the fame formula is plainly off: Josh Allen is not a
 "medium"). The build fails on an unknown player, school, year or tier.
 
+## Top draft picks (`data/nba-top-picks.json`)
+
+The owner's rule (2026-11-13): an NBA **top-10 pick of the last ten drafts**
+(2017–2026) is **easy**. The file lists the ones who are in the dataset —
+player id → name, draft, pick and `was`, the tier he had before (absent if he
+was already easy): 38 players, 21 of them moved. `build-players` applies it
+after tiers and overrides (`applyTierMoves`), so nobody else's tier moves.
+
+The move is **dated** (`from`: 2026-11-14, the day the dailies swapped). A
+moved player's row carries `tw: [day, old tier]` and every earlier day is
+still drawn with the old tier (`tiersOn` in `src/lib/daily.ts`), so the
+lineups of days already played are exactly what they were. Never change
+`from`, or a `was`, once that day has started. To add a player later, give
+the list a second dated group rather than back-dating this one.
+
+It is a snapshot, not a rolling rule: next year's class is added by hand.
+Most top-10 picks since 2019 are **not in the dataset at all** — Wikidata,
+the NBA source, often lists no NBA team or no college team for recent
+players, so the build skips them (62 of the 100 picks; the NBA pool has ~45
+players per college class through 2018 and a handful a year after). They are
+not in this file; fixing that needs another NBA source (BACKLOG).
+
 ## The schools table (`data/schools.psv`)
 
 One line per school, pipe-separated (the header comment in the file is the
@@ -378,4 +400,5 @@ store build — see docs/APP.md §Photos.
 ids, optional `h` headshot key, `p` position (NFL), `a` Commons storage path,
 (or a `tsdb:` image key),
 `hs` high school (preps to pros only), `e` eligible since (days after puzzle
-#1; present only with both photos).
+#1; present only with both photos), `tw` tier was (`[day, tier]`: his tier
+before that day — only for a player moved by `data/nba-top-picks.json`).

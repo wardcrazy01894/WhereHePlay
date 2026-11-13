@@ -1,8 +1,8 @@
 import { describe, it, expect } from 'vitest'
 import type { League, Player, Tier } from '../types'
 import {
-  BEGINNER_COOLDOWN_DAYS,
-  BEGINNER_PLAN,
+  EASY_COOLDOWN_DAYS,
+  EASY_PLAN,
   cooldownFor,
   eligibleOn,
   COOLDOWN_DAYS,
@@ -11,6 +11,9 @@ import {
   tierPlanFor,
   addDays,
   dailyLineup,
+  drawFor,
+  drawLineup,
+  tiersOn,
   dateSeed,
   getDateKey,
   hashString,
@@ -137,7 +140,9 @@ describe('dailyLineup (cooldown)', () => {
     const all = fixture(240)
     for (const mode of ['nfl', 'mixed'] as const) {
       const days = Array.from({ length: 120 }, (_, i) =>
-        dailyLineup(all, mode, addDays(EPOCH_DATE_KEY, i)).map((p) => p.id),
+        drawLineup(all, mode, addDays(EPOCH_DATE_KEY, i), 'classic').map(
+          (p) => p.id,
+        ),
       )
       for (let i = 0; i < days.length; i++) {
         const window = new Set(
@@ -151,49 +156,161 @@ describe('dailyLineup (cooldown)', () => {
     const a = fixture()
     const b = fixture()
     const late = addDays(EPOCH_DATE_KEY, 60)
-    const direct = dailyLineup(a, 'nba', late).map((p) => p.id)
+    const direct = drawLineup(a, 'nba', late, 'classic').map((p) => p.id)
     for (let i = 0; i <= 60; i++)
-      dailyLineup(b, 'nba', addDays(EPOCH_DATE_KEY, i))
-    expect(dailyLineup(b, 'nba', late).map((p) => p.id)).toEqual(direct)
+      drawLineup(b, 'nba', addDays(EPOCH_DATE_KEY, i), 'classic')
+    expect(drawLineup(b, 'nba', late, 'classic').map((p) => p.id)).toEqual(
+      direct,
+    )
   })
   it('day one has no history and equals a plain draw', () => {
     const all = fixture()
-    expect(dailyLineup(all, 'nfl', EPOCH_DATE_KEY)).toEqual(
+    expect(drawLineup(all, 'nfl', EPOCH_DATE_KEY, 'classic')).toEqual(
       selectDaily(all, 'nfl', dateSeed('nfl', EPOCH_DATE_KEY)),
     )
   })
-  it('every day, from puzzle #1 on, is 3 easy, 1 medium, 1 hard', () => {
+  it('the classic draw is 3 easy, 1 medium, 1 hard every day, from puzzle #1 on', () => {
     const all = fixture(240)
     for (const i of [0, 1, 40])
       expect(
-        dailyLineup(all, 'mixed', addDays(EPOCH_DATE_KEY, i)).map((p) => p.t),
+        drawLineup(all, 'mixed', addDays(EPOCH_DATE_KEY, i), 'classic').map(
+          (p) => p.t,
+        ),
       ).toEqual(['easy', 'easy', 'easy', 'medium', 'hard'])
-    expect(tierPlanFor(EPOCH_DATE_KEY)).toBe(TIER_PLAN)
   })
 })
 
-describe('beginner daily (easy players only)', () => {
+describe('the swap of 2026-11-14: the daily is five easy, the second daily is Sicko Mode', () => {
+  const ids = (ps: Player[]) => ps.map((p) => p.id)
+  const before = ['2026-11-11', '2026-11-12', '2026-11-13']
+  const after = ['2026-11-14', '2026-11-15', '2027-03-01']
+  it('drawFor / tierPlanFor: which draw each daily shows, by day', () => {
+    for (const d of before) {
+      expect(drawFor('standard', d)).toBe('classic')
+      expect(drawFor('beginner', d)).toBe('easy')
+      expect(tierPlanFor(d)).toBe(TIER_PLAN)
+      expect(tierPlanFor(d, 'beginner')).toBe(EASY_PLAN)
+    }
+    for (const d of after) {
+      expect(drawFor('standard', d)).toBe('easy')
+      expect(drawFor('beginner', d)).toBe('classic')
+      expect(tierPlanFor(d)).toBe(EASY_PLAN)
+      expect(tierPlanFor(d, 'beginner')).toBe(TIER_PLAN)
+    }
+    // A practice day before the epoch is the daily as it launched.
+    expect(drawFor('standard', '2026-11-01')).toBe('classic')
+  })
+  it('the seeds are pinned: neither draw has moved since launch', () => {
+    expect(dateSeed('nfl', '2026-11-14')).toBe('nfl:2026-11-14')
+    expect(dateSeed('nfl', '2026-11-14', 'easy')).toBe(
+      'nfl-beginner:2026-11-14',
+    )
+  })
+  it('each daily shows its old draw through 2026-11-13 and the other one from 2026-11-14', () => {
+    const all = fixture(240)
+    for (const mode of ['nfl', 'nba', 'mixed'] as const) {
+      for (const d of before) {
+        expect(ids(dailyLineup(all, mode, d))).toEqual(
+          ids(drawLineup(all, mode, d, 'classic')),
+        )
+        expect(ids(dailyLineup(all, mode, d, 'beginner'))).toEqual(
+          ids(drawLineup(all, mode, d, 'easy')),
+        )
+      }
+      for (const d of after) {
+        const daily = dailyLineup(all, mode, d)
+        const sicko = dailyLineup(all, mode, d, 'beginner')
+        expect(daily.map((p) => p.t)).toEqual(EASY_PLAN)
+        expect(sicko.map((p) => p.t)).toEqual(TIER_PLAN)
+        expect(ids(daily)).toEqual(ids(drawLineup(all, mode, d, 'easy')))
+        expect(ids(sicko)).toEqual(ids(drawLineup(all, mode, d, 'classic')))
+        // Playing both never shows a player twice in a day.
+        expect(daily.some((p) => sicko.includes(p))).toBe(false)
+      }
+    }
+  })
+  it('the swap leaves both walks unbroken: no repeat across it inside the window', () => {
+    const all = fixture(240)
+    const days = Array.from({ length: 40 }, (_, i) =>
+      ids(dailyLineup(all, 'nfl', addDays(EPOCH_DATE_KEY, i), 'beginner')),
+    )
+    // Sicko Mode from day 3 on is the classic walk: nobody from the classic
+    // lineups of days 0-2 (the old daily) comes back inside 45 days.
+    const old = new Set(
+      [0, 1, 2].flatMap((i) =>
+        ids(drawLineup(all, 'nfl', addDays(EPOCH_DATE_KEY, i), 'classic')),
+      ),
+    )
+    expect(
+      days
+        .slice(3)
+        .flat()
+        .some((id) => old.has(id)),
+    ).toBe(false)
+  })
+})
+
+describe('tiersOn: a player moved to another tier keeps the old one on earlier days (`tw`)', () => {
+  const day = (i: number) => addDays(EPOCH_DATE_KEY, i)
+  const ids = (ps: Player[]) => ps.map((p) => p.id)
+  it('old tier before the day, new tier from it; everyone else is the same row', () => {
+    const [a, b] = fixture(1)
+    const moved: Player = { ...a, t: 'easy', tw: [3, 'hard'] }
+    expect(tiersOn([moved, b], day(2)).map((p) => p.t)).toEqual(['hard', b.t])
+    expect(tiersOn([moved, b], day(3))[0]).toBe(moved)
+    expect(tiersOn([moved, b], day(2))[1]).toBe(b)
+    expect(tiersOn([moved], addDays(EPOCH_DATE_KEY, -4))[0].t).toBe('hard')
+  })
+  it('moving players to easy on day 3 changes no lineup of days 0-2, in any mode or draw, and they are drawn as easy afterwards', () => {
+    // A deep pool: the no-repeat window is then never the pool's limit.
+    const base = fixture(240)
+    // Every third medium or hard player becomes easy from day 3.
+    const later = base.map((p, i): Player =>
+      p.t !== 'easy' && i % 3 === 0 ? { ...p, t: 'easy', tw: [3, p.t] } : p,
+    )
+    const movedIds = new Set(later.filter((p) => p.tw).map((p) => p.id))
+    for (const mode of ['nfl', 'nba', 'mixed'] as const)
+      for (const kind of ['classic', 'easy'] as const) {
+        for (let i = 0; i < 3; i++)
+          expect(ids(drawLineup(later, mode, day(i), kind))).toEqual(
+            ids(drawLineup(base, mode, day(i), kind)),
+          )
+        const seen = Array.from({ length: 40 }, (_, i) =>
+          drawLineup(later, mode, day(3 + i), kind),
+        )
+        // Lineups hold the dataset's own rows, never a re-tiered copy.
+        expect(seen.flat().every((p) => later.includes(p))).toBe(true)
+        if (kind === 'easy')
+          expect(seen.flat().some((p) => movedIds.has(p.id))).toBe(true)
+        else
+          for (const lineup of seen)
+            expect(lineup.map((p) => p.t)).toEqual(TIER_PLAN)
+      }
+  })
+})
+
+describe('the easy draw (easy players only)', () => {
   const day = (i: number) => addDays(EPOCH_DATE_KEY, i)
   it('adding the variant leaves the standard seed and lineup untouched', () => {
     expect(dateSeed('nfl', '2026-11-11')).toBe('nfl:2026-11-11')
-    expect(dateSeed('nfl', '2026-11-11', 'standard')).toBe('nfl:2026-11-11')
-    expect(dateSeed('mixed', '2026-11-11', 'beginner')).toBe(
+    expect(dateSeed('nfl', '2026-11-11', 'classic')).toBe('nfl:2026-11-11')
+    expect(dateSeed('mixed', '2026-11-11', 'easy')).toBe(
       'mixed-beginner:2026-11-11',
     )
     const a = fixture(240)
     const b = fixture(240)
     // Asking for beginner days first must not disturb the standard walk.
-    for (let i = 0; i < 10; i++) dailyLineup(a, 'nfl', day(i), 'beginner')
+    for (let i = 0; i < 10; i++) drawLineup(a, 'nfl', day(i), 'easy')
     for (let i = 0; i < 10; i++)
-      expect(dailyLineup(a, 'nfl', day(i)).map((p) => p.id)).toEqual(
-        dailyLineup(b, 'nfl', day(i), 'standard').map((p) => p.id),
+      expect(drawLineup(a, 'nfl', day(i), 'classic').map((p) => p.id)).toEqual(
+        drawLineup(b, 'nfl', day(i), 'classic').map((p) => p.id),
       )
   })
   it('is five different easy players, in every mode', () => {
     const all = fixture(240)
     for (const mode of ['nfl', 'nba', 'mixed'] as const)
       for (const i of [0, 1, 50]) {
-        const picks = dailyLineup(all, mode, day(i), 'beginner')
+        const picks = drawLineup(all, mode, day(i), 'easy')
         expect(picks.map((p) => p.t)).toEqual(Array(5).fill('easy'))
         expect(new Set(picks.map((p) => p.id)).size).toBe(5)
         if (mode !== 'mixed')
@@ -206,23 +323,21 @@ describe('beginner daily (easy players only)', () => {
     for (const mode of ['nfl', 'mixed'] as const)
       for (let i = 0; i < 60; i++) {
         const standard = new Set(
-          dailyLineup(all, mode, day(i)).map((p) => p.id),
+          drawLineup(all, mode, day(i), 'classic').map((p) => p.id),
         )
         expect(
-          dailyLineup(all, mode, day(i), 'beginner').some((p) =>
-            standard.has(p.id),
-          ),
+          drawLineup(all, mode, day(i), 'easy').some((p) => standard.has(p.id)),
         ).toBe(false)
       }
   })
   it('never repeats a player within its own cooldown window', () => {
     const all = fixture(240)
     const days = Array.from({ length: 90 }, (_, i) =>
-      dailyLineup(all, 'nba', day(i), 'beginner').map((p) => p.id),
+      drawLineup(all, 'nba', day(i), 'easy').map((p) => p.id),
     )
     days.forEach((ids, i) => {
       const window = new Set(
-        days.slice(Math.max(0, i - BEGINNER_COOLDOWN_DAYS), i).flat(),
+        days.slice(Math.max(0, i - EASY_COOLDOWN_DAYS), i).flat(),
       )
       expect(ids.some((id) => window.has(id))).toBe(false)
     })
@@ -233,19 +348,17 @@ describe('beginner daily (easy players only)', () => {
     const all = fixture(12)
     for (let i = 0; i < 20; i++)
       expect(
-        dailyLineup(all, 'nfl', day(i), 'beginner').every(
-          (p) => p.t === 'easy',
-        ),
+        drawLineup(all, 'nfl', day(i), 'easy').every((p) => p.t === 'easy'),
       ).toBe(true)
   })
   it('is the same no matter which day is asked for first', () => {
     const a = fixture(240)
     const b = fixture(240)
-    const direct = dailyLineup(a, 'mixed', day(40), 'beginner').map((p) => p.id)
-    for (let i = 0; i <= 40; i++) dailyLineup(b, 'mixed', day(i), 'beginner')
-    expect(
-      dailyLineup(b, 'mixed', day(40), 'beginner').map((p) => p.id),
-    ).toEqual(direct)
+    const direct = drawLineup(a, 'mixed', day(40), 'easy').map((p) => p.id)
+    for (let i = 0; i <= 40; i++) drawLineup(b, 'mixed', day(i), 'easy')
+    expect(drawLineup(b, 'mixed', day(40), 'easy').map((p) => p.id)).toEqual(
+      direct,
+    )
   })
 })
 
@@ -283,18 +396,18 @@ describe('only players with both photos are drawn (`e`: eligible since day N)', 
     const base = fixture(240)
     // The same data after 60 players lost a photo on day 10.
     const later = base.map((p, i) => (i % 4 === 0 ? { ...p, e: [0, 10] } : p))
-    for (const variant of ['standard', 'beginner'] as const)
+    for (const kind of ['classic', 'easy'] as const)
       for (let i = 0; i < 10; i++)
-        expect(ids(dailyLineup(later, 'mixed', day(i), variant))).toEqual(
-          ids(dailyLineup(base, 'mixed', day(i), variant)),
+        expect(ids(drawLineup(later, 'mixed', day(i), kind))).toEqual(
+          ids(drawLineup(base, 'mixed', day(i), kind)),
         )
     const out = new Set(
       later.filter((p) => Array.isArray(p.e)).map((p) => p.id),
     )
     for (let i = 10; i < 60; i++)
-      expect(dailyLineup(later, 'nfl', day(i)).some((p) => out.has(p.id))).toBe(
-        false,
-      )
+      expect(
+        drawLineup(later, 'nfl', day(i), 'classic').some((p) => out.has(p.id)),
+      ).toBe(false)
   })
   it('a player waiting for a photo is never in a lineup, in any mode or variant', () => {
     const all = fixture(240).map((p, i) =>
@@ -304,12 +417,10 @@ describe('only players with both photos are drawn (`e`: eligible since day N)', 
       all.filter((p) => p.e === undefined).map((p) => p.id),
     )
     for (const mode of ['nfl', 'nba', 'mixed'] as const)
-      for (const variant of ['standard', 'beginner'] as const)
+      for (const kind of ['classic', 'easy'] as const)
         for (let i = 0; i < 40; i++)
           expect(
-            dailyLineup(all, mode, day(i), variant).some((p) =>
-              waiting.has(p.id),
-            ),
+            drawLineup(all, mode, day(i), kind).some((p) => waiting.has(p.id)),
           ).toBe(false)
   })
   it('photos that land later never change a day already played — he joins from his day on', () => {
@@ -317,14 +428,14 @@ describe('only players with both photos are drawn (`e`: eligible since day N)', 
     // The same data after 60 more players got their photos on day 10.
     const later = base.map((p, i) => (i % 4 === 0 ? { ...p, e: 10 } : p))
     const before = later.filter((p) => p.e === 0)
-    for (const variant of ['standard', 'beginner'] as const) {
+    for (const kind of ['classic', 'easy'] as const) {
       for (let i = 0; i < 10; i++)
-        expect(ids(dailyLineup(later, 'mixed', day(i), variant))).toEqual(
-          ids(dailyLineup(before, 'mixed', day(i), variant)),
+        expect(ids(drawLineup(later, 'mixed', day(i), kind))).toEqual(
+          ids(drawLineup(before, 'mixed', day(i), kind)),
         )
       const joined = new Set(later.filter((p) => p.e === 10).map((p) => p.id))
       const seen = Array.from({ length: 60 }, (_, i) =>
-        dailyLineup(later, 'mixed', day(10 + i), variant),
+        drawLineup(later, 'mixed', day(10 + i), kind),
       ).flat()
       expect(seen.some((p) => joined.has(p.id))).toBe(true)
     }
@@ -340,9 +451,7 @@ describe('only players with both photos are drawn (`e`: eligible since day N)', 
     // The grab bag takes at most two easy players a day from one league.
     expect(cooldownFor(small, 'mixed', TIER_PLAN, COOLDOWN_DAYS)).toBe(19)
     // Beginner: five a day, and three are held back by the standard daily.
-    expect(
-      cooldownFor(small, 'nfl', BEGINNER_PLAN, BEGINNER_COOLDOWN_DAYS, 3),
-    ).toBe(6)
+    expect(cooldownFor(small, 'nfl', EASY_PLAN, EASY_COOLDOWN_DAYS, 3)).toBe(6)
     expect(cooldownFor(fixture(3), 'nfl', TIER_PLAN, COOLDOWN_DAYS)).toBe(0)
   })
   it('a small pool still follows the plan and never repeats inside its own window', () => {
@@ -350,7 +459,7 @@ describe('only players with both photos are drawn (`e`: eligible since day N)', 
     for (const mode of ['nfl', 'mixed'] as const) {
       const window = cooldownFor(all, mode, TIER_PLAN, COOLDOWN_DAYS)
       const days = Array.from({ length: 120 }, (_, i) =>
-        dailyLineup(all, mode, day(i)),
+        drawLineup(all, mode, day(i), 'classic'),
       )
       days.forEach((lineup, i) => {
         expect(lineup.map((p) => p.t)).toEqual(TIER_PLAN)
@@ -365,18 +474,18 @@ describe('only players with both photos are drawn (`e`: eligible since day N)', 
     const bWindow = cooldownFor(
       all.filter((p) => p.t === 'easy'),
       'nfl',
-      BEGINNER_PLAN,
-      BEGINNER_COOLDOWN_DAYS,
+      EASY_PLAN,
+      EASY_COOLDOWN_DAYS,
       3,
     )
     const b = Array.from({ length: 80 }, (_, i) =>
-      dailyLineup(all, 'nfl', day(i), 'beginner'),
+      drawLineup(all, 'nfl', day(i), 'easy'),
     )
     b.forEach((lineup, i) => {
       expect(lineup.every((p) => p.t === 'easy')).toBe(true)
       const blocked = new Set([
         ...b.slice(Math.max(0, i - bWindow), i).flatMap(ids),
-        ...ids(dailyLineup(all, 'nfl', day(i))),
+        ...ids(drawLineup(all, 'nfl', day(i), 'classic')),
       ])
       expect(lineup.some((p) => blocked.has(p.id))).toBe(false)
     })

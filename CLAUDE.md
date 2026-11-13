@@ -40,6 +40,7 @@ migrations. Never mock the unit under test.
 | `worker/bug-lib.mjs`, `src/lib/report.ts`, `playerSearch.ts`, BugReport, PlayerSearch | PLAN §Bug reports and player requests + OPERATIONS §Bug reports |
 | `worker/migrations/*`                                                                 | OPERATIONS §API worker (run the migration!)                     |
 | `scripts/*`, `data/*.json`, `data/schools.psv`, `public/*.json`                       | `docs/DATA.md`; player counts in README                         |
+| `src/types.ts` (`SWAP_DATE_KEY`, `gameLabel`, board ids)                              | PLAN §Modes and storage                                         |
 | `src/lib/images.ts`, photo sources                                                    | DATA §Photos + `docs/APP.md` §Photos                            |
 | `.github/workflows/*`, `scripts/protect-main.sh`                                      | OPERATIONS + this file's CI list                                |
 | `vite.config.ts` (`base`), `index.html`, `public/manifest.*`                          | OPERATIONS §Custom domain + `docs/APP.md`                       |
@@ -52,15 +53,21 @@ requirement, pinned by `src/App.render.test.tsx`.
 
 ## Rules that are easy to break
 
-- **Never change `hashString`, `dateSeed`, `TIER_PLAN` or `EPOCH_DATE_KEY`
-  casually** — they decide every day's puzzle; changing them re-rolls today's
-  game under people mid-play. Golden-value tests pin them. A plan change goes
-  through `tierPlanFor`: a new plan with a start date in the future, never an
-  edit to a plan already played. (The one exception was launch day,
-  2026-11-11, before the link was shared: the plan went from 2-2-1 to 3-1-1
-  and the test scores were wiped; that evening the game was restarted once
-  more onto players with both photos — `localStorage` prefix `whp:v2:`, the
-  leaderboard database emptied.)
+- **Never change `hashString`, `dateSeed`, `TIER_PLAN`, `EASY_PLAN` or
+  `EPOCH_DATE_KEY` casually** — they decide every day's puzzle; changing them
+  re-rolls today's game under people mid-play. Golden-value tests pin them. A
+  plan change goes through `drawFor`: a new rule with a start date in the
+  future, never an edit to days already played — as on 2026-11-14, when the
+  daily became five easy players and the beginner daily became Sicko Mode
+  (the old 3-1-1). Its ids are still `<mode>-beginner`: never rename them,
+  they key every save, streak and leaderboard row. (The one exception was
+  launch day, 2026-11-11, before the link was shared: the plan went from
+  2-2-1 to 3-1-1 and the test scores were wiped; that evening the game was
+  restarted once more onto players with both photos — `localStorage` prefix
+  `whp:v2:`, the leaderboard database emptied.)
+- **A tier move is dated too.** Moving a player to another tier by hand
+  re-rolls days already played unless he carries his old tier (`tw`,
+  `data/nba-top-picks.json`, docs/DATA.md §Top draft picks).
 - **Rebuilding the dataset can change upcoming lineups.** Fine for future
   days; avoid merging a rebuild in the middle of a US evening.
 - **Photos never decide who is in the dataset, only who is drawn.** A player

@@ -17,6 +17,7 @@ import {
   pickDecoys,
   applyOverrides,
   applyExclusions,
+  applyTierMoves,
   INTERNATIONAL_ID,
   actionKeyFor,
   commonsPath,
@@ -697,5 +698,41 @@ describe('players', () => {
     expect(d2).toHaveLength(3)
     expect(d2).not.toContain('notre-dame')
     expect(pickDecoys(rec, schools, pool)).toEqual(d)
+  })
+})
+
+describe('applyTierMoves (data/nba-top-picks.json)', () => {
+  const recs = () => [
+    { id: 'nba-a', tier: 'medium' },
+    { id: 'nba-b', tier: 'easy' },
+    { id: 'nba-c', tier: 'hard' },
+  ]
+  it('a listed player is easy; his old tier is dated to the day of the move; nobody else moves', () => {
+    const out = applyTierMoves(
+      recs(),
+      { 'nba-a': { name: 'A', was: 'medium' }, 'nba-b': { name: 'B' } },
+      3,
+    )
+    expect(out).toEqual([
+      { id: 'nba-a', tier: 'easy', tierWas: [3, 'medium'] },
+      { id: 'nba-b', tier: 'easy' },
+      { id: 'nba-c', tier: 'hard' },
+    ])
+  })
+  it('`was` is the record: it survives a rebuild in which he is already easy', () => {
+    const again = [{ id: 'nba-a', tier: 'easy' }]
+    expect(applyTierMoves(again, { 'nba-a': { was: 'hard' } }, 3)).toEqual([
+      { id: 'nba-a', tier: 'easy', tierWas: [3, 'hard'] },
+    ])
+  })
+  it('throws on an unknown player, a bad old tier or a bad day', () => {
+    expect(() => applyTierMoves(recs(), { 'nba-zzz': {} }, 3)).toThrow(
+      /no player/,
+    )
+    expect(() =>
+      applyTierMoves(recs(), { 'nba-a': { was: 'easy' } }, 3),
+    ).toThrow(/was/)
+    expect(() => applyTierMoves(recs(), {}, -1)).toThrow(/from/)
+    expect(() => applyTierMoves(recs(), {}, NaN)).toThrow(/from/)
   })
 })

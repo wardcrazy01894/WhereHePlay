@@ -1,6 +1,12 @@
 import { useEffect, useState } from 'react'
 import type { Mode, Variant } from '../types'
-import { MODES, MODE_LABEL, boardId, gameLabel } from '../types'
+import {
+  MODES,
+  MODE_LABEL,
+  boardId,
+  gameLabel,
+  secondDailyName,
+} from '../types'
 import { type Board, fetchBoard } from '../lib/api'
 import { squares } from '../lib/share'
 
@@ -75,13 +81,13 @@ export function Leaderboard({
               className={v === variant ? 'tab on' : 'tab'}
               onClick={() => onModeChange(mode, v)}
             >
-              {v === 'standard' ? 'Daily' : 'Beginner'}
+              {v === 'standard' ? 'Daily' : secondDailyName(dateKey)}
             </button>
           ))}
         </div>
       )}
       <h2>
-        {gameLabel(mode, variant)} leaderboard{' '}
+        {gameLabel(mode, variant, dateKey)} leaderboard{' '}
         <span className="muted">{dateKey}</span>
       </h2>
       {error && <p className="muted">{error}</p>}

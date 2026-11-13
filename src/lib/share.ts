@@ -39,7 +39,7 @@ export function shareText(
 ): string {
   const max = QUESTIONS_PER_DAY * MAX_QUESTION_POINTS
   return [
-    `WhereHePlay #${puzzleNumber(dateKey)} · ${gameLabel(mode, variant)} (${PHOTO_LABEL[photo]})`,
+    `WhereHePlay #${puzzleNumber(dateKey)} · ${gameLabel(mode, variant, dateKey)} (${PHOTO_LABEL[photo]})`,
     `${squares(marks(qs))} ${totalPoints(qs)}/${max}`,
     url,
   ].join('\n')

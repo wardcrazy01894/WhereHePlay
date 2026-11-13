@@ -10,7 +10,8 @@
  * controls here stop accidents, drive-by abuse and account takeover.
  */
 
-// One per daily game: the three modes, and each mode's beginner daily
+// One per daily game: the three modes, and each mode's second daily — Sicko
+// Mode since 2026-11-14, the beginner daily before; the id is kept for good
 // (`boardId` in src/types.ts).
 export const BOARDS = new Set([
   'nfl',
