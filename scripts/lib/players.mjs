@@ -338,6 +338,13 @@ export function nbaCandidates(
     if (!teams.has(t.bbref)) teams.set(t.bbref, [])
     teams.get(t.bbref).push(t)
   }
+  // His NBA.com headshot, ESPN's when that is the grey silhouette, else none.
+  const headFor = (nbaid) =>
+    !heads.placeholders.has(String(nbaid))
+      ? String(nbaid)
+      : heads.espn[nbaid]
+        ? `espn:${heads.espn[nbaid]}`
+        : ''
   const records = []
   const later = []
   const unmapped = new Map()
@@ -417,11 +424,7 @@ export function nbaCandidates(
     // The preps list is hand-picked, so it is not second-guessed by the
     // fame / era filter.
     if (!prep && !abroad && !passesEra(fame, lastPro, 'nba')) continue
-    const head = !heads.placeholders.has(b.nbaid)
-      ? b.nbaid
-      : heads.espn[b.nbaid]
-        ? `espn:${heads.espn[b.nbaid]}`
-        : ''
+    const head = headFor(b.nbaid)
     const action = commonsFile(b.img)
     const key = `${b.name}|${schools[0]}`
     if (seen.has(key)) continue
@@ -456,7 +459,11 @@ export function nbaCandidates(
     const key = `${rec.name}|${rec.schools[0]}`
     if (seen.has(key)) continue
     seen.add(key)
-    records.push({ id: `nba-${bbref.split('/').pop()}`, ...rec })
+    records.push({
+      id: `nba-${bbref.split('/').pop()}`,
+      ...rec,
+      head: headFor(b.nbaid),
+    })
   }
   // Hand-listed players Wikidata does not have at all.
   const haveIds = new Set(records.map((r) => r.id))
@@ -471,7 +478,7 @@ export function nbaCandidates(
       fame: 0,
       pos: '',
       team: '',
-      head: a.nbaid ? String(a.nbaid) : '',
+      head: a.nbaid ? headFor(a.nbaid) : '',
       action: '',
       lastPro: nowYear,
       extended: true,

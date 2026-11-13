@@ -1178,6 +1178,23 @@ describe('recent players admitted on their pro careers (`extended`)', () => {
     expect(by['nba-coreco01']).toEqual(run(undefined)[0])
   })
 
+  it("NBA: an extended player whose NBA.com headshot is the silhouette gets ESPN's, or none", () => {
+    const heads = (espn) => ({ placeholders: new Set(['1630596']), espn })
+    const head = (espn) =>
+      nbaCandidates(
+        base,
+        teams,
+        match,
+        2026,
+        [],
+        heads(espn),
+        [],
+        full,
+      ).records.find((r) => r.id === 'nba-noteam01').head
+    expect(head({ 1630596: '4433134' })).toBe('espn:4433134')
+    expect(head({})).toBe('')
+  })
+
   it('NBA: without the new tables nothing changes — only the core player', () => {
     expect(run(undefined).map((r) => r.id)).toEqual(['nba-coreco01'])
   })

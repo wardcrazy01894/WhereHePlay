@@ -20,10 +20,10 @@ Ideas and known gaps, roughly in priority order. Nothing here is promised.
   their order), so a correct "he started at X" guess can be marked wrong, and
   the finishing school can be the wrong one (Ronnie Price was). Fix each in
   `data/overrides.json`.
-- **Recent players wait for a checked playing photo** (869 NFL, 227
-  NBA at first — docs/DATA.md §Recent players). Each also needs a look: played a real
-  game, right school and final season (the NBA year is partly guessed), real
-  headshot (`npm run scan-headshots` for the NFL ones).
+- **835 recent players still wait for a playing photo** (645 NFL, 190 NBA —
+  docs/DATA.md §Recent players): the 261 with a usable Wikimedia photo are
+  in; these need one found by hand, plus a look at the player (played a real
+  game, right school and final season).
 - **Undrafted NFL players are hand-listed** (`data/nfl-added.json`, 57 of
   them) — the draft table is the only career data we hold. A games/starts
   source (nflverse season stats) would make it a rule. Austin Ekeler is still
