@@ -145,6 +145,35 @@ export function recentNfl(rookie, position, d) {
   )
 }
 
+/**
+ * The tier of a recent NFL player admitted by recentNfl, from what he did as
+ * a pro (his fame score is low by construction, so the ranking would call
+ * every one of them hard): easy for a star, medium for a name a fan knows.
+ * assignTiers takes it as it is.
+ */
+export function recentNflTier(position, d) {
+  const av = num(d.w_av)
+  const round = num(d.round)
+  const skill = SKILL.has(position)
+  if (
+    num(d.probowls) >= 2 ||
+    // (An All-Pro with little else is a return specialist: medium.)
+    (num(d.allpro) >= 1 && av >= 20) ||
+    (skill && av >= 45) ||
+    (position === 'QB' && round === 1 && av >= 20)
+  )
+    return 'easy'
+  if (
+    num(d.probowls) >= 1 ||
+    num(d.allpro) >= 1 ||
+    round === 1 ||
+    (skill && (av >= 15 || round === 2)) ||
+    av >= 35
+  )
+    return 'medium'
+  return 'hard'
+}
+
 function passesEra(fame, lastPro, league) {
   if (fame < MIN_FAME[league]) return false
   return lastPro >= PRO_FOCUS_YEAR || fame >= LEGEND_FAME
@@ -159,6 +188,7 @@ export function nflCandidates(
   placeholders = new Set(),
   espnHeads = {},
   notHeadshots = new Set(),
+  added = {},
 ) {
   const draft = new Map(
     draftPicks.filter((d) => d.pfr_player_id).map((d) => [d.pfr_player_id, d]),
@@ -198,7 +228,9 @@ export function nflCandidates(
     // Admitted on fame (the launch rule: `core`), or as a recent player who
     // really played (`extended`: see assignTiers and the photo rule below).
     const extended = !passesEra(fame, lastPro, 'nfl')
-    if (extended && !recentNfl(rookie, p.position, d)) continue
+    // …or by hand (data/nfl-added.json): undrafted, so no draft row to go on.
+    const hand = added[`nfl-${p.pfr_id}`]
+    if (extended && !hand && !recentNfl(rookie, p.position, d)) continue
     const names = p.college_name.split(';').map((s) => s.trim())
     const schools = []
     for (const n of names) {
@@ -226,7 +258,12 @@ export function nflCandidates(
       // in the dataset, not drawn — until someone has looked.
       action: extended ? '' : action,
       lastPro,
-      ...(extended ? { extended: true } : {}),
+      ...(extended
+        ? {
+            extended: true,
+            tierHint: hand?.t ?? recentNflTier(p.position, d),
+          }
+        : {}),
     }
     const key = `${rec.name}|${schools[0]}`
     const prev = best.get(key)
@@ -409,6 +446,7 @@ export function nbaCandidates(
   // it, so one of them can never take a name+school key from a core player.
   for (const { bbref, b, ts, fame, hand } of useRecent ? later : []) {
     const rec = recentNba(b, ts, fame, hand, eduBy.get(bbref) ?? [], {
+      info: recent.info?.[bbref],
       match,
       matchEdu: recent.matchEdu,
       nowYear,
@@ -481,7 +519,7 @@ export function nbaClassOf(nbaid) {
  * table — and to be recent: an NBA.com id from the 2015 class on.
  * The fame floor is the usual one unless he is hand-listed.
  */
-function recentNba(b, ts, fame, hand, edu, { match, matchEdu, nowYear }) {
+function recentNba(b, ts, fame, hand, edu, { info, match, matchEdu, nowYear }) {
   const cls = nbaClassOf(b.nbaid)
   if (!hand && (!cls || fame < MIN_FAME.nba)) return null
   let schools = []
@@ -489,6 +527,22 @@ function recentNba(b, ts, fame, hand, edu, { match, matchEdu, nowYear }) {
   if (hand) {
     schools = [...hand.s]
     yr = hand.y
+  } else if (info?.colleges.some((c) => match.wd(c.team) ?? matchEdu(c.team))) {
+    // His Wikipedia infobox: every college with its years — the best source
+    // there is for a recent player. Last attended first; one written without
+    // years keeps its place in the list (the last written is the latest).
+    const list = info.colleges
+      .map((c, i, all) => ({
+        s: match.wd(c.team) ?? matchEdu(c.team),
+        when: c.end || (i === all.length - 1 ? 9999 : 0),
+        end: c.end,
+      }))
+      .sort((a, c) => c.when - a.when)
+    // The school he finished at must be one of ours (as for everyone).
+    if (!list[0].s) return null
+    for (const c of list)
+      if (c.s && !schools.includes(c.s.id)) schools.push(c.s.id)
+    yr = (list[0].end || info.draft || info.start || cls) - 1
   } else {
     const stints = ts
       .filter(
@@ -563,6 +617,12 @@ export function assignTiers(records) {
     // Where he would stand in that ranking: the share of it more famous
     // than he is. Never the top-6% free pass — that is for the ranked.
     for (const r of records.filter((x) => ranked(x) && x.extended)) {
+      // A tier from his pro career (recentNflTier, or a hand list) stands:
+      // no school penalty — Breece Hall is not "hard" for being a Cyclone.
+      if (r.tierHint) {
+        r.tier = r.tierHint
+        continue
+      }
       const above = rs.filter((x) => x.fame > r.fame).length
       const pct = Math.max(0.0601, above / Math.max(1, rs.length - 1))
       r.tier = tierAt(Math.min(1, pct), r.schools[0])
@@ -690,4 +750,41 @@ export function applyTierMoves(records, players, fromDay) {
     if (o.was) r.tierWas = [fromDay, o.was]
   }
   return records
+}
+
+/**
+ * The parts of a Wikipedia basketball infobox we use: `colleges` — each
+ * `[[target|label]] (start–end)` of the `college` field, in the order
+ * written — and the numbers `draft_year`, `draft_pick` and `career_start`
+ * (0 when absent). A college written without years gets start = end = 0.
+ */
+export function parseInfobox(wikitext) {
+  // Dashes as entities or templates, and a closing brace on the last line.
+  const text = wikitext
+    .replace(/&ndash;|\{\{\s*(?:ndash|snd|en dash)\s*\}\}/gi, '–')
+    .replace(/\}\}\s*$/, '\n}}')
+  const field = (name) => {
+    const m = new RegExp(
+      `\\n\\s*\\|\\s*${name}\\s*=([\\s\\S]*?)(?=\\n\\s*\\|\\s*[a-z_0-9]+\\s*=|\\n\\}\\})`,
+      'i',
+    ).exec(text)
+    return m ? m[1] : ''
+  }
+  const n = (name) => Number(/\d{4}|\d+/.exec(field(name))?.[0] ?? 0)
+  const colleges = []
+  const re =
+    /\[\[([^\]|]+)(?:\|[^\]]*)?\]\](?:\s*\((\d{4})(?:\s*[–-]\s*(\d{4}|\d{2}|present))?\))?/g
+  for (const m of field('college').matchAll(re)) {
+    const start = Number(m[2] ?? 0)
+    // "(2019–20)": a two-digit end year is in the start year's century.
+    const to = m[3]?.length === 2 ? m[2].slice(0, 2) + m[3] : m[3]
+    const end = to === 'present' ? 0 : Number(to ?? m[2] ?? 0)
+    colleges.push({ team: m[1].trim(), start, end })
+  }
+  return {
+    colleges,
+    draft: n('draft_year'),
+    pick: n('draft_pick'),
+    start: n('career_start'),
+  }
 }

@@ -92,6 +92,7 @@ npm test
 npm run format         # prettier --write (format:check in CI)
 npm run build
 npm run fetch-raw / build-players / scan-headshots   # data pipeline (docs/DATA.md)
+npm run fetch-nba-infobox                            # recent NBA players' colleges (DATA §Recent players)
 npm run worker:dev / worker:migrate:local            # API worker on :8787, local D1
 npm run worker:migrate / worker:deploy               # production — by hand, never CI
 ```

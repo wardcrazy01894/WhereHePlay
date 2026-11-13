@@ -6,7 +6,7 @@
   "engines": {
     "node": "^22.22.2 || ^24.15.0 || >=26.0.0"
   },
-  "description": "WhereHePlay — a daily 'where did he play in college?' trivia game for NFL and NBA players.",
+  "description": "WhereHePlay \u2014 a daily 'where did he play in college?' trivia game for NFL and NBA players.",
   "scripts": {
     "dev": "vite",
     "build": "tsc --noEmit && vite build",
@@ -25,7 +25,8 @@
     "worker:dev": "wrangler dev -c worker/wrangler.toml",
     "worker:deploy": "wrangler deploy -c worker/wrangler.toml",
     "worker:migrate": "wrangler d1 migrations apply whp-api --remote -c worker/wrangler.toml",
-    "worker:migrate:local": "wrangler d1 migrations apply whp-api --local -c worker/wrangler.toml"
+    "worker:migrate:local": "wrangler d1 migrations apply whp-api --local -c worker/wrangler.toml",
+    "fetch-nba-infobox": "node scripts/fetch-nba-infobox.mjs"
   },
   "dependencies": {
     "react": "^19.3.1",

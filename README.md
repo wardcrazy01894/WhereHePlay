@@ -9,7 +9,7 @@
 [![CI](https://github.com/wardcrazy01894/WhereHePlay/actions/workflows/ci.yml/badge.svg)](https://github.com/wardcrazy01894/WhereHePlay/actions/workflows/ci.yml)
 [![deploy](https://github.com/wardcrazy01894/WhereHePlay/actions/workflows/deploy.yml/badge.svg)](https://github.com/wardcrazy01894/WhereHePlay/actions/workflows/deploy.yml)
 
-React · TypeScript · Vite · Cloudflare Workers + D1 &nbsp;·&nbsp; 3,097 players &nbsp;·&nbsp; $0 hosting
+React · TypeScript · Vite · Cloudflare Workers + D1 &nbsp;·&nbsp; 3,165 players &nbsp;·&nbsp; $0 hosting
 
 </div>
 
@@ -63,7 +63,7 @@ WhereHePlay #1 · NFL (headshot)
 
 ## 🧑‍🤝‍🧑 The players
 
-1,917 NFL and 1,180 NBA players who were in college from 1994 on (plus the 34
+1,974 NFL and 1,191 NBA players who were in college from 1994 on (plus the 34
 who skipped it — LeBron, Kobe, KG: for them just answer **High School** — and
 52 international stars who turned pro abroad: answer **International**), weighted
 toward careers that ran into 2008 or later and filtered for fame, plus the
@@ -90,6 +90,7 @@ Data pipeline (rarely needed):
 
 ```bash
 npm run fetch-raw       # download source tables into data/raw/ (gitignored)
+npm run fetch-nba-infobox  # recent NBA players' colleges, from Wikipedia infoboxes
 npm run build-players   # → public/players.json + public/schools.json
 npm run scan-headshots  # flag NFL placeholder photos, then build-players again
 ```
