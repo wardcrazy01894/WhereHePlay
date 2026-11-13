@@ -172,6 +172,16 @@ const prevSince = Object.fromEntries(
     ([k]) => !k.startsWith('_'),
   ),
 )
+// Players drawn with just a headshot (data/headshot-only.json): every search
+// for a playing photo came up empty; re-searched later (docs/DATA.md §Photos).
+const headOnly = new Set(
+  Object.keys(JSON.parse(await read('data/headshot-only.json'))).filter(
+    (k) => !k.startsWith('_'),
+  ),
+)
+for (const id of headOnly)
+  if (!candidates.some((r) => r.id === id))
+    throw new Error(`headshot-only.json: no candidate player "${id}"`)
 const since = eligibleSince(
   prevSince,
   candidates,
@@ -182,6 +192,7 @@ const since = eligibleSince(
         // Owner override, e.g. `-- --first-day=1` (see newDayFor).
         process.argv.find((a) => a.startsWith('--first-day='))?.split('=')[1],
       ),
+  headOnly,
 )
 await writeFile(
   sinceUrl,

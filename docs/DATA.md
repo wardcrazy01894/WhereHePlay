@@ -324,7 +324,17 @@ Nothing is stored in the repo; `src/lib/images.ts` builds URLs.
    has no `a` until a real one is found.
 3. **Nobody is ever dropped because of photos.** Membership of the dataset
    does not depend on photos at all (`nflCandidates` / `nbaCandidates`).
-4. **Who can be drawn:** only a player with both. `build-players` writes `e`
+4. **Who can be drawn:** only a player with both — or, by the owner's rule
+   of 2026-11-13, a player listed in `data/headshot-only.json` with a real
+   headshot: a newer player whose final search found no playing photo. The
+   game shows his headshot in place of the playing photo (`PlayerPhoto`
+   already falls back to it). He stays on that list to be re-searched later;
+   take him off once his playing photo is in `photo-overrides.json` (his `e`
+   does not change either way). Taking him off while he still has no playing
+   photo closes his window from the next day, like any lost photo. The build
+   summary still counts him under "need a playing photo". An out-of-league player with no game photo
+   may instead use a warm-up, hoodie or practice photo in his pro team's
+   gear as his playing photo (owner, 2026-11-13). `build-players` writes `e`
    ("eligible since", days after puzzle #1) for them, from
    `data/eligible-since.json`: nothing already written ever changes. A newly
    eligible player's window opens the day after the build (`firstNewDay`);

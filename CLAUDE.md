@@ -72,7 +72,9 @@ requirement, pinned by `src/App.render.test.tsx`.
   days; avoid merging a rebuild in the middle of a US evening.
 - **Photos never decide who is in the dataset, only who is drawn.** A player
   is drawn only with both a real headshot and a real playing photo (`e` in
-  `players.json`, dated by `data/eligible-since.json`). Never drop a player
+  `players.json`, dated by `data/eligible-since.json`), or with just a
+  headshot if the owner listed him in `data/headshot-only.json` after a final
+  search came up empty (re-search those later). Never drop a player
   over photos, and never edit an eligible-since date into the past — that
   re-rolls days already played. New photos take effect the next day by
   design. (docs/DATA.md §Photos — The rules.)

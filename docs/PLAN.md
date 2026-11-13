@@ -119,7 +119,9 @@ does not reshuffle everyone else.
 
 **Who can be drawn:** only a player with **both a real headshot and a real
 playing photo** — the `e` field in `players.json` ("eligible since", in days
-after puzzle #1; `eligibleOn`). Everyone else stays in the dataset, is found
+after puzzle #1; `eligibleOn`) — or one listed in `data/headshot-only.json`
+(a headshot and no playing photo after a final search; his headshot stands
+in for the playing photo; docs/DATA.md §Photos). Everyone else stays in the dataset, is found
 by the player search, and joins the draw automatically once his photos land.
 The build never moves an `e` into the past (a newly eligible player starts
 the day after the build, as seen from the last time zone on Earth), and each
