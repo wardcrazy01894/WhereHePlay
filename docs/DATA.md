@@ -83,10 +83,10 @@ team history for most players since ~2019. So, on top of the launch rule:
   Bowl, or started for two seasons, or has career AV 8+ at QB/RB/WR/TE or 20+
   anywhere. His tier comes from the same career, not from the fame ranking
   (which would call every one of them hard): `recentNflTier` — easy for a
-  star (two Pro Bowls, All-Pro, AV 45+ at a skill position, a first-round QB
-  who has started), medium for a name a fan knows (a Pro Bowl, round 1, a
-  skill player with AV 15+ or from round 2, AV 35+), else hard; one step
-  harder at a school with fewer than four pros in the ranking.
+  star (two Pro Bowls, an All-Pro with AV 20+, AV 45+ at a skill position, a
+  first-round QB who has started), medium for a name a fan knows (a Pro Bowl
+  or All-Pro, round 1, a skill player with AV 15+ or from round 2, AV 35+),
+  else hard. No school penalty: the tier stands as it is.
 - **NFL, undrafted** (`data/nfl-added.json`): the draft table is the only
   career data we hold and has no row for them, so notable undrafted players
   are listed by hand (id → name and tier): Taysom Hill, Kendrick Bourne,

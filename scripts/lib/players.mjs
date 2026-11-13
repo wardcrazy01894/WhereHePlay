@@ -149,7 +149,7 @@ export function recentNfl(rookie, position, d) {
  * The tier of a recent NFL player admitted by recentNfl, from what he did as
  * a pro (his fame score is low by construction, so the ranking would call
  * every one of them hard): easy for a star, medium for a name a fan knows.
- * assignTiers then makes it one step harder at a school with few pros.
+ * assignTiers takes it as it is.
  */
 export function recentNflTier(position, d) {
   const av = num(d.w_av)
@@ -157,13 +157,15 @@ export function recentNflTier(position, d) {
   const skill = SKILL.has(position)
   if (
     num(d.probowls) >= 2 ||
-    num(d.allpro) >= 1 ||
+    // (An All-Pro with little else is a return specialist: medium.)
+    (num(d.allpro) >= 1 && av >= 20) ||
     (skill && av >= 45) ||
     (position === 'QB' && round === 1 && av >= 20)
   )
     return 'easy'
   if (
     num(d.probowls) >= 1 ||
+    num(d.allpro) >= 1 ||
     round === 1 ||
     (skill && (av >= 15 || round === 2)) ||
     av >= 35
@@ -614,13 +616,11 @@ export function assignTiers(records) {
     })
     // Where he would stand in that ranking: the share of it more famous
     // than he is. Never the top-6% free pass — that is for the ranked.
-    const harder = { easy: 'medium', medium: 'hard', hard: 'hard' }
     for (const r of records.filter((x) => ranked(x) && x.extended)) {
+      // A tier from his pro career (recentNflTier, or a hand list) stands:
+      // no school penalty — Breece Hall is not "hard" for being a Cyclone.
       if (r.tierHint) {
-        // A tier from his pro career (recentNflTier, or a hand list): one
-        // step harder at a school with fewer than four pros in the ranking.
-        const few = (perSchool.get(r.schools[0]) ?? 0) < 4
-        r.tier = few ? harder[r.tierHint] : r.tierHint
+        r.tier = r.tierHint
         continue
       }
       const above = rs.filter((x) => x.fame > r.fame).length
@@ -759,20 +759,26 @@ export function applyTierMoves(records, players, fromDay) {
  * (0 when absent). A college written without years gets start = end = 0.
  */
 export function parseInfobox(wikitext) {
+  // Dashes as entities or templates, and a closing brace on the last line.
+  const text = wikitext
+    .replace(/&ndash;|\{\{\s*(?:ndash|snd|en dash)\s*\}\}/gi, '–')
+    .replace(/\}\}\s*$/, '\n}}')
   const field = (name) => {
     const m = new RegExp(
       `\\n\\s*\\|\\s*${name}\\s*=([\\s\\S]*?)(?=\\n\\s*\\|\\s*[a-z_0-9]+\\s*=|\\n\\}\\})`,
       'i',
-    ).exec(wikitext)
+    ).exec(text)
     return m ? m[1] : ''
   }
   const n = (name) => Number(/\d{4}|\d+/.exec(field(name))?.[0] ?? 0)
   const colleges = []
   const re =
-    /\[\[([^\]|]+)(?:\|[^\]]*)?\]\](?:\s*\((\d{4})(?:\s*[–-]\s*(\d{4}|present))?\))?/g
+    /\[\[([^\]|]+)(?:\|[^\]]*)?\]\](?:\s*\((\d{4})(?:\s*[–-]\s*(\d{4}|\d{2}|present))?\))?/g
   for (const m of field('college').matchAll(re)) {
     const start = Number(m[2] ?? 0)
-    const end = m[3] === 'present' ? 0 : Number(m[3] ?? m[2] ?? 0)
+    // "(2019–20)": a two-digit end year is in the start year's century.
+    const to = m[3]?.length === 2 ? m[2].slice(0, 2) + m[3] : m[3]
+    const end = to === 'present' ? 0 : Number(to ?? m[2] ?? 0)
     colleges.push({ team: m[1].trim(), start, end })
   }
   return {

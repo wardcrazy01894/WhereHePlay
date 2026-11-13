@@ -881,7 +881,9 @@ describe('recent players admitted on their pro careers (`extended`)', () => {
   it('recentNflTier: easy for a star, medium for a name a fan knows, else hard', () => {
     const d = (o) => pick('x', o)
     expect(recentNflTier('WR', d({ probowls: '2' }))).toBe('easy')
-    expect(recentNflTier('G', d({ allpro: '1' }))).toBe('easy')
+    expect(recentNflTier('G', d({ allpro: '1', w_av: '20' }))).toBe('easy')
+    // An All-Pro with little else (a return specialist).
+    expect(recentNflTier('RB', d({ allpro: '1', w_av: '10' }))).toBe('medium')
     expect(recentNflTier('RB', d({ w_av: '45' }))).toBe('easy')
     expect(recentNflTier('QB', d({ round: '1', w_av: '20' }))).toBe('easy')
     expect(recentNflTier('G', d({ round: '1' }))).toBe('medium')
@@ -893,7 +895,7 @@ describe('recent players admitted on their pro careers (`extended`)', () => {
     expect(recentNflTier('RB', {})).toBe('hard')
   })
 
-  it('NFL: an extended player carries a tier from his career; assignTiers uses it, a step harder at a small school', () => {
+  it('NFL: an extended player carries a tier from his career; assignTiers takes it as it is, whatever his school', () => {
     const [r] = nflCandidates(
       [nfl({ position: 'WR' })],
       // Two Pro Bowls, modest AV: under the fame floor, so extended.
@@ -922,8 +924,8 @@ describe('recent players admitted on their pro careers (`extended`)', () => {
       ]).find((x) => x.id === 'nfl-x').tier
     expect(at('alabama', 'easy')).toBe('easy')
     expect(at('alabama', 'medium')).toBe('medium')
-    expect(at('tiny-school', 'easy')).toBe('medium')
-    expect(at('tiny-school', 'medium')).toBe('hard')
+    expect(at('tiny-school', 'easy')).toBe('easy')
+    expect(at('tiny-school', 'medium')).toBe('medium')
     expect(at('tiny-school', 'hard')).toBe('hard')
   })
 
@@ -989,6 +991,21 @@ describe('recent players admitted on their pro careers (`extended`)', () => {
     expect(
       parseInfobox('{{Infobox\n| high_school = [[X]]\n| draft_year = 2020\n}}'),
     ).toEqual({ colleges: [], draft: 2020, pick: 0, start: 0 })
+  })
+
+  it('parseInfobox: a two-digit end year, an entity dash, closing braces on the last line', () => {
+    expect(
+      parseInfobox(
+        "{{Infobox\n| college = [[Duke Blue Devils men's basketball|Duke]] (2019&ndash;20)\n| draft_year = 2020}}",
+      ),
+    ).toEqual({
+      colleges: [
+        { team: "Duke Blue Devils men's basketball", start: 2019, end: 2020 },
+      ],
+      draft: 2020,
+      pick: 0,
+      start: 0,
+    })
   })
 
   it('nbaClassOf: the incoming class, from the NBA.com id', () => {
