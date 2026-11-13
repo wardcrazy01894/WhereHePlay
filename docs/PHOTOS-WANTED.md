@@ -2,7 +2,9 @@
 
 Players we have searched for thoroughly without finding a usable photo. They
 stay in the dataset but are not drawn until they have both photos
-(docs/DATA.md §Photos). The owner may send links later; any host is fine, and
+(docs/DATA.md §Photos) — unless listed in `data/headshot-only.json`, which
+lets a newer player with a real headshot be drawn without a playing photo
+until one is found. The owner may send links later; any host is fine, and
 we keep our own copy if it cannot be hotlinked.
 
 Searched so far: Google and Bing Images (top ~20 per query), Flickr, NBA.com

@@ -249,6 +249,22 @@ describe('eligibleSince', () => {
       eligibleSince({ 'nfl-a': [0, 9] }, [rec('nfl-a', 'h', 'x/a.jpg')], 8),
     ).toEqual({ 'nfl-a': 0 })
   })
+  it('a player on the headshot-only list is drawn with just his headshot', () => {
+    const headOnly = new Set(['nfl-a'])
+    // No playing photo, but listed: eligible from the new day…
+    const next = eligibleSince({}, [rec('nfl-a', 'h', '')], 12, headOnly)
+    expect(next).toEqual({ 'nfl-a': 12 })
+    // …a playing photo arriving later changes nothing (still eligible)…
+    expect(
+      eligibleSince(next, [rec('nfl-a', 'h', 'x/a.jpg')], 20, headOnly),
+    ).toEqual(next)
+    // …and the list never stands in for a missing headshot.
+    expect(
+      eligibleSince({}, [rec('nfl-b', '', '')], 12, new Set(['nfl-b'])),
+    ).toEqual({})
+    // Unlisted players still need both photos.
+    expect(eligibleSince({}, [rec('nfl-c', 'h', '')], 12, headOnly)).toEqual({})
+  })
   it('a player who leaves the dataset keeps his history (he may come back)', () => {
     expect(eligibleSince({ 'nfl-gone': [0, 5] }, [], 9)).toEqual({
       'nfl-gone': [0, 5],

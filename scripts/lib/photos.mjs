@@ -119,9 +119,13 @@ export const EPOCH_DATE_KEY = '2026-11-11'
  * later opens another. `newDay` is never in the past (firstNewDay), so no
  * build can change which players were eligible on a day already played.
  */
-export function eligibleSince(prev, records, newDay) {
+export function eligibleSince(prev, records, newDay, headOnly = new Set()) {
+  // `headOnly` (data/headshot-only.json): players the owner lets in with just
+  // a headshot after every search for a playing photo came up empty.
   const both = new Set(
-    records.filter((r) => r.head && r.action).map((r) => r.id),
+    records
+      .filter((r) => r.head && (r.action || headOnly.has(r.id)))
+      .map((r) => r.id),
   )
   const next = {}
   for (const id of new Set([...Object.keys(prev), ...both])) {
