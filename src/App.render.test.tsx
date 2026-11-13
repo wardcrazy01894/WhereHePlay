@@ -250,7 +250,8 @@ describe('App', () => {
   })
 
   it('through 2026-11-13 the second daily is still the beginner daily: five easy players', async () => {
-    vi.setSystemTime(new Date('2026-11-13T17:00:00Z'))
+    // Midday UTC: 2026-11-13 in every zone from UTC-11 to UTC+11.
+    vi.setSystemTime(new Date('2026-11-13T12:00:00Z'))
     render(<App />)
     await screen.findByRole('heading', { name: 'NFL' })
     expect(screen.queryByRole('button', { name: 'Sicko Mode' })).toBeNull()
