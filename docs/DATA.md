@@ -2,8 +2,8 @@
 
 Two committed artifacts drive the game:
 
-- `public/players.json` — 2,069 players (1,105 NFL, 964 NBA); 1,000 of them
-  can be drawn today (see "Who can be drawn")
+- `public/players.json` — 3,165 players (1,974 NFL, 1,191 NBA); 2,568 of them
+  can be drawn from 2026-11-14 (see "Who can be drawn")
 - `public/schools.json` — 375 colleges plus the "High School (no college)"
   answer (id, name, search aliases)
 
@@ -129,7 +129,15 @@ NFL/NBA uniform with his face visible. Rejected: practice and training-camp
 jerseys (the sponsor patch gives them away), press conferences and street
 clothes, college, G League, EuroLeague, UFL and CFL uniforms, back views and
 blurs. The kept ones are in `data/photo-overrides.json` and those players are
-drawn from 2026-11-14. The rest (835) still wait for a photo found by hand.
+drawn from 2026-11-14.
+
+**Second pass (2026-11-13, on Opus):** every photo in each waiting player's
+Commons category, a Commons full-text search on his name, and the og:image
+of his current NFL team-site roster page (`static.clubs.nfl.com` — often a
+game photo, more often a posed headshot), each viewed on contact sheets,
+plus a per-player web search. 238 more kept (597 still wait); a wide shot
+where he is a small figure, a frame-grab or a blurred crop is not kept.
+
 Before giving an extended player his photo, check him:
 he played a real game (else `data/excluded.json`), his school and final
 season are right, and his league headshot is a real one.
