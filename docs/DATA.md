@@ -2,7 +2,7 @@
 
 Two committed artifacts drive the game:
 
-- `public/players.json` — 3,165 players (1,974 NFL, 1,191 NBA); 2,568 of them
+- `public/players.json` — 3,165 players (1,974 NFL, 1,191 NBA); 2,645 of them
   can be drawn from 2026-11-14 (see "Who can be drawn")
 - `public/schools.json` — 375 colleges plus the "High School (no college)"
   answer (id, name, search aliases)
@@ -135,7 +135,7 @@ drawn from 2026-11-14.
 Commons category, a Commons full-text search on his name, and the og:image
 of his current NFL team-site roster page (`static.clubs.nfl.com` — often a
 game photo, more often a posed headshot), each viewed on contact sheets,
-plus a per-player web search. 238 more kept (597 still wait); a wide shot
+plus a per-player web search. 238 more kept, then 77 from the per-player web search (520 still wait); a wide shot
 where he is a small figure, a frame-grab or a blurred crop is not kept.
 
 Before giving an extended player his photo, check him:
