@@ -2,7 +2,7 @@
 
 Two committed artifacts drive the game:
 
-- `public/players.json` — 3,165 players (1,974 NFL, 1,191 NBA); 2,568 of them
+- `public/players.json` — 3,164 players (1,974 NFL, 1,190 NBA); 2,646 of them
   can be drawn from 2026-11-14 (see "Who can be drawn")
 - `public/schools.json` — 375 colleges plus the "High School (no college)"
   answer (id, name, search aliases)
@@ -135,7 +135,9 @@ drawn from 2026-11-14.
 Commons category, a Commons full-text search on his name, and the og:image
 of his current NFL team-site roster page (`static.clubs.nfl.com` — often a
 game photo, more often a posed headshot), each viewed on contact sheets,
-plus a per-player web search. 238 more kept (597 still wait); a wide shot
+plus a per-player web search. 238 more kept, then 78 from the per-player web search (518 still wait). A tattoo that names
+his college is fine (owner's call, 2026-11-13: Jaylin Williams); gear,
+captions and overlays naming the school are not; a wide shot
 where he is a small figure, a frame-grab or a blurred crop is not kept.
 
 Before giving an extended player his photo, check him:
@@ -174,7 +176,9 @@ players are listed in `data/excluded.json` (id → reason) and removed by
 `build-players` after tiers and decoys are set (`applyExclusions`), so no
 one else moves. The build refuses to exclude a player who has ever been
 drawn (he is in `data/eligible-since.json`): removing him would re-roll days
-already played. Who qualifies is checked by hand (the draft table's career
+already played. The owner can also drop a player by hand, with the reason
+in the file (Mike Tobey, 2026-11-13: 2 NBA games and no NBA photo anywhere).
+Who qualifies is checked by hand (the draft table's career
 games, Pro-Football-Reference); no script decides it.
 
 ## International (no college) (`data/international.json`)

@@ -1,7 +1,8 @@
 {
-  "_comment": "Players removed from the game: player id → why. Owner's rule (2026-11-12): a player who never played a regular-season or playoff NFL/NBA game is not in the game (Michael Sam is the owner's one exception). Applied by build-players AFTER tiers and decoys are set (applyExclusions in scripts/lib/players.mjs), so removing one never moves anyone else. Only players never drawn can be listed: the build refuses one in data/eligible-since.json, since removing him would re-roll days already played. See docs/DATA.md.",
+  "_comment": "Players removed from the game: player id → why. Owner's rule (2026-11-12): a player who never played a regular-season or playoff NFL/NBA game is not in the game (Michael Sam is the owner's one exception). The owner may also drop a player by hand (reason given). Applied by build-players AFTER tiers and decoys are set (applyExclusions in scripts/lib/players.mjs), so removing one never moves anyone else. Only players never drawn can be listed: the build refuses one in data/eligible-since.json, since removing him would re-roll days already played. See docs/DATA.md.",
   "nfl-WillBr03": "Brennan Williams: 2013 3rd-round pick (Texans), injured, never played a regular-season game",
   "nfl-HokiJo00": "Josh Hokit: undrafted 2020 (49ers), practice squad/reserve; no regular-season game on Pro-Football-Reference",
   "nfl-PestTo00": "Tom Pestock: undrafted 2009 (Cardinals), practice squad; no regular-season game on Pro-Football-Reference",
-  "nba-whitete01": "Terrico White: 2010 2nd-round pick (Pistons), broke his foot, waived; no NBA regular-season game on Basketball-Reference (checked 2026-11-12)"
+  "nba-whitete01": "Terrico White: 2010 2nd-round pick (Pistons), broke his foot, waived; no NBA regular-season game on Basketball-Reference (checked 2026-11-12)",
+  "nba-tobeymi01": "Owner's call (2026-11-13): only 2 NBA games (2017), and no photo of him in an NBA game exists — every photo is G League or overseas."
 }
