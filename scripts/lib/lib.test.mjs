@@ -18,6 +18,9 @@ import {
   applyOverrides,
   applyExclusions,
   applyTierMoves,
+  recentNfl,
+  nbaClassOf,
+  RECENT_ROOKIE_YEAR,
   INTERNATIONAL_ID,
   actionKeyFor,
   commonsPath,
@@ -734,5 +737,320 @@ describe('applyTierMoves (data/nba-top-picks.json)', () => {
     ).toThrow(/was/)
     expect(() => applyTierMoves(recs(), {}, -1)).toThrow(/from/)
     expect(() => applyTierMoves(recs(), {}, NaN)).toThrow(/from/)
+  })
+})
+
+describe('recent players admitted on their pro careers (`extended`)', () => {
+  const schools = parseSchools(
+    readFileSync(new URL('../../data/schools.psv', import.meta.url), 'utf8'),
+  )
+  const match = buildMatchers(schools)
+  const nfl = (o) => ({
+    display_name: 'Solid Starter',
+    pfr_id: 'StarSo00',
+    position: 'G',
+    college_name: 'Iowa',
+    rookie_season: '2019',
+    last_season: '2025',
+    latest_team: 'DET',
+    draft_round: '4',
+    draft_pick: '120',
+    headshot: 'https://static.www.nfl.com/image/private/f_auto,q_auto/league/s',
+    ...o,
+  })
+  const pick = (id, o) => ({
+    pfr_player_id: id,
+    round: '4',
+    games: '80',
+    w_av: '0',
+    probowls: '0',
+    allpro: '0',
+    seasons_started: '0',
+    ...o,
+  })
+
+  it('recentNfl: a rookie of the last ten years who has played and has a real career', () => {
+    const y = RECENT_ROOKIE_YEAR
+    const d = (o) => pick('x', o)
+    expect(recentNfl(y, 'G', d({ round: '2' }))).toBe(true)
+    expect(recentNfl(y, 'G', d({ probowls: '1' }))).toBe(true)
+    expect(recentNfl(y, 'G', d({ seasons_started: '2' }))).toBe(true)
+    expect(recentNfl(y, 'G', d({ w_av: '20' }))).toBe(true)
+    expect(recentNfl(y, 'WR', d({ w_av: '8' }))).toBe(true)
+    // Not enough: a lineman's AV 8, one season started, a late pick.
+    expect(recentNfl(y, 'G', d({ w_av: '8' }))).toBe(false)
+    expect(recentNfl(y, 'G', d({ seasons_started: '1' }))).toBe(false)
+    expect(recentNfl(y, 'G', d({}))).toBe(false)
+    // Never played a game (only real pros), or before the window.
+    expect(recentNfl(y, 'G', d({ round: '1', games: '0' }))).toBe(false)
+    expect(recentNfl(y - 1, 'G', d({ round: '1' }))).toBe(false)
+    // Undrafted: no draft row, so nothing to go on.
+    expect(recentNfl(y, 'RB', {})).toBe(false)
+  })
+
+  it('NFL: he is in, flagged extended, with his headshot and NO automatic playing photo', () => {
+    const wd = [
+      {
+        pfr: 'S/StarSo00',
+        links: '3',
+        img: 'http://commons.wikimedia.org/wiki/Special:FilePath/Solid%20Starter.jpg',
+      },
+    ]
+    const out = (d) =>
+      nflCandidates([nfl({})], [pick('StarSo00', d)], wd, match).records
+    expect(out({})).toEqual([])
+    const [r] = out({ seasons_started: '4', w_av: '30' })
+    expect(r).toMatchObject({
+      id: 'nfl-StarSo00',
+      schools: ['iowa'],
+      extended: true,
+      action: '',
+    })
+    expect(r.head).toBeTruthy()
+  })
+
+  it('NFL: a core player is unchanged by the rule and is never displaced by an extended namesake', () => {
+    const famous = nfl({
+      pfr_id: 'StarSo01',
+      draft_round: '1',
+      draft_pick: '3',
+    })
+    const wd = [
+      { pfr: 'S/StarSo01', links: '40', img: '' },
+      { pfr: 'S/StarSo00', links: '3', img: '' },
+    ]
+    const picks = [
+      pick('StarSo01', { round: '1', w_av: '60' }),
+      pick('StarSo00', { w_av: '90', seasons_started: '6' }),
+    ]
+    for (const rows of [
+      [famous, nfl({})],
+      [nfl({}), famous],
+    ]) {
+      const { records } = nflCandidates(rows, picks, wd, match)
+      expect(records).toHaveLength(1)
+      expect(records[0].id).toBe('nfl-StarSo01')
+      expect(records[0].extended).toBeUndefined()
+    }
+  })
+
+  it('assignTiers: extended players are placed against the ranking and move nobody', () => {
+    const core = () =>
+      Array.from({ length: 50 }, (_, i) => ({
+        id: `nfl-c${String(i).padStart(2, '0')}`,
+        league: 'nfl',
+        schools: [i % 2 ? 'alabama' : `small-${i}`],
+        fame: 100 - i,
+      }))
+    const alone = assignTiers(core()).map((r) => r.tier)
+    const ext = [
+      {
+        id: 'nfl-x1',
+        league: 'nfl',
+        schools: ['alabama'],
+        fame: 500,
+        extended: true,
+      },
+      {
+        id: 'nfl-x2',
+        league: 'nfl',
+        schools: ['alabama'],
+        fame: 75.5,
+        extended: true,
+      },
+      {
+        id: 'nfl-x3',
+        league: 'nfl',
+        schools: ['nowhere'],
+        fame: 1,
+        extended: true,
+      },
+    ]
+    const all = assignTiers([...ext, ...core()])
+    expect(all.filter((r) => !r.extended).map((r) => r.tier)).toEqual(alone)
+    const tier = (id) => all.find((r) => r.id === id).tier
+    // Between two ranked players of his school: the tier they have.
+    expect(tier('nfl-x2')).toBe(all.find((r) => r.id === 'nfl-c25').tier)
+    expect(tier('nfl-x3')).toBe('hard')
+    // Even the most famous extended player gets no top-6% free pass.
+    expect(['easy', 'medium']).toContain(tier('nfl-x1'))
+  })
+
+  it('nbaClassOf: the incoming class, from the NBA.com id', () => {
+    expect(nbaClassOf('1628368')).toBe(2017)
+    expect(nbaClassOf('1630596')).toBe(2021)
+    expect(nbaClassOf('1641706')).toBe(2023)
+    expect(nbaClassOf('1642843')).toBe(2025)
+    expect(nbaClassOf('201142')).toBe(0)
+  })
+
+  it('match.edu: Wikidata university labels', () => {
+    const id = (l) => match.edu(l)?.id
+    expect(id('University of Kentucky')).toBe('kentucky')
+    expect(id('Gonzaga University')).toBe('gonzaga')
+    expect(id('University of North Carolina at Chapel Hill')).toBe(
+      'north-carolina',
+    )
+    expect(id('Miami University')).toBe('miami-oh')
+    expect(id('University of Miami')).toBe('miami-fl')
+    expect(id('Washington University in St. Louis')).toBeUndefined()
+    expect(id('Cypress Lakes High School')).toBeUndefined()
+  })
+
+  const base = [
+    // Core: NBA team and college team both listed.
+    {
+      bbref: 'c/coreco01',
+      name: 'Core Guy',
+      nbaid: '1628001',
+      img: '',
+      links: '30',
+      dob: '1997-01-01T00:00:00Z',
+    },
+    // No NBA team listed; a college stint.
+    {
+      bbref: 'n/noteam01',
+      name: 'No Team',
+      nbaid: '1630596',
+      img: 'http://commons.wikimedia.org/wiki/Special:FilePath/No%20Team.jpg',
+      links: '25',
+      dob: '2001-01-01T00:00:00Z',
+    },
+    // NBA team listed, but no college team: only where he went to school.
+    {
+      bbref: 'e/eduonl01',
+      name: 'Edu Only',
+      nbaid: '1628368',
+      img: '',
+      links: '28',
+      dob: '1997-01-01T00:00:00Z',
+    },
+    // Same, but under the fame floor / from before the window / no school.
+    {
+      bbref: 'o/obscur01',
+      name: 'Obscure',
+      nbaid: '1630001',
+      img: '',
+      links: '5',
+      dob: '2000-01-01T00:00:00Z',
+    },
+    {
+      bbref: 'o/oldgu01',
+      name: 'Old Guy',
+      nbaid: '2544',
+      img: '',
+      links: '40',
+      dob: '1984-01-01T00:00:00Z',
+    },
+    {
+      bbref: 'h/hsonly01',
+      name: 'Hs Only',
+      nbaid: '1630163',
+      img: '',
+      links: '31',
+      dob: '2001-01-01T00:00:00Z',
+    },
+    // Under the floor, but hand-listed.
+    {
+      bbref: 'h/handli01',
+      name: 'Bob Handlisted',
+      nbaid: '1642848',
+      img: '',
+      links: '11',
+      dob: '2006-01-01T00:00:00Z',
+    },
+  ]
+  const nbaTeam = (bbref, start) => ({
+    bbref,
+    teamLabel: 'Utah Jazz',
+    league: NBA_LEAGUE,
+    start: `${start}-01-01T00:00:00Z`,
+    end: '',
+  })
+  const college = (bbref, teamLabel, end) => ({
+    bbref,
+    teamLabel,
+    league: '',
+    start: '',
+    end: `${end}-01-01T00:00:00Z`,
+  })
+  const teams = [
+    nbaTeam('c/coreco01', 2017),
+    college('c/coreco01', "Duke Blue Devils men's basketball", 2017),
+    college('n/noteam01', "Kentucky Wildcats men's basketball", 2021),
+    nbaTeam('e/eduonl01', 2017),
+    nbaTeam('o/obscur01', 2020),
+    nbaTeam('o/oldgu01', 2003),
+    nbaTeam('h/hsonly01', 2020),
+    nbaTeam('h/handli01', 2025),
+  ]
+  const edu = [
+    { bbref: 'e/eduonl01', eduLabel: 'Cypress Lakes High School', eduEnd: '' },
+    { bbref: 'e/eduonl01', eduLabel: 'University of Kentucky', eduEnd: '' },
+    { bbref: 'o/obscur01', eduLabel: 'University of Kentucky', eduEnd: '' },
+    { bbref: 'o/oldgu01', eduLabel: 'University of Kentucky', eduEnd: '' },
+    { bbref: 'h/hsonly01', eduLabel: 'Chino Hills High School', eduEnd: '' },
+  ]
+  const added = [
+    { id: 'nba-handli01', name: 'Bobby Handlisted', s: ['texas'], y: 2024 },
+    {
+      id: 'nba-nowiki01',
+      name: 'Not In Wikidata',
+      s: ['duke'],
+      y: 2025,
+      nbaid: 1643000,
+    },
+  ]
+  const run = (recent) =>
+    nbaCandidates(base, teams, match, 2026, [], undefined, [], recent).records
+  const full = { edu, added, matchEdu: match.edu }
+
+  it('NBA: without the new tables nothing changes — only the core player', () => {
+    expect(run(undefined).map((r) => r.id)).toEqual(['nba-coreco01'])
+  })
+
+  it('NBA: a recent player is picked up from his college stint or the school he attended', () => {
+    const rs = run(full)
+    const by = Object.fromEntries(rs.map((r) => [r.id, r]))
+    expect(Object.keys(by).sort()).toEqual([
+      'nba-coreco01',
+      'nba-eduonl01',
+      'nba-handli01',
+      'nba-noteam01',
+      'nba-nowiki01',
+    ])
+    // The core player's record is exactly what it is without them.
+    expect(by['nba-coreco01']).toEqual(run(undefined)[0])
+    expect(by['nba-coreco01'].extended).toBeUndefined()
+    // College stint ending 2021: the 2020-21 season.
+    expect(by['nba-noteam01']).toMatchObject({
+      schools: ['kentucky'],
+      year: 2020,
+      extended: true,
+      head: '1630596',
+      // His Wikimedia photo is NOT taken: playing photos are hand-picked.
+      action: '',
+    })
+    // No dates anywhere: the year before his NBA class (id 1628368 → 2017).
+    expect(by['nba-eduonl01']).toMatchObject({
+      schools: ['kentucky'],
+      year: 2016,
+      extended: true,
+    })
+    // Hand-listed: the list's school, year and name; and one Wikidata lacks.
+    expect(by['nba-handli01']).toMatchObject({
+      name: 'Bobby Handlisted',
+      schools: ['texas'],
+      year: 2024,
+      extended: true,
+    })
+    expect(by['nba-nowiki01']).toMatchObject({
+      name: 'Not In Wikidata',
+      schools: ['duke'],
+      year: 2025,
+      head: '1643000',
+      action: '',
+      extended: true,
+    })
   })
 })

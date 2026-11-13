@@ -67,6 +67,11 @@ const nba = nbaCandidates(
     espn: await json('data/nba-espn-heads.json', '{}'),
   },
   JSON.parse(await read('data/international.json')).players,
+  {
+    edu: await csv('data/raw/wd_nba_edu.csv'),
+    added: JSON.parse(await read('data/nba-added.json')).players,
+    matchEdu: match.edu,
+  },
 )
 
 // Wikimedia photos never to use (data/photo-blocklist.json): the ones that
@@ -190,12 +195,13 @@ applyTierMoves(
 for (const r of records)
   r.conf = conferenceAt(byId.get(r.schools[0]), r.league, r.year)
 for (const league of ['nfl', 'nba']) {
-  const pool = new Set(
-    records.filter((r) => r.league === league).map((r) => r.schools[0]),
-  )
+  // Decoys are drawn from the launch (core) pool's schools, so admitting an
+  // extended player never changes the wrong answers of anyone already in.
+  const core = records.filter((r) => r.league === league && !r.extended)
+  const pool = new Set(core.map((r) => r.schools[0]))
   // The dozen schools with the most players in this league's pool.
   const counts = new Map()
-  for (const r of records)
+  for (const r of core)
     if (
       r.league === league &&
       r.schools[0] !== HIGH_SCHOOL_ID &&
@@ -276,6 +282,13 @@ if (nba.missingIntl.length)
   console.log(
     `international.json: listed but not in the source (name mismatch?): ${nba.missingIntl.join(', ')}`,
   )
+{
+  const ext = kept.filter((r) => r.extended)
+  const n = (l) => ext.filter((r) => r.league === l).length
+  console.log(
+    `extended (recent players admitted on their pro careers): nfl ${n('nfl')}, nba ${n('nba')}; waiting for a reviewed playing photo: ${ext.filter((r) => !r.action).length}`,
+  )
+}
 if (nba.missingPreps.length)
   console.log(
     `  listed but not in the pool source (name mismatch?): ${nba.missingPreps.join(', ')}`,

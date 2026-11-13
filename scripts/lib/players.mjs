@@ -16,6 +16,14 @@ export const PRO_FOCUS_YEAR = 2008
 export const MIN_FAME = { nfl: 12, nba: 12 }
 export const LEGEND_FAME = 35
 
+/**
+ * "The last ten years": rookies from this NFL season on (and NBA players who
+ * came into the league from about then) are also admitted on what they did as
+ * pros, not only on fame — the owner's bar (2026-11-13): anyone you would ask
+ * "where did he go to school?" about while watching a game. See recentNfl.
+ */
+export const RECENT_ROOKIE_YEAR = 2016
+
 const SKILL = new Set(['QB', 'RB', 'WR', 'TE'])
 const num = (s) => {
   const n = Number(s)
@@ -119,6 +127,24 @@ export function nflFame({
   return links + 4 * probowls + 6 * allpro + av / avWeight + draft
 }
 
+/**
+ * A recent NFL player who played "to some real level" (draft table row `d`,
+ * so drafted players only): he has played a game, and was a first- or
+ * second-round pick, or made a Pro Bowl, or started for two seasons, or has
+ * real career value (AV 8+ at a skill position, 20+ anywhere).
+ */
+export function recentNfl(rookie, position, d) {
+  if (rookie < RECENT_ROOKIE_YEAR || num(d.games) <= 0) return false
+  const round = num(d.round)
+  const av = num(d.w_av)
+  return (
+    (round >= 1 && round <= 2) ||
+    num(d.probowls) > 0 ||
+    num(d.seasons_started) >= 2 ||
+    av >= (SKILL.has(position) ? 8 : 20)
+  )
+}
+
 function passesEra(fame, lastPro, league) {
   if (fame < MIN_FAME[league]) return false
   return lastPro >= PRO_FOCUS_YEAR || fame >= LEGEND_FAME
@@ -169,7 +195,10 @@ export function nflCandidates(
       pick: num(p.draft_pick),
     })
     const lastPro = num(p.last_season)
-    if (!passesEra(fame, lastPro, 'nfl')) continue
+    // Admitted on fame (the launch rule: `core`), or as a recent player who
+    // really played (`extended`: see assignTiers and the photo rule below).
+    const extended = !passesEra(fame, lastPro, 'nfl')
+    if (extended && !recentNfl(rookie, p.position, d)) continue
     const names = p.college_name.split(';').map((s) => s.trim())
     const schools = []
     for (const n of names) {
@@ -191,11 +220,23 @@ export function nflCandidates(
       pos: p.position,
       team: p.latest_team || '',
       head,
-      action,
+      // An extended player's playing photo is only ever hand-picked
+      // (data/photo-overrides.json): the automatic Wikimedia one has not
+      // been through the by-eye review the launch pool got, so he waits —
+      // in the dataset, not drawn — until someone has looked.
+      action: extended ? '' : action,
       lastPro,
+      ...(extended ? { extended: true } : {}),
     }
     const key = `${rec.name}|${schools[0]}`
-    if (!best.has(key) || best.get(key).fame < fame) best.set(key, rec)
+    const prev = best.get(key)
+    // A core player is never displaced by an extended namesake.
+    if (
+      !prev ||
+      (prev.extended && !rec.extended) ||
+      (!!prev.extended === !!rec.extended && prev.fame < fame)
+    )
+      best.set(key, rec)
   }
   return { records: [...best.values()], unmapped }
 }
@@ -237,7 +278,18 @@ export function nbaCandidates(
   preps = [],
   heads = { placeholders: new Set(), espn: {} },
   intl = [],
+  recent = null,
 ) {
+  // `recent` off (tests of the launch rule): nobody but core players.
+  const useRecent = !!recent
+  recent ??= { edu: [], added: [], matchEdu: () => undefined }
+  const eduBy = new Map()
+  for (const e of recent.edu) {
+    if (!eduBy.has(e.bbref)) eduBy.set(e.bbref, [])
+    eduBy.get(e.bbref).push(e)
+  }
+  const addedById = new Map(recent.added.map((a) => [a.id, a]))
+  const foundAdded = new Set()
   const prepByName = new Map(preps.map((p) => [nameKey(p.name), p]))
   const foundPreps = new Set()
   const intlNames = new Set(intl.map((p) => nameKey(p.name)))
@@ -250,13 +302,22 @@ export function nbaCandidates(
     teams.get(t.bbref).push(t)
   }
   const records = []
+  const later = []
   const unmapped = new Map()
   const seen = new Set()
   for (const [bbref, b] of base) {
     const ts = teams.get(bbref) ?? []
     const nba = ts.filter((t) => t.league === NBA_LEAGUE)
-    if (!nba.length || !b.nbaid || !/^\d+$/.test(b.nbaid)) continue
+    if (!b.nbaid || !/^\d+$/.test(b.nbaid)) continue
     const fame = num(b.links)
+    // Wikidata has no NBA team and/or no college team for most players who
+    // came into the league since ~2019. They are picked up afterwards, from
+    // where they went to school (recentNba) — as `extended` players.
+    const hand = addedById.get(`nba-${bbref.split('/').pop()}`)
+    if (hand || !nba.length) {
+      later.push({ bbref, b, ts, fame, hand })
+      continue
+    }
     const college = ts.filter(
       (t) =>
         t.league !== NBA_LEAGUE &&
@@ -265,7 +326,10 @@ export function nbaCandidates(
     )
     const prep = prepByName.get(nameKey(b.name))
     const abroad = !prep && intlNames.has(nameKey(b.name))
-    if (!college.length && !prep && !abroad) continue
+    if (!college.length && !prep && !abroad) {
+      later.push({ bbref, b, ts, fame, hand })
+      continue
+    }
     const dob = year(b.dob)
     // Last attended first: order by the stint's end (then start) year, desc.
     const stints = college
@@ -341,6 +405,40 @@ export function nbaCandidates(
       ...(abroad ? { fixedTier: 'easy' } : {}),
     })
   }
+  // Recent players the pass above could not place (extended). Added after
+  // it, so one of them can never take a name+school key from a core player.
+  for (const { bbref, b, ts, fame, hand } of useRecent ? later : []) {
+    const rec = recentNba(b, ts, fame, hand, eduBy.get(bbref) ?? [], {
+      match,
+      matchEdu: recent.matchEdu,
+      nowYear,
+    })
+    if (!rec) continue
+    if (hand) foundAdded.add(hand.id)
+    const key = `${rec.name}|${rec.schools[0]}`
+    if (seen.has(key)) continue
+    seen.add(key)
+    records.push({ id: `nba-${bbref.split('/').pop()}`, ...rec })
+  }
+  // Hand-listed players Wikidata does not have at all.
+  const haveIds = new Set(records.map((r) => r.id))
+  for (const a of recent.added) {
+    if (foundAdded.has(a.id) || haveIds.has(a.id)) continue
+    records.push({
+      id: a.id,
+      name: a.name,
+      league: 'nba',
+      schools: [...a.s],
+      year: a.y,
+      fame: 0,
+      pos: '',
+      team: '',
+      head: a.nbaid ? String(a.nbaid) : '',
+      action: '',
+      lastPro: nowYear,
+      extended: true,
+    })
+  }
   const missingPreps = preps
     .filter((p) => !foundPreps.has(nameKey(p.name)))
     .map((p) => p.name)
@@ -348,6 +446,89 @@ export function nbaCandidates(
     .filter((p) => !foundIntl.has(nameKey(p.name)))
     .map((p) => p.name)
   return { records, unmapped, missingPreps, missingIntl }
+}
+
+/**
+ * The season a player came into the NBA, from his NBA.com id: the league
+ * hands them out in order, a block per incoming class. Only a fallback for
+ * the final college season (draft year − 1) of a recent player Wikidata
+ * gives no dates for; 0 for an id from before 2015. A player who signed late
+ * (undrafted, two-way) reads a year or two late — the hand list
+ * (data/nba-added.json) and data/overrides.json correct those.
+ */
+export function nbaClassOf(nbaid) {
+  const n = Number(nbaid)
+  const from = [
+    [1642800, 2025],
+    [1642200, 2024],
+    [1641600, 2023],
+    [1631000, 2022],
+    [1630500, 2021],
+    [1630100, 2020],
+    [1629600, 2019],
+    [1628960, 2018],
+    [1628000, 2017],
+    [1627700, 2016],
+    [1626100, 2015],
+  ]
+  return from.find(([id]) => n >= id)?.[1] ?? 0
+}
+
+/**
+ * An `extended` NBA record for a recent player the main pass could not place,
+ * or null. He needs a college — a hand entry (`hand`: school ids and year),
+ * a college team stint, or a school he attended (P69) that is in the schools
+ * table — and to be recent: an NBA.com id from the 2015 class on.
+ * The fame floor is the usual one unless he is hand-listed.
+ */
+function recentNba(b, ts, fame, hand, edu, { match, matchEdu, nowYear }) {
+  const cls = nbaClassOf(b.nbaid)
+  if (!hand && (!cls || fame < MIN_FAME.nba)) return null
+  let schools = []
+  let yr
+  if (hand) {
+    schools = [...hand.s]
+    yr = hand.y
+  } else {
+    const stints = ts
+      .filter(
+        (t) =>
+          t.league !== NBA_LEAGUE &&
+          /basketball$/.test(t.teamLabel) &&
+          !/national/.test(t.teamLabel),
+      )
+      .map((t) => ({ t, when: year(t.end) ?? year(t.start) ?? 0 }))
+      .sort((a, c) => c.when - a.when)
+    for (const { t } of stints) {
+      const s = match.wd(t.teamLabel)
+      if (s && !schools.includes(s.id)) schools.push(s.id)
+    }
+    // No team stint: the schools he attended, last one first when dated.
+    const went = edu
+      .map((e) => ({ s: matchEdu(e.eduLabel), when: year(e.eduEnd) ?? 0 }))
+      .filter((e) => e.s)
+      .sort((a, c) => c.when - a.when)
+    if (!schools.length)
+      for (const e of went) if (!schools.includes(e.s.id)) schools.push(e.s.id)
+    if (!schools.length) return null
+    const end = stints[0]?.when || went[0]?.when || 0
+    yr = (end || cls) - 1
+  }
+  if (yr < FIRST_COLLEGE_YEAR) return null
+  return {
+    name: hand?.name ?? b.name,
+    league: 'nba',
+    schools,
+    year: yr,
+    fame,
+    pos: '',
+    team: '',
+    head: b.nbaid,
+    // Hand-picked only, like every extended player's (see nflCandidates).
+    action: '',
+    lastPro: nowYear,
+    extended: true,
+  }
 }
 
 /**
@@ -359,21 +540,33 @@ export function assignTiers(records) {
   // A hand-picked tier (internationals) is kept, and those players are left
   // out of the ranking, so adding one never moves anyone else's tier.
   for (const r of records) if (r.fixedTier) r.tier = r.fixedTier
+  // `extended` players (admitted after launch on what they did as pros) are
+  // left out of the ranking too, and placed against it afterwards — so
+  // admitting more of them never moves the tier of anyone already in.
   for (const league of ['nfl', 'nba']) {
+    const ranked = (r) => r.league === league && !r.fixedTier
     const rs = records
-      .filter((r) => r.league === league && !r.fixedTier)
+      .filter((r) => ranked(r) && !r.extended)
       .sort((a, b) => b.fame - a.fame || (a.id < b.id ? -1 : 1))
     const perSchool = new Map()
     for (const r of rs)
       perSchool.set(r.schools[0], (perSchool.get(r.schools[0]) ?? 0) + 1)
-    rs.forEach((r, i) => {
-      const pct = i / Math.max(1, rs.length - 1)
-      const n = perSchool.get(r.schools[0])
+    const tierAt = (pct, school) => {
+      const n = perSchool.get(school) ?? 0
       const schoolPenalty = n >= 15 ? 0 : n >= 8 ? 10 : n >= 4 ? 22 : 35
       const diff = pct * 100 + schoolPenalty
-      r.tier =
-        pct <= 0.06 || diff < 32 ? 'easy' : diff >= 82 ? 'hard' : 'medium'
+      return pct <= 0.06 || diff < 32 ? 'easy' : diff >= 82 ? 'hard' : 'medium'
+    }
+    rs.forEach((r, i) => {
+      r.tier = tierAt(i / Math.max(1, rs.length - 1), r.schools[0])
     })
+    // Where he would stand in that ranking: the share of it more famous
+    // than he is. Never the top-6% free pass — that is for the ranked.
+    for (const r of records.filter((x) => ranked(x) && x.extended)) {
+      const above = rs.filter((x) => x.fame > r.fame).length
+      const pct = Math.max(0.0601, above / Math.max(1, rs.length - 1))
+      r.tier = tierAt(Math.min(1, pct), r.schools[0])
+    }
   }
   return records
 }

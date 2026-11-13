@@ -24,6 +24,11 @@
       "pick": 4,
       "was": "medium"
     },
+    "nba-foxde01": {
+      "name": "De'Aaron Fox",
+      "draft": 2017,
+      "pick": 5
+    },
     "nba-isaacjo01": {
       "name": "Jonathan Isaac",
       "draft": 2017,
@@ -118,6 +123,11 @@
       "draft": 2019,
       "pick": 3
     },
+    "nba-huntede01": {
+      "name": "De'Andre Hunter",
+      "draft": 2019,
+      "pick": 4
+    },
     "nba-garlada01": {
       "name": "Darius Garland",
       "draft": 2019,
@@ -135,16 +145,46 @@
       "pick": 7,
       "was": "medium"
     },
+    "nba-hayesja02": {
+      "name": "Jaxson Hayes",
+      "draft": 2019,
+      "pick": 8
+    },
     "nba-hachiru01": {
       "name": "Rui Hachimura",
       "draft": 2019,
       "pick": 9
+    },
+    "nba-reddica01": {
+      "name": "Cam Reddish",
+      "draft": 2019,
+      "pick": 10
     },
     "nba-edwaran01": {
       "name": "Anthony Edwards",
       "draft": 2020,
       "pick": 1,
       "was": "medium"
+    },
+    "nba-wisemja01": {
+      "name": "James Wiseman",
+      "draft": 2020,
+      "pick": 2
+    },
+    "nba-willipa01": {
+      "name": "Patrick Williams",
+      "draft": 2020,
+      "pick": 4
+    },
+    "nba-okorois01": {
+      "name": "Isaac Okoro",
+      "draft": 2020,
+      "pick": 5
+    },
+    "nba-okongon01": {
+      "name": "Onyeka Okongwu",
+      "draft": 2020,
+      "pick": 6
     },
     "nba-toppiob01": {
       "name": "Obi Toppin",
@@ -157,11 +197,21 @@
       "draft": 2020,
       "pick": 9
     },
+    "nba-smithja04": {
+      "name": "Jalen Smith",
+      "draft": 2020,
+      "pick": 10
+    },
     "nba-cunnica01": {
       "name": "Cade Cunningham",
       "draft": 2021,
       "pick": 1,
       "was": "medium"
+    },
+    "nba-mobleev01": {
+      "name": "Evan Mobley",
+      "draft": 2021,
+      "pick": 3
     },
     "nba-barnesc01": {
       "name": "Scottie Barnes",
@@ -180,15 +230,105 @@
       "draft": 2021,
       "pick": 8
     },
+    "nba-mitchda01": {
+      "name": "Davion Mitchell",
+      "draft": 2021,
+      "pick": 9
+    },
+    "nba-willizi02": {
+      "name": "Ziaire Williams",
+      "draft": 2021,
+      "pick": 10
+    },
     "nba-banchpa01": {
       "name": "Paolo Banchero",
       "draft": 2022,
       "pick": 1
     },
+    "nba-holmgch01": {
+      "name": "Chet Holmgren",
+      "draft": 2022,
+      "pick": 2
+    },
+    "nba-smithja05": {
+      "name": "Jabari Smith Jr.",
+      "draft": 2022,
+      "pick": 3
+    },
+    "nba-murrake02": {
+      "name": "Keegan Murray",
+      "draft": 2022,
+      "pick": 4
+    },
+    "nba-iveyja01": {
+      "name": "Jaden Ivey",
+      "draft": 2022,
+      "pick": 5
+    },
+    "nba-mathube01": {
+      "name": "Bennedict Mathurin",
+      "draft": 2022,
+      "pick": 6
+    },
+    "nba-sochaje01": {
+      "name": "Jeremy Sochan",
+      "draft": 2022,
+      "pick": 9
+    },
+    "nba-davisjo06": {
+      "name": "Johnny Davis",
+      "draft": 2022,
+      "pick": 10
+    },
     "nba-wembavi01": {
       "name": "Victor Wembanyama",
       "draft": 2023,
       "pick": 1
+    },
+    "nba-millebr02": {
+      "name": "Brandon Miller",
+      "draft": 2023,
+      "pick": 2
+    },
+    "nba-blackan01": {
+      "name": "Anthony Black",
+      "draft": 2023,
+      "pick": 6
+    },
+    "nba-walkeja02": {
+      "name": "Jarace Walker",
+      "draft": 2023,
+      "pick": 8
+    },
+    "nba-hendrta01": {
+      "name": "Taylor Hendricks",
+      "draft": 2023,
+      "pick": 9
+    },
+    "nba-wallaca01": {
+      "name": "Cason Wallace",
+      "draft": 2023,
+      "pick": 10
+    },
+    "nba-sheppre01": {
+      "name": "Reed Sheppard",
+      "draft": 2024,
+      "pick": 3
+    },
+    "nba-castlst01": {
+      "name": "Stephon Castle",
+      "draft": 2024,
+      "pick": 4
+    },
+    "nba-clingdo01": {
+      "name": "Donovan Clingan",
+      "draft": 2024,
+      "pick": 7
+    },
+    "nba-dilliro01": {
+      "name": "Robert Dillingham",
+      "draft": 2024,
+      "pick": 8
     },
     "nba-edeyza01": {
       "name": "Zach Edey",
@@ -196,10 +336,55 @@
       "pick": 9,
       "was": "medium"
     },
+    "nba-willico04": {
+      "name": "Cody Williams",
+      "draft": 2024,
+      "pick": 10
+    },
     "nba-flaggco01": {
       "name": "Cooper Flagg",
       "draft": 2025,
       "pick": 1
+    },
+    "nba-harpedy01": {
+      "name": "Dylan Harper",
+      "draft": 2025,
+      "pick": 2
+    },
+    "nba-edgecvj01": {
+      "name": "V. J. Edgecombe",
+      "draft": 2025,
+      "pick": 3
+    },
+    "nba-knuepko01": {
+      "name": "Kon Knueppel",
+      "draft": 2025,
+      "pick": 4
+    },
+    "nba-baileac01": {
+      "name": "Ace Bailey",
+      "draft": 2025,
+      "pick": 5
+    },
+    "nba-johnstr03": {
+      "name": "Tre Johnson",
+      "draft": 2025,
+      "pick": 6
+    },
+    "nba-fearsje01": {
+      "name": "Jeremiah Fears",
+      "draft": 2025,
+      "pick": 7
+    },
+    "nba-murraco01": {
+      "name": "Collin Murray-Boyles",
+      "draft": 2025,
+      "pick": 9
+    },
+    "nba-maluakh01": {
+      "name": "Khaman Maluach",
+      "draft": 2025,
+      "pick": 10
     },
     "nba-dybanaj01": {
       "name": "AJ Dybantsa",
@@ -212,6 +397,46 @@
       "draft": 2026,
       "pick": 2,
       "was": "hard"
+    },
+    "nba-boozeca02": {
+      "name": "Cameron Boozer",
+      "draft": 2026,
+      "pick": 3
+    },
+    "nba-wilsoca01": {
+      "name": "Caleb Wilson",
+      "draft": 2026,
+      "pick": 4
+    },
+    "nba-wagleke01": {
+      "name": "Keaton Wagler",
+      "draft": 2026,
+      "pick": 5
+    },
+    "nba-brownmi02": {
+      "name": "Mikel Brown Jr.",
+      "draft": 2026,
+      "pick": 6
+    },
+    "nba-acuffda01": {
+      "name": "Darius Acuff Jr.",
+      "draft": 2026,
+      "pick": 7
+    },
+    "nba-flemiki01": {
+      "name": "Kingston Flemings",
+      "draft": 2026,
+      "pick": 8
+    },
+    "nba-johnsmo01": {
+      "name": "Morez Johnson Jr.",
+      "draft": 2026,
+      "pick": 9
+    },
+    "nba-burribr01": {
+      "name": "Brayden Burries",
+      "draft": 2026,
+      "pick": 10
     }
   }
 }
