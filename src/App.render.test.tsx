@@ -149,6 +149,9 @@ describe('App', () => {
     expect(footer.lastElementChild!.textContent).toBe(
       'A Spicy Al Software Solution',
     )
+    expect(
+      footer.lastElementChild!.querySelector('a')?.getAttribute('href'),
+    ).toBe('https://spicyals.com')
   })
 
   it('a daily plays five questions and lands on the results with a share button', async () => {

@@ -497,7 +497,16 @@ export function App() {
           </a>
           .
         </div>
-        <div>A Spicy Al Software Solution</div>
+        <div>
+          <a
+            className="studio-credit"
+            href="https://spicyals.com"
+            target="_blank"
+            rel="noopener"
+          >
+            A Spicy Al Software Solution
+          </a>
+        </div>
       </footer>
     </div>
   )
